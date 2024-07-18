@@ -2850,7 +2850,7 @@ theorem rightrev_criterion_AC_eq:
               let g_surj_prop : is_surjective g A := fun (y) => fun (hy : y ∈ A) =>
                 let hy_nempt := fun (hy_empt : y = ∅) =>
                   hnempty (eq_subst (fun (t) => t ∈ A) y (∅) (hy_empt) hy)
-                let exi_pr := non_empty_uni_then_exi (fun (t) => True) y (hy_nempt) (fun (t) => fun (ht : t ∈ y) => True.intro)
+                let exi_pr := non_empty_uni_then_exi (fun (t) => True) y (hy_nempt) (fun (t) => fun (_ : t ∈ y) => True.intro)
                 Exists.elim exi_pr (
                   fun (x) =>
                     fun (hx : x ∈ y ∧ True) =>
