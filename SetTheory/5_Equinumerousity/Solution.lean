@@ -1850,7 +1850,7 @@ theorem schroeder_bernstein_theorem : ∀ A B, (A ~ B) ↔ ((A ≾ B) ∧ (B ≾
 
                     let F := lam_fun (𝒫 A) (𝒫 A) P
 
-                    let func_prop_all := lam_then_fun_prop P (𝒫 A) (𝒫 A) (fun (X) => fun (hx : X ∈ 𝒫 A) =>
+                    let func_prop_all := lam_then_fun_prop P (𝒫 A) (𝒫 A) (fun (X) => fun (_ : X ∈ 𝒫 A) =>
                       P_prop X
                     )
 
