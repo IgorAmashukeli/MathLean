@@ -701,3 +701,20 @@ theorem example_theorem2 : (∀ A B, A △ B = (A ∪ B) \ (A ∩ B)) :=
     let s : (A ∪ B) \ (A ∩ B) = (A △ B) :=
     eq_subst (fun (x) => (A ∪ B) \ (A ∩ B) = (A \ B) ∪ x) (B ∩ (U \ A)) (B \ A) (Eq.symm (difference_inter_prop U B A m₁)) (f₉)
     Eq.symm s
+
+
+
+theorem neg_mon_diff : ∀ A B C, (A ⊆ B) → (C \ B) ⊆ (C \ A) :=
+  fun (A B C) =>
+    fun (hAB : (A ⊆ B)) =>
+      fun (x) =>
+        fun (hx : (x ∈ (C \ B))) =>
+          let u := Iff.mp (difference_prop C B x) hx
+          Iff.mpr (difference_prop C A x) (
+            And.intro (And.left u) (
+              fun (hx : x ∈ A) =>
+                And.right u (
+                  hAB x (hx)
+                )
+            )
+          )

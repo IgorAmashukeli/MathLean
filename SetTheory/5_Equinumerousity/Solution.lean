@@ -1,28 +1,5 @@
 import «Header»
 
--- set of all functions
-noncomputable def power_set (B A : Set) : Set := {f ∈ 𝒫 (A × B) | f Fun A To B}
-
-syntax term "ℙow" term : term
-macro_rules
-  |`($A:term ℙow $B:term) => `(power_set $A $B)
-
-
-theorem power_set_prop : ∀ A B f, f ∈ (B ℙow A) ↔ f Fun A To B :=
-  fun (A B f) =>
-    Iff.intro
-    (
-      fun (h₁ : f ∈ (B ℙow A)) =>
-        And.right (Iff.mp (specification_set_is_specification (fun (t) => t Fun A To B) (𝒫 (A × B)) f) h₁)
-    )
-    (
-      fun (h₁ : f Fun A To B) =>
-        let res₁ := And.left (And.left h₁)
-        let res₂ := Iff.mpr (boolean_set_is_boolean (A × B) f) res₁
-        Iff.mpr (specification_set_is_specification ((fun (t) => t Fun A To B)) (𝒫 (A × B)) f) (And.intro (res₂) (h₁))
-    )
-
-
 
 def equinumerous (A B : Set) : Prop := ∃ f, f Bij A To B
 
@@ -729,54 +706,707 @@ theorem equinum_cartesian_assoc : ∀ A B C, ((A × B) × C) ~ (A × (B × C)) :
 theorem equinum_cartesian_power : ∀ A B C, ((A × B) ℙow C) ~ (A ℙow C) × (B ℙow C) :=
   fun (A B C) =>
 
+    let Y := (A × B) ℙow C
+    let Z := (A ℙow C) × (B ℙow C)
+
+    let prop := fun (f) => fun (P : Set → Set) => fun (c) => P (f⦅c⦆)
+
+    let left_func := fun (f) => lam_fun C A (
+          prop f fst_coor
+        )
+
+    let right_func := fun (f) => lam_fun C B (
+          prop f snd_coor
+        )
+
     let pred_ψ := fun (f) =>
-        let left_func := lam_fun C A (
-          fun (c) => fst_coor f⦅c⦆
-        )
-        let right_func := lam_fun C B (
-          fun (c) => snd_coor f⦅c⦆
-        )
-        (left_func, right_func)
+        (left_func f, right_func f)
 
 
-    let ψ := lam_fun ((A × B) ℙow C) ((A ℙow C) × (B ℙow C)) (
+    let ψ := lam_fun Y Z (
       pred_ψ
     )
 
-    let func_prop := lam_then_fun_prop pred_ψ ((A × B) ℙow C) ((A ℙow C) × (B ℙow C)) (
-      fun (f) => fun (h₁ : f ∈ ((A × B) ℙow C)) =>
+    let u := fun (f) => fun (h₁ : f ∈ Y) => Iff.mp (power_set_prop C (A × B) f) h₁
+
+    let v := fun (f) => fun (h₁ : f ∈ Y) => fun (X) => fun (P : Set → Set) => fun (hx : (∀ x ∈ A × B; P x ∈ X)) =>
+        let p := fun (c) => fun (hc : c ∈ C) =>
+          let m := val_in_B f C (A × B) (u f h₁) c hc
+          hx (f⦅c⦆) m
+        let v_func_property := (lam_then_fun_prop (prop f P) C X p)
+        let r := And.left v_func_property
+        And.intro (Iff.mpr (power_set_prop C X (lam_fun C X (prop f P))) r) (And.right (v_func_property))
+
+    let v_fst := fun (f) => fun (h₁ : f ∈ Y) => v f h₁ A (fst_coor) (fst_coor_set A B)
+    let v_snd := fun (f) => fun (h₁ : f ∈ Y) => v f h₁ B (snd_coor) (snd_coor_set A B)
+
+
+    let func_prop := lam_then_fun_prop pred_ψ Y Z (
+      fun (f) => fun (h₁ : f ∈ Y) =>
         Iff.mpr (cartesian_product_pair_prop (A ℙow C) (B ℙow C) (lam_fun C A (
-          fun (c) => fst_coor f⦅c⦆
+          prop f fst_coor
         )) (lam_fun C B (
-          fun (c) => snd_coor f⦅c⦆
-        ))) (And.intro (sorry) (sorry))
+          prop f snd_coor
+        ))) (
+
+
+
+          And.intro (And.left (v_fst f h₁)) (And.left (v_snd f h₁))
+          )
     )
 
-    Exists.intro ψ (And.intro (And.left func_prop) (And.intro (sorry) (sorry)))
+    Exists.intro ψ (And.intro (And.left func_prop) (And.intro (
+      And.right (Iff.mpr (func_inj_prop Y Z ψ (And.left func_prop)) (
+        fun (f) => fun (hf : f ∈ Y) => fun (g) => fun (hg : g ∈ Y) =>
+          fun (hψ : ψ⦅f⦆ = ψ⦅g⦆) =>
+            let hψf := val_in_B ψ Y Z (And.left func_prop) f hf
+            let hψg := val_in_B ψ Y Z (And.left func_prop) g hg
+            let hψfc := Iff.mp (cartesian_product_is_cartesian (A ℙow C) (B ℙow C) (ψ⦅f⦆)) hψf
+            let hψgc := Iff.mp (cartesian_product_is_cartesian (A ℙow C) (B ℙow C) (ψ⦅g⦆)) hψg
+            Exists.elim hψfc
+            (
+              fun (ψf₁) =>
+                fun (hψf₁ : ψf₁ ∈ (A ℙow C) ∧ ∃ r ∈ (B ℙow C); ψ⦅f⦆ = (ψf₁, r)) =>
+                  Exists.elim (And.right hψf₁)
+                  (
+                    fun (ψf₂) =>
+                      fun (hψf₂ : ψf₂ ∈ (B ℙow C) ∧ ψ⦅f⦆ = (ψf₁, ψf₂)) =>
+                        Exists.elim hψgc
+                        (
+                          fun (ψg₁) =>
+                            fun (hψg₁ : ψg₁ ∈ (A ℙow C) ∧ ∃ r ∈ (B ℙow C); ψ⦅g⦆ = (ψg₁, r)) =>
+                              Exists.elim (And.right hψg₁)
+                              (
+                                fun (ψg₂) =>
+                                  fun (hψg₂ : ψg₂ ∈ (B ℙow C) ∧ ψ⦅g⦆ = (ψg₁, ψg₂)) =>
+                                    let u := Iff.mp (ordered_pair_set_prop ψf₁ ψf₂ ψg₁ ψg₂) (
+                                      Eq.trans (Eq.symm (And.right hψf₂)) (
+                                        Eq.trans (hψ) (And.right hψg₂)
+                                      )
+                                    )
+                                    let vf : ψ⦅f⦆ = pred_ψ f := And.right func_prop f hf
+                                    let vf₂ := Iff.mp (ordered_pair_set_prop ψf₁ ψf₂ (left_func f) (right_func f)) (
+                                      Eq.trans (Eq.symm (And.right hψf₂)) (vf)
+                                    )
+                                    let vg : ψ⦅g⦆ = pred_ψ g := And.right func_prop g hg
+                                    let vg₂ := Iff.mp (ordered_pair_set_prop ψg₁ ψg₂ (left_func g) (right_func g)) (
+                                      Eq.trans (Eq.symm (And.right hψg₂)) (vg)
+                                    )
+                                    let vgf₁ := Eq.trans (Eq.trans (Eq.symm (And.left vf₂)) (And.left u)) (And.left vg₂)
+                                    let vgf₂ := Eq.trans (Eq.trans (Eq.symm (And.right vf₂)) (And.right u)) (And.right vg₂)
+
+                                    let ffunc := Iff.mp (power_set_prop C (A × B) f) hf
+                                    let gfunc := Iff.mp (power_set_prop C (A × B) g) hg
+
+                                    Iff.mpr (equal_functions_abc_A f g C (A × B) (A × B) ffunc gfunc) (
+                                      fun (c) => fun (hc : c ∈ C) =>
+
+                                        let left_fgc := Iff.mp (equal_functions_abc_A (left_func f) (left_func g ) C A A (
+                                          Iff.mp (power_set_prop C A (left_func f)) (And.left (v_fst f hf))
+                                        ) (Iff.mp (power_set_prop C A (left_func g)) (And.left (v_fst g hg)))) vgf₁ c hc
+
+                                        let v_fst_f₁ : (left_func f)⦅c⦆ = fst_coor (f⦅c⦆) := And.right (v_fst f hf) c hc
+                                        let v_fst_g₁ : (left_func g)⦅c⦆ = fst_coor (g⦅c⦆) := And.right (v_fst g hg) c hc
+                                        let fst_fg := Eq.trans (Eq.trans (Eq.symm (v_fst_f₁)) (left_fgc)) (v_fst_g₁)
+
+                                        let right_fgc := Iff.mp (equal_functions_abc_A (right_func f) (right_func g ) C B B (
+                                          Iff.mp (power_set_prop C B (right_func f)) (And.left (v_snd f hf))
+                                        ) (Iff.mp (power_set_prop C B (right_func g)) (And.left (v_snd g hg)))) vgf₂ c hc
+
+                                        let v_snd_f₁ : (right_func f)⦅c⦆ = snd_coor (f⦅c⦆) := And.right (v_snd f hf) c hc
+                                        let v_snd_g₁ : (right_func g)⦅c⦆ = snd_coor (g⦅c⦆) := And.right (v_snd g hg) c hc
+                                        let snd_fg := Eq.trans (Eq.trans (Eq.symm (v_snd_f₁)) (right_fgc)) (v_snd_g₁)
+
+                                        let f_val := val_in_B f C (A × B) (ffunc) c hc
+                                        let g_val := val_in_B g C (A × B) (gfunc) c hc
+
+                                        equal_fst_snd A B (f⦅c⦆) (g⦅c⦆) f_val g_val (fst_fg) (snd_fg)
+                                    )
+                              )
+                        )
+                  )
+            )
+      ))
+    ) (
+
+      And.right (Iff.mpr (func_surj_prop Y Z ψ (And.left func_prop)) (
+        fun (pr) => fun (hpr : pr ∈ Z) =>
+          let P := fun (c) => ((fst_coor pr)⦅c⦆, (snd_coor pr)⦅c⦆)
+          let f := lam_fun C (A × B) P
+
+          Exists.intro f (
+            let fst_pr := val_in_B (fst_coor pr) C A
+              (Iff.mp (power_set_prop C A (fst_coor pr)) (fst_coor_set (A ℙow C) (B ℙow C) pr hpr))
+            let snd_pr := val_in_B (snd_coor pr) C B
+              (Iff.mp (power_set_prop C B (snd_coor pr)) (snd_coor_set (A ℙow C) (B ℙow C) pr hpr))
+            let pr_prop := fun (c) => fun (hc : c ∈ C) =>
+              Iff.mpr (cartesian_product_pair_prop A B ((fst_coor pr)⦅c⦆) ((snd_coor pr)⦅c⦆)) (
+                And.intro (fst_pr c hc) (snd_pr c hc)
+              )
+            let f_func_prop := lam_then_fun_prop P C (A × B) (pr_prop)
+
+            let fY := Iff.mpr (power_set_prop C (A × B) f) (And.left f_func_prop)
+
+            And.intro (
+              fY
+            ) (
+              let hψf := val_in_B ψ Y Z (And.left func_prop) f fY
+
+
+              let vf : ψ⦅f⦆ = pred_ψ f := And.right func_prop f fY
+
+              let vf₁ : fst_coor (ψ⦅f⦆) = left_func f := eq_subst (fun (t) => fst_coor t = left_func f) (pred_ψ f) (ψ⦅f⦆) (Eq.symm vf) (
+                coordinates_fst_coor (left_func f) (right_func f))
+
+              let vf₂ : snd_coor (ψ⦅f⦆) = right_func f := eq_subst (fun (t) => snd_coor t = right_func f) (pred_ψ f) (ψ⦅f⦆) (Eq.symm vf) (
+                coordinates_snd_coor (left_func f) (right_func f))
+
+              let first := fst_coor_set (A ℙow C) (B ℙow C) pr hpr
+              let first₂ := Iff.mp (power_set_prop C A (fst_coor pr)) first
+              let second := snd_coor_set (A ℙow C) (B ℙow C) pr hpr
+              let second₂ := Iff.mp (power_set_prop C B (snd_coor pr)) second
+              let third := Iff.mp (power_set_prop C A (left_func f)) (And.left (v_fst f fY))
+              let fourth := Iff.mp (power_set_prop C B (right_func f)) (And.left (v_snd f fY))
+              let ffunc_prop := And.right f_func_prop
+
+
+              equal_fst_snd (A ℙow C) (B ℙow C) pr (ψ⦅f⦆) hpr hψf (
+
+                Eq.trans (
+                  Iff.mpr (equal_functions_abc_A (fst_coor pr) (left_func f) C A A (first₂) (third)) (
+                    fun (c) => fun (hc : c ∈ C) =>
+                      let u := And.right (v_fst f fY) c hc
+
+                      Eq.trans (Eq.symm (
+
+                        let v : fst_coor (P c) = (fst_coor pr)⦅c⦆ := coordinates_fst_coor ((fst_coor pr)⦅c⦆) ((snd_coor pr)⦅c⦆)
+                        eq_subst (fun (t) => fst_coor t = (fst_coor pr)⦅c⦆) (P c) (f⦅c⦆) (Eq.symm (ffunc_prop c hc)) (v)
+
+                      )) (Eq.symm (u))
+                  )
+                ) (Eq.symm vf₁)
+
+              ) (
+                Eq.trans (
+                  Iff.mpr (equal_functions_abc_A (snd_coor pr) (right_func f) C B B (second₂) fourth) (
+                    fun (c) => fun (hc : c ∈ C) =>
+                      let u := And.right (v_snd f fY) c hc
+                      Eq.trans (Eq.symm (
+
+                        let v : snd_coor (P c) = (snd_coor pr)⦅c⦆ := coordinates_snd_coor ((fst_coor pr)⦅c⦆) ((snd_coor pr)⦅c⦆)
+                        eq_subst (fun (t) => snd_coor t = (snd_coor pr)⦅c⦆) (P c) (f⦅c⦆) (Eq.symm (ffunc_prop c hc)) (v)
+                      )) (Eq.symm (u))
+                  )
+                ) (Eq.symm vf₂)
+              )
+            )
+          )
+      ))
+    )))
 
 
 theorem equinum_power_cartesian : ∀ A B C, ((A ℙow B) ℙow C) ~ (A ℙow (B × C)) :=
-  sorry
+  fun (A B C) =>
+    let first := equinum_cartesian_comm C B
+    let second := equinum_power_congr_left (C × B) (B × C) A first
+    equinum_trans ((A ℙow B) ℙow C) (A ℙow (C × B)) (A ℙow (B × C)) (
+
+      let X := (A ℙow B) ℙow C
+      let Y := A ℙow (C × B)
+      let Q := fun (f) => (fun (pr) => (f⦅fst_coor pr⦆)⦅snd_coor pr⦆)
+      let P := fun (f) =>
+        lam_fun (C × B) A (Q f)
+      let ψ := lam_fun X Y P
+
+
+
+      let P_prop := fun (f) => fun (hf : f ∈ X) =>
+        let Q_prop := fun (pr) => fun (hpr : pr ∈ C × B) =>
+          let fst_coor_pr := fst_coor_set C B pr hpr
+          let snd_coor_pr := snd_coor_set C B pr hpr
+          let f_func := Iff.mp (power_set_prop C (A ℙow B) f) hf
+          let f_func_fst := val_in_B f C (A ℙow B) f_func (fst_coor pr) fst_coor_pr
+          let f_func_fst_func := Iff.mp (power_set_prop B A (f⦅fst_coor pr⦆)) f_func_fst
+          val_in_B (f⦅fst_coor pr⦆) B A f_func_fst_func (snd_coor pr) snd_coor_pr
+        let lam_fun_P := (lam_then_fun_prop (Q f) (C × B) A Q_prop)
+        let g := lam_fun (C × B) A (Q f)
+        And.intro (Iff.mpr (power_set_prop (C × B) A g) (And.left lam_fun_P)) (And.right lam_fun_P)
+
+
+      let func_prop := lam_then_fun_prop P X Y (fun (f) => fun (hf : f ∈ X) => (And.left (P_prop f hf)))
+
+
+
+      Exists.intro ψ (And.intro (And.left func_prop) (And.intro (
+
+        And.right (Iff.mpr (func_inj_prop X Y ψ (And.left func_prop)) (
+
+          fun (f) => fun (hf : f ∈ X) => fun (g) => fun (hg : g ∈ X) =>
+            fun (hψ : ψ⦅f⦆ = ψ⦅g⦆) =>
+              let power_func_f := Iff.mp (power_set_prop C (A ℙow B) f) hf
+              let power_func_g := Iff.mp (power_set_prop C (A ℙow B) g) hg
+
+              Iff.mpr (equal_functions_abc_A f g (C) (A ℙow B) (A ℙow B) power_func_f power_func_g) (
+                fun (c) => fun (hc : c ∈ C) =>
+                  let fc_func_set := val_in_B f C (A ℙow B) power_func_f c hc
+                  let fc_func := Iff.mp (power_set_prop B A (f⦅c⦆)) fc_func_set
+                  let gc_func_set := val_in_B g C (A ℙow B) power_func_g c hc
+                  let gc_func := Iff.mp (power_set_prop B A (g⦅c⦆)) gc_func_set
+
+                  Iff.mpr (equal_functions_abc_A (f⦅c⦆) (g⦅c⦆) B A A fc_func gc_func) (
+                    fun (b) => fun (hb : b ∈ B) =>
+                      let hψcb : ψ⦅f⦆⦅c; b⦆ = ψ⦅g⦆⦅c; b⦆ :=
+                        eq_subst (fun (t) => ψ⦅f⦆⦅c; b⦆ = t⦅c; b⦆) (ψ⦅f⦆) (ψ⦅g⦆) (hψ) (Eq.refl (ψ⦅f⦆⦅c; b⦆))
+
+                      let cb_prop := Iff.mpr (cartesian_product_pair_prop C B c b) (And.intro (hc) (hb))
+
+                      let ψf_prop : ψ⦅f⦆ = P f := And.right func_prop f hf
+                      let pf_prop : P f ⦅c ; b⦆ = Q f (c , b) := And.right (P_prop f hf) (c, b) cb_prop
+                      let ψf_prop₂ : ψ⦅f⦆⦅c ; b⦆ = Q f (c , b) := Eq.trans (
+                        eq_subst (fun (t) => ψ⦅f⦆⦅c ; b⦆ = t⦅c ; b⦆) (ψ⦅f⦆) (P f) (ψf_prop) (Eq.refl (ψ⦅f⦆⦅c ; b⦆))
+                      ) (pf_prop)
+
+                      let ψg_prop : ψ⦅g⦆ = P g := And.right func_prop g hg
+                      let pg_prop : P g ⦅c ; b⦆ = Q g (c , b) := And.right (P_prop g hg) (c, b) cb_prop
+                      let ψg_prop₂ : ψ⦅g⦆⦅c ; b⦆ = Q g (c , b) := Eq.trans (
+                        eq_subst (fun (t) => ψ⦅g⦆⦅c ; b⦆ = t⦅c ; b⦆) (ψ⦅g⦆) (P g) (ψg_prop) (Eq.refl (ψ⦅g⦆⦅c ; b⦆))
+                      ) (pg_prop)
+
+                      let cb_fst_prop := coordinates_fst_coor c b
+                      let cb_snd_prop := coordinates_snd_coor c b
+
+                      let Qf_prop :  Q f (c , b) = f⦅c⦆⦅b⦆ := eq_subst (fun (t) => f⦅fst_coor (c, b)⦆⦅snd_coor (c, b)⦆ = f⦅c⦆⦅t⦆) (
+                        snd_coor (c, b)) (b) (cb_snd_prop) (
+                        eq_subst (fun (t) => f⦅fst_coor (c, b)⦆⦅snd_coor (c, b)⦆ = f⦅t⦆⦅snd_coor (c, b)⦆) (fst_coor (c, b)) (c) (
+                          cb_fst_prop) (
+                          Eq.refl (f⦅fst_coor (c, b)⦆⦅snd_coor (c, b)⦆))
+                      )
+
+                      let Qg_prop :  Q g (c , b) = g⦅c⦆⦅b⦆ := eq_subst (fun (t) => g⦅fst_coor (c, b)⦆⦅snd_coor (c, b)⦆ = g⦅c⦆⦅t⦆) (
+                        snd_coor (c, b)) (b) (cb_snd_prop) (
+                        eq_subst (fun (t) => g⦅fst_coor (c, b)⦆⦅snd_coor (c, b)⦆ = g⦅t⦆⦅snd_coor (c, b)⦆) (fst_coor (c, b)) (c) (
+                          cb_fst_prop) (
+                          Eq.refl (g⦅fst_coor (c, b)⦆⦅snd_coor (c, b)⦆))
+                      )
+
+                      let f_res := Eq.trans (ψf_prop₂) (Qf_prop)
+                      let g_res := Eq.trans (ψg_prop₂) (Qg_prop)
+
+                      Eq.trans (Eq.symm (f_res)) (Eq.trans (hψcb) (g_res))
+                  )
+              )
+
+
+        ))
+
+
+      ) (
+
+        And.right (Iff.mpr (func_surj_prop X Y ψ (And.left func_prop)) (
+
+          fun (g) =>
+            fun (hg : g ∈ Y) =>
+
+
+            let Q₁ := fun (c) => fun (b) => g⦅c ; b⦆
+            let P₁ := fun (c) => lam_fun B A (Q₁ c)
+            let φ := lam_fun C (A ℙow B) P₁
+
+
+            let g_func := Iff.mp (power_set_prop (C × B) A g) hg
+
+
+            let Q₁_prop : ∀ c ∈ C; ∀ b ∈ B; g⦅c ; b⦆ ∈ A := fun (c) =>
+              fun (hc : c ∈ C) =>
+                fun (b) =>
+                  fun (hb : b ∈ B) =>
+                    let g_func := Iff.mp (power_set_prop (C × B) A g) hg
+                    let cb_prop := Iff.mpr (cartesian_product_pair_prop C B c b) (And.intro (hc) (hb))
+                    val_in_B g (C × B) A g_func (c, b) cb_prop
+
+            let P₁_prop := fun (c) => fun (hc : c ∈ C) =>
+              let u := And.left (lam_then_fun_prop (Q₁ c) B A (Q₁_prop c hc))
+              Iff.mpr (power_set_prop B A (lam_fun B A (Q₁ c))) u
+
+
+            let func_prop_φ := lam_then_fun_prop (P₁) (C) (A ℙow B) (P₁_prop)
+
+            let func_prop_set := Iff.mpr (power_set_prop (C) (A ℙow B) φ) (And.left func_prop_φ)
+
+
+            Exists.intro φ (And.intro (func_prop_set) (
+
+
+
+              Iff.mpr (equal_functions_abc_A g (ψ⦅φ⦆) (C × B) A A g_func (
+                let func_psi_phi := val_in_B ψ X Y (And.left func_prop) (φ) func_prop_set
+                Iff.mp (power_set_prop (C × B) A (ψ⦅φ⦆)) (func_psi_phi)
+              )) (
+
+                fun (pr) =>
+                  fun (hpr : pr ∈ (C × B)) =>
+
+                    let ψφfir : ψ⦅φ⦆ = P φ := And.right func_prop φ func_prop_set
+                    let ψφsec : P φ ⦅pr⦆ = φ⦅fst_coor pr⦆⦅snd_coor pr⦆ := And.right (P_prop φ func_prop_set) pr hpr
+                    let ψφthir := Eq.trans (
+                      eq_subst (fun (t) => ψ⦅φ⦆⦅pr⦆ = t⦅pr⦆) (ψ⦅φ⦆) (P φ) (ψφfir) (Eq.refl (ψ⦅φ⦆⦅pr⦆))
+
+                    ) (ψφsec)
+
+                    Eq.symm (Eq.trans (ψφthir) (
+
+                      let fst_coor_pr := fst_coor_set C B pr hpr
+                      let snd_coor_pr := snd_coor_set C B pr hpr
+
+                      let u : (P₁ (fst_coor pr))⦅snd_coor pr⦆ = g⦅fst_coor pr ; snd_coor pr⦆
+                       := And.right (lam_then_fun_prop (Q₁ (fst_coor pr)) B A (Q₁_prop (fst_coor pr) (fst_coor_pr))) (snd_coor pr
+                      ) (snd_coor_pr)
+
+                      let v : φ⦅fst_coor pr⦆ = (P₁ (fst_coor pr)) := And.right (func_prop_φ) (fst_coor pr) (fst_coor_pr)
+                      let v₂ := eq_subst (fun (t) => φ⦅fst_coor pr⦆⦅snd_coor pr⦆ = t⦅snd_coor pr⦆) (φ⦅fst_coor pr⦆) ((P₁ (fst_coor pr))) (
+                        v
+                      ) (Eq.refl (φ⦅fst_coor pr⦆⦅snd_coor pr⦆))
+
+                      let alm_res := Eq.trans v₂ u
+
+                      eq_subst (fun (t) => φ⦅fst_coor pr⦆⦅snd_coor pr⦆ = g⦅t⦆) ((fst_coor pr, snd_coor pr)) (pr) (
+                        Eq.symm (fst_snd_then_unique C B pr (hpr))
+                      ) (alm_res)
+
+                    ))
+              )
+            ))
+        ))
+      )))
+
+
+    ) (second)
 
 
 theorem equinum_boolean_congr : ∀ A B, (A ~ B) → (𝒫 A ~ 𝒫 B) :=
-  sorry
+  fun (A B) =>
+    fun (hAB : (A ~ B)) =>
+      Exists.elim hAB
+      (
+        fun (f) =>
+          fun (hf : f Bij A To B) =>
+
+            let P := fun (X) => { z ∈ B | ∃ x ∈ X; z = f⦅x⦆ }
+
+            let φ := lam_fun (𝒫 A) (𝒫 B) P
+
+
+            let P_prop := fun (X) =>
+              let Q := fun (s) => ∃ x ∈ X; s = f⦅x⦆
+              let u : P X ⊆ B := specification_set_subset Q B
+              Iff.mpr (boolean_set_is_boolean B (P X)) u
+
+            let func_prop := lam_then_fun_prop P (𝒫 A) (𝒫 B) (fun (x) => fun (_ :x ∈ 𝒫 A) => P_prop x)
+
+            Exists.intro φ (And.intro (And.left func_prop) (
+
+              And.intro (
+
+                And.right (Iff.mpr (func_inj_prop (𝒫 A) (𝒫 B) φ (And.left func_prop)) (
+                  fun (X) =>
+                    fun (hX : X ∈ 𝒫 A) =>
+                      fun (Y) =>
+                        fun (hY : Y ∈ 𝒫 A) =>
+                          fun (hφ : φ⦅X⦆ = φ⦅Y⦆) =>
+                            let φx : φ⦅X⦆ = P X  := And.right func_prop X hX
+                            let φy : φ⦅Y⦆ = P Y  := And.right func_prop Y hY
+                            let pxy := Eq.trans (Eq.symm φx) (Eq.trans (hφ) (φy))
+
+                            extensionality X Y (
+                              fun (x) =>
+                              let proofside := fun (T) => fun (K) => fun (hT : T ∈ 𝒫 A) =>
+                               fun (hK : K ∈ 𝒫 A) => fun (ptk : P T = P K) =>
+                                  fun (hx : x ∈ T) =>
+                                    let xA := Iff.mp (boolean_set_is_boolean A T) hT x hx
+                                    let u := val_in_B f A B (And.left hf) x xA
+                                    let Q := fun (M) => fun (s) => ∃ t ∈ M; s = f⦅t⦆
+                                    let v : f⦅x⦆ ∈ P T := Iff.mpr (specification_set_is_specification (Q T) B (f⦅x⦆)) (
+                                      And.intro (u) (Exists.intro x (And.intro (hx) (Eq.refl (f⦅x⦆))))
+                                    )
+
+                                    let v₂ : f⦅x⦆ ∈ P K := eq_subst (fun (t) => f⦅x⦆ ∈ t) (P T) (P K) (ptk) (v)
+
+                                    let v₃ := And.right (Iff.mp (specification_set_is_specification (Q K) B (f⦅x⦆)) v₂)
+
+                                    Exists.elim v₃ (
+                                      fun (y) =>
+                                        fun (hy : y ∈ K ∧ f⦅x⦆ = f⦅y⦆) =>
+                                          let yA := Iff.mp (boolean_set_is_boolean A K) hK y (And.left hy)
+                                          eq_subst (fun (t) => t ∈ K) (y) (x) (Eq.symm (
+                                            Iff.mp (func_inj_prop A B f (And.left hf)) (bij_is_inj A B f hf) x xA y yA (And.right hy)
+
+                                          )) (And.left hy)
+                                    )
+                              Iff.intro
+                              (
+                                proofside X Y hX hY pxy
+                              )
+                              (
+                                proofside Y X hY hX (Eq.symm (pxy))
+                              )
+                          )
+                ))
+
+              ) (
+                  And.right (Iff.mpr (func_surj_prop (𝒫 A) (𝒫 B) φ (And.left func_prop)) (
+                    fun (Y) =>
+                      fun (hY : Y ∈ (𝒫 B)) =>
+                        let hYB := Iff.mp (boolean_set_is_boolean B Y) hY
+                        let X := {x ∈ A | ∃ y ∈ Y; y = f⦅x⦆ }
+
+                        Exists.intro X (
+                          let Q := fun (x) => ∃ y ∈ Y; y = f⦅x⦆
+                            let XA : X ⊆ A := specification_set_subset Q A
+                            let XA₂ := Iff.mpr (boolean_set_is_boolean A X) (XA)
+                          let R := fun (M) => fun (s) => ∃ t ∈ M; s = f⦅t⦆
+                          And.intro (
+                            XA₂
+
+                          ) (
+
+                            extensionality Y (φ⦅X⦆) (
+                              fun (x) =>
+                                Iff.intro
+                                (
+                                  fun (hx : x ∈ Y) =>
+                                    let φx : φ⦅X⦆ = P X  := And.right func_prop X XA₂
+                                    eq_subst (fun (t) => x ∈ t) (P X) (φ⦅X⦆) (Eq.symm φx) (
+                                      Iff.mpr (specification_set_is_specification (R X) B x) (
+                                        And.intro (hYB x hx) (
+                                          let surjf := And.right (And.right hf)
+                                          let surjfcr := Iff.mp (func_surj_prop A B f (And.left hf)) (
+                                            And.intro (And.left hf) (surjf)
+                                          ) x (hYB x hx)
+                                          Exists.elim surjfcr (
+                                            fun (y) =>
+                                              fun (hy : y ∈ A ∧ x = f⦅y⦆) =>
+                                                Exists.intro y (
+                                                  And.intro (
+                                                    Iff.mpr (specification_set_is_specification Q A y) (
+                                                      And.intro (And.left hy) (Exists.intro x (And.intro (hx) (And.right hy)))
+                                                    )
+                                                  ) (And.right hy)
+                                                )
+                                          )
+                                        )
+                                      )
+                                    )
+                                )
+                                (
+                                  fun (hx : x ∈ φ⦅X⦆) =>
+                                    let φx : φ⦅X⦆ = P X  := And.right func_prop X XA₂
+                                    let eqs := eq_subst (fun (t) => x ∈ t) (φ⦅X⦆) (P X) (φx) (hx)
+                                    let R := fun (s) => ∃ t ∈ X; s = f⦅t⦆
+                                    let xpx := Iff.mp (specification_set_is_specification R B x) (eqs)
+                                    Exists.elim (And.right xpx)
+                                    (
+                                      fun (y) =>
+                                        fun (hy : y ∈ X ∧ x = f⦅y⦆) =>
+                                          let ypx := Iff.mp (specification_set_is_specification Q A y) (And.left hy)
+                                          Exists.elim (And.right ypx) (
+                                            fun (t) =>
+                                              fun (ht : t ∈ Y ∧ t = f⦅y⦆) =>
+                                                eq_subst (fun (r) => r ∈ Y) t x (
+                                                  Eq.trans (And.right ht) (Eq.symm (And.right hy))
+                                                ) (And.left ht)
+                                          )
+                                    )
+                                )
+                            )
+                          )
+                        )
+
+                  ))
+              )
+
+            ))
+      )
+
 
 
 theorem equinum_power_boolean : ∀ A, ({∅, {∅}} ℙow A) ~ 𝒫 A :=
-  sorry
+  let X := ∅
+  let Y := {∅}
+  let YnX : Y ≠ X := fun (YX : Y = X) =>
+    empty_set_is_empty ∅ (
+      eq_subst (fun (t) => ∅ ∈ t) (Y) (∅) (YX) (elem_in_singl ∅)
+    )
+  let XnY : X ≠ Y := fun (XY : X = Y) => YnX (Eq.symm XY)
+
+  fun (A) =>
+
+    let S := ({∅, {∅}} ℙow A)
+    let T := 𝒫 A
+
+
+    let P := fun (f) => { z ∈ A | f⦅z⦆ = Y}
+    let φ := lam_fun S T P
+
+    let P_prop := fun (f) =>
+      let first := specification_set_subset (fun (t) => f⦅t⦆ = Y) A
+      Iff.mpr (boolean_set_is_boolean A (P f)) first
+
+    let func_prop := lam_then_fun_prop P S T (fun (x) => fun (_ : x ∈ S) => P_prop x)
+
+
+    Exists.intro φ (And.intro (And.left func_prop) (
+      And.intro (
+        And.right (Iff.mpr (func_inj_prop S T φ (And.left func_prop)) (
+          fun (f) =>
+            fun (hf : f ∈ S) =>
+              fun (g) =>
+                fun (hg : g ∈ S) =>
+                  fun (hfg : φ⦅f⦆ = φ⦅g⦆) =>
+                    let f_func := Iff.mp (power_set_prop A {X, Y} f) hf
+                    let g_func := Iff.mp (power_set_prop A {X, Y} g) hg
+                    let φfP : φ⦅f⦆ = P f := And.right func_prop f hf
+                    let ψgP : φ⦅g⦆ = P g := And.right func_prop g hg
+                    let ψfg : P f = P g := Eq.trans (Eq.symm φfP) (Eq.trans (hfg) (ψgP))
+
+
+                    Iff.mpr (equal_functions_abc_A f g A {X, Y} {X, Y} (f_func) (g_func)) (
+                      fun (x) =>
+                        fun (hx : x ∈ A) =>
+                          let u : f⦅x⦆ ∈ {X, Y} := val_in_B f A {X, Y} f_func x hx
+                          let v := Iff.mp (unordered_pair_set_is_unordered_pair X Y (f⦅x⦆)) u
+
+                          let proof_side := fun (f₁) => fun (f₂) =>
+                            fun (hf₁ : f₁⦅x⦆ = Y) =>
+                              fun (ψf₁f₂ : P f₁ = P f₂) =>
+                                let Q := fun (k) => fun (r) => k⦅r⦆ = Y
+                                let spec_pr : x ∈ P f₁ := Iff.mpr (specification_set_is_specification (Q f₁) A x) (
+                                  And.intro (hx) (hf₁)
+                                )
+                                let spec_pr₂ : x ∈ P f₂ := eq_subst (fun (t) => x ∈ t) (P f₁) (P f₂) (ψf₁f₂) (spec_pr)
+                                let spec_pr₃ := And.right (Iff.mp (specification_set_is_specification (Q f₂) A x) spec_pr₂)
+                                Eq.trans (hf₁) (Eq.symm (spec_pr₃))
+
+                          Or.elim (v)
+                          (
+                            fun (hX : f⦅x⦆ = X) =>
+                              let second : g⦅x⦆ = X :=
+                                byContradiction (
+                                  fun (gxnX : g⦅x⦆ ≠ X) =>
+                                    let m := val_in_B g A {X, Y} g_func  x hx
+                                    let n := Iff.mp (unordered_pair_set_is_unordered_pair X Y (g⦅x⦆)) m
+                                    Or.elim (n)
+                                    (
+                                      fun (gxX : g⦅x⦆ = X) =>
+                                        gxnX gxX
+                                    )
+                                    (
+                                      fun (gxY : g⦅x⦆ = Y) =>
+                                        XnY (Eq.trans (Eq.symm hX) (Eq.trans (Eq.symm (
+                                          proof_side g f gxY (Eq.symm (ψfg))
+                                        )) (gxY)))
+                                    )
+
+                                )
+
+                              Eq.trans hX (Eq.symm (second))
+
+
+                          )
+                          (
+                            fun (hY : f⦅x⦆ = Y) =>
+                              proof_side f g hY ψfg
+                          )
+                    )
+
+        ))
+
+      ) (
+        And.right (Iff.mpr (func_surj_prop S T φ (And.left func_prop)) (
+
+          fun (M) =>
+            fun (hM : M ∈ 𝒫 A) =>
+
+              let MA := Iff.mp (boolean_set_is_boolean A M) hM
+
+              let Q := fun (a) => a ∈ M
+
+              let Q₁ := fun (_ : Set) => Y
+              let Q₂ := fun (_ : Set) => X
+
+              let f := lam_cond_fun A {X, Y} Q Q₁ Q₂
+
+              let Q₁_prop : ∀ a, Q a → ((Q₁ a) ∈ {X, Y}) := fun (a) => fun (_ : a ∈ M) =>
+                right_unordered_pair X Y
+
+              let Q₂_prop : ∀ a, ¬ Q a → ((Q₂ a) ∈ {X, Y}) := fun (a) => fun (_ : a ∉ M) =>
+                left_unordered_pair X Y
+
+              let func_prop_f := lam_cond_fun_prop A {X, Y} Q Q₁ Q₂ (
+                fun (a) => fun (_ : a ∈ A) =>
+                  And.intro (Q₁_prop a) (Q₂_prop a)
+              )
+
+              let func_prop_set : f ∈ S := Iff.mpr (power_set_prop A {X, Y} f) (And.left func_prop_f)
+
+              Exists.intro f (And.intro (func_prop_set) (
+                let φfP : φ⦅f⦆ = P f := And.right func_prop f (func_prop_set)
+
+                eq_subst (fun (t) => M = t) (P f) (φ⦅f⦆) (Eq.symm φfP) (
+                  extensionality M (P f) (
+                    fun (s) =>
+                      Iff.intro
+                      (
+                        fun (hs : s ∈ M) =>
+                          let f_pr : f⦅s⦆ = Y := And.left (And.right func_prop_f s (MA s (hs)) ) hs
+
+                          let R := fun (r) => f⦅r⦆ = Y
+
+                          Iff.mpr (specification_set_is_specification R A s) (
+                            And.intro (MA s hs) (f_pr)
+                          )
+                      )
+                      (
+                        fun (hs : s ∈ P f) =>
+                          let R := fun (r) => f⦅r⦆ = Y
+                          let pf_pr := Iff.mp (specification_set_is_specification R A s) hs
+                          Or.elim (em (s ∈ M))
+                          (
+                            fun (hs : s ∈ M) =>
+                              hs
+                          )
+                          (
+                            fun (hs : s ∉ M) =>
+                              let u : f⦅s⦆ = X := And.right (And.right func_prop_f s (And.left pf_pr)) hs
+                              False.elim (
+                                XnY (Eq.trans (Eq.symm u) (And.right pf_pr))
+                              )
+                          )
+                      )
+                  )
+                )
+              ))
+        ))
+      ))
+    )
+
+
+
+
+
+
+
 
 
 def includes (A B : Set) := ∃ f, f Inj A To B
 
 syntax term "≾" term : term
-syntax term "⋦" term : term
-syntax term "≴" term : term
+syntax term "⋨" term : term
+syntax term "⋠" term : term
 
 macro_rules
   | `($A:term ≾ $B:term) => `(includes $A $B)
-  | `($A:term ≴ $B:term) => `(¬($A ≾ $B))
-  | `($A:term ⋦ $B:term) => `(($A ≾ $B) ∧ ($A ≁ $B))
+  | `($A:term ⋠ $B:term) => `(¬($A ≾ $B))
+  | `($A:term ⋨ $B:term) => `(($A ≾ $B) ∧ ($A ≁ $B))
 
 theorem incl_refl : ∀ A, A ≾ A :=
   fun (A) =>
@@ -790,11 +1420,23 @@ theorem incl_refl : ∀ A, A ≾ A :=
 
 
 
-theorem incl_trans : ∀ A B, (A ≾ B) → (B ≾ C) → (A ≾ C) :=
-  fun (A B) =>
+theorem incl_trans : ∀ A B C, (A ≾ B) → (B ≾ C) → (A ≾ C) :=
+  fun (A B C) =>
     fun (h₁ : (A ≾ B)) =>
       fun (h₂ : (B ≾ C)) =>
-        sorry
+        Exists.elim h₁
+        (
+          fun (f) =>
+            fun (hf : f Inj A To B) =>
+              Exists.elim h₂
+              (
+                fun (g) =>
+                  fun (hg : g Inj B To C) =>
+                    Exists.intro (g ∘ f) (
+                      injection_composition f g A B C (hf) (hg)
+                    )
+              )
+        )
 
 
 
@@ -807,15 +1449,368 @@ theorem equinum_then_incl : ∀ A B, (A ~ B) → A ≾ B :=
           Exists.intro f (bij_is_inj A B f (hf))
     )
 
-theorem subs_then_incl : ∀ A B, (A ⊆ B) → (A ≾ B) := sorry
+theorem subs_then_incl : ∀ A B, (A ⊆ B) → (A ≾ B) :=
+  fun (A B) =>
+    fun (h : A ⊆ B) =>
+      Exists.intro (id_ A) (
+        let u := id_is_bij A
+        let v := bij_is_inj A A (id_ A) u
 
-theorem incl_iff_subs_equinum : ∀ A B, (A ≾ B) ↔ ∃ C, (C ⊆ B) ∧ A ~ C := sorry
+        And.intro (
+          function_change_B (id_ A) A A B (And.left v) (h)
+        ) (
+          And.right v
+        )
+      )
 
-theorem cantor_lemma : ∀ A, A ≾ 𝒫 A := sorry
 
-theorem cantor_theorem : ∀ A, 𝒫 A ≴ A := sorry
 
-theorem strict_inc_infinite_chain : ∀ A, ∃ B, A ⋦ B :=
+theorem incl_iff_subs_equinum : ∀ A B, (A ≾ B) ↔ ∃ C, (C ⊆ B) ∧ A ~ C :=
+  fun (A B) =>
+    Iff.intro
+    (
+      fun (hAB : (A ≾ B)) =>
+        Exists.elim hAB
+        (
+          fun (f) =>
+            fun (hf : f Inj A To B) =>
+              Exists.intro (f.[A]) (And.intro (
+                eq_subst (fun (t) => t ⊆ B) (rng f) (f.[A]) (
+                  let u := dom_function f A B (And.left hf)
+                  eq_subst (fun (m) => rng f = f.[m]) (dom f) (A) (Eq.symm u) (
+                    rng_is_rel_image f (And.left (prop_then_binary_relation A B f (
+                      And.left (And.left (And.left hf))
+                    )))
+                  )
+                ) (rng_partial_function f A B (And.left (And.left hf)))
+              ) (equinum_image A B A f (subset_refl A) (hf)))
+        )
+    )
+    (
+      fun (hex : ∃ C, (C ⊆ B) ∧ A ~ C) =>
+        Exists.elim hex
+        (
+          fun (C) =>
+            fun (hC : C ⊆ B ∧ A ~ C) =>
+              incl_trans A C B (equinum_then_incl A C (And.right hC)) (
+                subs_then_incl C B (And.left hC)
+              )
+        )
+    )
+
+
+def covers (A B : Set) := ∃ f, f Surj A To B
+
+syntax term "≿" term : term
+syntax term "⋩" term : term
+syntax term "⋡" term : term
+
+macro_rules
+| `($A:term ≿ $B:term) => `(covers $A $B)
+| `($A:term ⋩ $B:term) => `(¬ ($A ≿ $B))
+| `($A:term ⋡ $B:term) => `(($A ≿ $B) ∧ ($A ≁ $B))
+
+
+theorem cov_refl : ∀ A, A ≿ A :=
+  fun (A) =>
+    Exists.intro (id_ A) (And.intro (And.left (id_is_bij A)) (And.right (And.right (id_is_bij A))))
+
+
+theorem cov_trans : ∀ A B C, (A ≿ B) → (B ≿ C) → (A ≿ C) :=
+  fun (A B C) =>
+    fun (hAB : A ≿ B) =>
+      fun (hBC : B ≿ C) =>
+        Exists.elim hAB
+        (
+          fun (f) =>
+            fun (hf : f Surj A To B) =>
+              Exists.elim hBC
+              (
+                fun (g) =>
+                  fun (hg : g Surj B To C) =>
+                    Exists.intro (g ∘ f) (surjection_composition f g A B C (hf) (hg))
+              )
+        )
+
+
+theorem equinum_then_cov : ∀ A B, (A ~ B) → A ≿ B :=
+  fun (A B) =>
+    fun (hAB : (A ~ B)) =>
+      Exists.elim hAB (
+        fun (f) =>
+          fun (hf : f Bij A To B) =>
+            Exists.intro f (bij_is_surj A B f (hf))
+      )
+
+
+theorem subs_then_cov : ∀ A B, (A ⊆ B) → ((B ≿ A) ∨ (A = ∅ ∧ B ≠ ∅)) :=
+  fun (A B) =>
+    fun (hAB : A ⊆ B) =>
+      Or.elim (em (A = ∅ ∧ B ≠ ∅))
+      (
+        fun (hABemp : A = ∅ ∧ B ≠ ∅) =>
+          Or.inr hABemp
+      )
+      (
+        fun (hABnemp : ¬ (A = ∅ ∧ B ≠ ∅)) =>
+          let u := Iff.mp (morgan_conj (A = ∅) (B ≠ ∅)) hABnemp
+          Or.elim u
+          (
+            fun (Anemp : A ≠ ∅) =>
+              let u := non_empty_uni_then_exi (fun (_) => True) A Anemp (fun (t) => fun (_ : t ∈ A) => True.intro)
+              Exists.elim u (
+                fun (x₀) =>
+                  fun (hx₀ : x₀ ∈ A ∧ True) =>
+                    Or.inl (
+
+                      let Q := fun (x) => x ∈ A
+                      let Q₀ := fun (x) => x
+                      let Q₁ := fun (_) => x₀
+
+                      let Q_prop := fun (x) => fun (_ : x ∈ B) =>
+                        And.intro
+                         (
+                          fun (hx : x ∈ A) =>
+                            hx
+                         )
+                         (
+                          fun (_ : x ∉ A) =>
+                            And.left hx₀
+                         )
+
+                      let f := lam_cond_fun B A Q Q₀ Q₁
+
+                      let func_prop := lam_cond_fun_prop B A Q Q₀ Q₁ Q_prop
+
+
+                      Exists.intro f (And.intro (And.left func_prop) (
+                        And.right (Iff.mpr (func_surj_prop B A f (And.left func_prop)) (
+
+                          fun (a) =>
+                            fun (ha : a ∈ A) =>
+                              Exists.intro a (And.intro (hAB a (ha)) (
+                                Eq.symm (And.left (And.right func_prop a (hAB a ha)) ha)
+                              ))
+                        ))
+                      ))
+                    )
+              )
+          )
+          (
+            fun (Bnnemp : ¬ (B ≠ ∅)) =>
+              Or.inl (
+                let v := byContradiction Bnnemp
+                let r := extensionality A (∅) (fun (x) => Iff.intro (
+                  fun (hx : x ∈ A) =>
+                    eq_subst (fun (t) => x ∈ t) (B) (∅) (v) (hAB x (hx))
+                ) (empty_set_is_subset_any A x))
+
+                Exists.intro ∅ (And.intro (
+                  And.intro (
+                    And.intro (empty_set_is_subset_any (B × A)) (
+                      fun (x y z) =>
+                        fun (hxy : (x . ∅ . y)) =>
+                          fun (_ : (x . ∅ . z)) =>
+                            False.elim (empty_set_is_empty (x, y) (hxy))
+                    )
+                  )
+                  (
+                    fun (b) =>
+                      fun (hb : b ∈ B) =>
+                        False.elim (empty_set_is_empty b (eq_subst (fun (t) => b ∈ t) (B) (∅) (v) (hb)))
+                  )
+                ) (
+                  fun (a) =>
+                    fun (ha : a ∈ A) =>
+                      False.elim (empty_set_is_empty a (eq_subst (fun (t) => a ∈ t) (A) (∅) (r) (ha)))
+                ))
+              )
+          )
+
+      )
+
+
+theorem incl_cov_prop_AC : choice_ax → (∀ A B, (A ≾ B) ↔ ((B ≿ A) ∨ (A = ∅ ∧ B ≠ ∅))) :=
+  fun (ax : choice_ax) =>
+    fun (A B) =>
+      Iff.intro
+      (
+        fun (hAB : (A ≾ B)) =>
+          Exists.elim hAB (
+            fun (f) =>
+              fun (hf : f Inj A To B) =>
+                Or.elim (em ((A = ∅ ∧ B ≠ ∅)))
+                (
+                  fun (habemp : (A = ∅ ∧ B ≠ ∅)) =>
+                    Or.inr habemp
+                )
+                (
+                  fun (hanbemp : ¬ (A = ∅ ∧ B ≠ ∅)) =>
+                    let u := Iff.mp (morgan_conj (A = ∅) (B ≠ ∅)) hanbemp
+                    let v := Iff.mpr (leftrev_criterion f A B) (
+                      And.intro (hf) (
+                        Or.elim u
+                        (Or.inl)
+                        (
+                          fun (hnnb : ¬ B ≠ ∅) =>
+                            Or.inr (byContradiction hnnb)
+                        )
+
+                      )
+                    )
+                    Exists.elim (And.right v) (
+                      fun (g) =>
+                        fun (hg : (g Fun B To A) ∧ g ∘ f = id_ A) =>
+                          Or.inl (
+                            Exists.intro g (
+                              Iff.mp (Iff.mp (rightrev_criterion_AC_eq) (ax) g B A) (
+                                And.intro (And.left hg) (
+                                  Exists.intro f (And.intro (And.left hf) (And.right hg))
+                                )
+                              )
+                            )
+                          )
+                    )
+                )
+          )
+      )
+      (
+        fun (hAB : ((B ≿ A) ∨ (A = ∅ ∧ B ≠ ∅))) =>
+          Or.elim hAB
+          (
+            fun (hBA : (B ≿ A)) =>
+              Exists.elim hBA (
+                fun (g) =>
+                  fun (hg : g Surj B To A) =>
+                    let u := Iff.mpr (Iff.mp (rightrev_criterion_AC_eq) ax g B A) hg
+                    Exists.elim (And.right u) (
+                      fun (f) =>
+                        fun (hf : (f Fun A To B) ∧ g ∘ f = id_ A) =>
+                          let v := And.left (Iff.mp (leftrev_criterion f A B) (
+
+                            And.intro (And.left hf) (Exists.intro g (And.intro (And.left hg) (And.right hf) ))
+                          ))
+                          Exists.intro f (v)
+                    )
+
+              )
+
+
+          )
+          (
+            fun (hABemp : (A = ∅ ∧ B ≠ ∅)) =>
+              subs_then_incl A B (
+                eq_subst (fun (t) => t ⊆ B) (∅) (A) (Eq.symm (And.left hABemp)) (empty_set_is_subset_any B)
+              )
+          )
+      )
+
+
+theorem cov_iff_subs_equinum_AC : choice_ax → ∀ A B, ((A ≿ B) ∨ (B = ∅ ∧ A ≠ ∅)) ↔ (∃ C, (C ⊆ A) ∧ B ~ C) :=
+  fun (ax : choice_ax) =>
+    fun (A B) =>
+      Iff.intro
+      (
+        fun (hf₁ : ((A ≿ B) ∨ (B = ∅ ∧ A ≠ ∅))) =>
+          Or.elim hf₁
+          (
+            fun (hAB : (A ≿ B)) =>
+
+              let u := Iff.mpr (incl_cov_prop_AC ax B A) (
+                Or.inl (hAB)
+              )
+              Iff.mp (incl_iff_subs_equinum B A) u
+          )
+          (
+            fun (hABemp : (B = ∅ ∧ A ≠ ∅)) =>
+              Exists.intro ∅ (And.intro (empty_set_is_subset_any A) (
+                eq_subst (fun (t) => t ~ ∅) ∅ B (Eq.symm (And.left hABemp)) (equinum_refl ∅)
+              ))
+          )
+
+      )
+      (
+        fun (hAB : (∃ C, (C ⊆ A) ∧ B ~ C)) =>
+          let u := Iff.mpr (incl_iff_subs_equinum B A) (hAB)
+          Iff.mp (incl_cov_prop_AC ax B A) u
+      )
+
+
+
+theorem cantor_lemma : ∀ A, A ≾ 𝒫 A :=
+  fun (A) =>
+    let P := fun (a) => {a}
+    let φ := lam_fun A (𝒫 A) P
+
+    let P_prop := fun (a) => fun (ha : a ∈ A) =>
+      Iff.mpr (boolean_set_is_boolean A {a}) (
+        fun (x) =>
+          fun (hx : x ∈ {a}) =>
+            let u := in_singl_elem a x hx
+            eq_subst (fun (t) => t ∈ A) (a) (x) (Eq.symm u) (ha)
+      )
+
+    let func_prop := lam_then_fun_prop P A (𝒫 A) P_prop
+
+    Exists.intro φ (And.intro (And.left func_prop) (
+      And.right (Iff.mpr (func_inj_prop A (𝒫 A) φ (And.left func_prop)) (
+        fun (x) =>
+          fun (hx : x ∈ A) =>
+            fun (y) =>
+              fun (hy : y ∈ A) =>
+                fun (hxy : φ⦅x⦆ = φ⦅y⦆) =>
+                  let u : φ⦅x⦆ = {x} := And.right func_prop x hx
+                  let v : φ⦅y⦆ = {y} := And.right func_prop y hy
+                  let res : {x} = {y} := Eq.trans (Eq.symm u) (Eq.trans (hxy) v)
+
+                  let prp : x ∈ {y} := eq_subst (fun (t) => x ∈ t) {x} {y} (res) (elem_in_singl x)
+                  in_singl_elem y x (prp)
+      ))
+    ))
+
+
+
+theorem cantor_theorem : ∀ A, 𝒫 A ⋠ A :=
+  fun (A) =>
+    fun (hinc : (𝒫 A ≾ A)) =>
+      Exists.elim hinc (
+        fun (f) =>
+          fun (hf : f Inj (𝒫 A) To A) =>
+            let P := fun (z) => ∃ S ∈ (𝒫 A); z = f⦅S⦆ ∧ f⦅S⦆ ∉ S
+
+            let Y := {z ∈ A | P z}
+
+            let yA : Y ⊆ A := specification_set_subset P A
+            let yPA := Iff.mpr (boolean_set_is_boolean A Y) yA
+
+            let v := Iff.mp (func_inj_prop (𝒫 A) A f (And.left hf)) hf
+
+            Or.elim (em (f⦅Y⦆ ∈ Y))
+            (
+              fun (hfy : f⦅Y⦆ ∈ Y) =>
+                let u := And.right (Iff.mp (specification_set_is_specification P (A) (f⦅Y⦆)) hfy)
+                Exists.elim u (
+                  fun (S) =>
+                    fun (hs : S ∈ (𝒫 A) ∧ f⦅Y⦆ = f⦅S⦆ ∧ f⦅S⦆ ∉ S) =>
+                      let first := v Y yPA S (And.left hs) (And.left (And.right hs))
+                      eq_subst (fun (t) => f⦅t⦆ ∉ t) S Y (Eq.symm first) (And.right (And.right hs)) (hfy)
+                )
+            )
+            (
+              fun (hfy : f⦅Y⦆ ∉ Y) =>
+                let u : P (f⦅Y⦆)  := Exists.intro (Y) (And.intro yPA (And.intro (Eq.refl (f⦅Y⦆)) (hfy)))
+                let v := Iff.mpr (specification_set_is_specification P A (f⦅Y⦆)) (
+                  And.intro (
+                    val_in_B f (𝒫 A) A (And.left hf) Y (yPA)
+                  ) (u)
+                )
+
+                hfy (v)
+            )
+      )
+
+
+theorem strict_inc_infinite_chain : ∀ A, ∃ B, A ⋨ B :=
   fun (A) =>
     Exists.intro (𝒫 A) (And.intro (cantor_lemma A) (
       fun (s : (A ~ 𝒫 A)) =>
@@ -823,4 +1818,105 @@ theorem strict_inc_infinite_chain : ∀ A, ∃ B, A ⋦ B :=
         cantor_theorem A (equinum_then_incl (𝒫 A) A (s₁))
     ))
 
-theorem schroeder_bernstein_theorem : ∀ A B, (A ≾ B) → (B ≾ A) → (A ~ B) := sorry
+
+
+theorem schroeder_bernstein_theorem : ∀ A B, (A ~ B) ↔ ((A ≾ B) ∧ (B ≾ A)) :=
+  fun (A B) =>
+    Iff.intro
+    (
+      fun (hAB : (A ~ B)) =>
+        And.intro (equinum_then_incl A B hAB) (
+          equinum_then_incl B A (equinum_symm A B (hAB))
+        )
+    )
+    (
+      fun (hAB : ((A ≾ B) ∧ (B ≾ A))) =>
+
+        Exists.elim (And.left hAB) (
+          fun (f) =>
+            fun (hf : f Inj A To B) =>
+              Exists.elim (And.right hAB) (
+                fun (g) =>
+                  fun (hg : g Inj B To A) =>
+
+                    let g_bin := And.left (prop_then_binary_relation B A g (And.left (And.left (And.left hg))))
+                    let f_bin := And.left (prop_then_binary_relation A B f (And.left (And.left (And.left hf))))
+
+                    let P := fun (X) => g.[ B \ f.[ A \ X ] ]
+
+                    let P_prop := fun (X) =>
+                      let u := part_func_img_prop g B A (And.left (And.left hg)) (B \ f.[ A \ X ])
+                      Iff.mpr (boolean_set_is_boolean A (g.[ B \ f.[ A \ X ] ])) (u)
+
+                    let F := lam_fun (𝒫 A) (𝒫 A) P
+
+                    let func_prop_all := lam_then_fun_prop P (𝒫 A) (𝒫 A) (fun (X) => fun (hx : X ∈ 𝒫 A) =>
+                      P_prop X
+                    )
+
+                    let func_prop : F Fun (𝒫 A) To (𝒫 A) := And.left func_prop_all
+
+                    let val_prop : ∀ X ∈ (𝒫 A); F⦅X⦆ = P X := And.right func_prop_all
+
+                    let mon : ∀ X Y ∈ 𝒫 A; (X ⊆ Y) → (F⦅X⦆ ⊆ F⦅Y⦆) := fun (X) => fun (hX : X ∈ (𝒫 A)) =>
+                      fun (Y) => fun (hY : Y ∈ (𝒫 A)) =>
+                          fun (hXY : X ⊆ Y) =>
+                            let u₁ := neg_mon_diff X Y A hXY
+                            let u₂ := monotonic_rel_image (A \ Y) (A \ X) f (f_bin) u₁
+                            let u₃ := neg_mon_diff (f.[ A \ Y ]) (f.[ A \ X ]) B u₂
+                            let u₄ : P X ⊆ P Y := monotonic_rel_image (B \ f.[ A \ X ]) (B \ f.[ A \ Y ]) g g_bin u₃
+                            eq_subst (fun (t) => F⦅X⦆ ⊆ t) (P Y) (F⦅Y⦆) (Eq.symm (val_prop Y hY)) (
+                              eq_subst (fun (t) => t ⊆ P Y) (P X) (F⦅X⦆) (Eq.symm (val_prop X hX)) (u₄)
+                            )
+
+                    let exi_Z := monotonic_operator_fix_point A F (func_prop) (mon)
+
+                    Exists.elim exi_Z (
+                      fun (Z) =>
+                        fun (hZ : Z ∈ 𝒫 A ∧ F⦅Z⦆ = Z) =>
+                          let a₀ := Iff.mp (boolean_set_is_boolean A Z) (And.left hZ)
+                          let a₁ := val_prop Z (And.left hZ)
+                          let a₂ := Eq.trans (Eq.symm (And.right hZ)) (a₁)
+                          let a₃ := eq_subst (fun (t) => Z ~ t) (Z) (g.[ B \ f.[ A \ Z ] ] ) (a₂) (equinum_refl Z)
+                          let s := difference_subset_prop B (f.[ A \ Z ])
+                          let s₂ := difference_subset_prop A Z
+                          let a₄ := equinum_image B A (B \ f.[ A \ Z ]) g (s) hg
+                          let a₅ : Z ~ (B \ f.[ A \ Z ]) := equinum_trans Z (g.[ B \ f.[ A \ Z ] ]) (B \ f.[ A \ Z ]) (a₃) (
+                            equinum_symm (B \ f.[ A \ Z ]) (g.[ B \ f.[ A \ Z ] ]) (a₄)
+                          )
+                          let a₆ : (A \ Z) ~ (f.[ A \ Z ]) := equinum_image A B (A \ Z) f (s₂) hf
+
+                          equinum_partition A B Z (B \ f.[ A \ Z ]) a₀ s (a₅) (
+                            eq_subst (fun (t) => (A \ Z) ~ t) (f.[ A \ Z ]) (B \ (B \ (f.[ A \ Z ]))) (
+                              Eq.symm (double_compl B (f.[ A \ Z ]) (
+                                part_func_img_prop f A B (And.left (And.left hf)) (A \ Z)
+                              ))
+                            ) (a₆)
+                          )
+                    )
+
+
+
+              )
+        )
+    )
+
+
+theorem schroeder_bernstein_inc_cov_AC : choice_ax → (∀ A B, (A ~ B) ↔ ((A ≾ B) ∧ (A ≿ B))) :=
+  fun (ax : choice_ax) =>
+    fun (A B) =>
+      Iff.intro
+      (
+        fun (hAB : (A ~ B)) =>
+          And.intro (equinum_then_incl A B hAB) (equinum_then_cov A B hAB)
+      )
+      (
+        fun (hAB : (A ≾ B) ∧ (A ≿ B)) =>
+          Iff.mpr (schroeder_bernstein_theorem A B) (
+            And.intro (And.left hAB) (
+              Iff.mpr (incl_cov_prop_AC ax B A) (
+                Or.inl (And.right (hAB))
+              )
+            )
+          )
+      )

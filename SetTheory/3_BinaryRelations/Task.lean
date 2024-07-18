@@ -17,11 +17,17 @@ theorem coordinates_fst_coor : ∀ a b, fst_coor (a, b) = a := sorry
 theorem coordinates_snd_copr : ∀ a b, snd_coor (a, b) = b := sorry
 
 
+
 -- 3) A × B (cartesian product) construction and its property
 noncomputable def cartesian_product (A : Set) (B : Set) : Set := {z ∈ 𝒫 (𝒫 (A ∪ B)) | ∃ x ∈ A; ∃ y ∈ B; z = (x, y)}
 infix:60 (priority:=high) " × " => cartesian_product
 theorem cartesian_product_is_cartesian: ∀ A B pr, pr ∈ (A × B) ↔ (∃ x ∈ A; ∃ y ∈ B; pr = (x, y)) := sorry
 theorem cartesian_product_pair_prop : ∀ A B a b, (a, b) ∈ (A × B) ↔ (a ∈ A ∧ b ∈ B) := sorry
+theorem fst_snd_then_unique : ∀ A B pr, pr ∈ A × B → pr = (fst_coor pr, snd_coor pr) := sorry
+theorem equal_fst_snd : ∀ A B pr₁ pr₂, (pr₁ ∈ A × B) → (pr₂ ∈ A × B) →
+  (fst_coor pr₁ = fst_coor pr₂) → (snd_coor pr₁ = snd_coor pr₂) → pr₁ = pr₂ := sorry
+theorem cartesian_product_subset : ∀ A B C D, A ⊆ C → B ⊆ D → (A × B) ⊆ C × D := sorry
+
 
 
 -- 4) Tuple construction

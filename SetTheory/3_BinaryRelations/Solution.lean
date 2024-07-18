@@ -439,6 +439,17 @@ theorem fst_snd_then_unique : ∀ A B pr, pr ∈ A × B → pr = (fst_coor pr, s
     )
 
 
+theorem equal_fst_snd : ∀ A B pr₁ pr₂, (pr₁ ∈ A × B) → (pr₂ ∈ A × B) →
+  (fst_coor pr₁ = fst_coor pr₂) → (snd_coor pr₁ = snd_coor pr₂) → pr₁ = pr₂ :=
+  fun (A B pr₁ pr₂) => fun (hpr₁ : pr₁ ∈ A × B) => fun (hpr₂ : pr₂ ∈ A × B) =>
+    fun (hfst : (fst_coor pr₁ = fst_coor pr₂)) => fun (hsnd : (snd_coor pr₁ = snd_coor pr₂)) =>
+      Eq.trans (fst_snd_then_unique A B pr₁ hpr₁)
+      (Eq.trans (Iff.mpr (ordered_pair_set_prop (fst_coor pr₁) (snd_coor pr₁) (fst_coor pr₂) (snd_coor pr₂))
+        (And.intro (hfst) (hsnd)))
+       (Eq.symm (fst_snd_then_unique A B pr₂ hpr₂)))
+
+
+
 theorem cartesian_product_subset : ∀ A B C D, A ⊆ C → B ⊆ D → (A × B) ⊆ C × D :=
   fun (A B C D) => fun (h₁ : A ⊆ C) => fun (h₂ : B ⊆ D) =>
     fun (x) =>

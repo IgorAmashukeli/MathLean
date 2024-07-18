@@ -123,6 +123,7 @@ macro_rules
 axiom empty_set_is_empty : empty ∅
 axiom empty_set_is_subset_any : ∀ A, ∅ ⊆ A
 axiom subs_subs_eq : ∀ A B, A ⊆ B ∧ B ⊆ A ↔ A = B
+axiom non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ x ∈ A; P x) → ∃ x ∈ A; P x
 axiom elem_in_singl : ∀ x, x ∈ {x}
 axiom in_singl_elem : ∀ a x, x ∈ {a} → x = a
 axiom unordered_pair_set_is_unordered_pair : ∀ a₁ a₂ x, x ∈ {a₁, a₂} ↔ x = a₁ ∨ x = a₂
@@ -179,6 +180,9 @@ axiom cartesian_product_is_cartesian: ∀ A B pr, pr ∈ (A × B) ↔ (∃ x ∈
 axiom cartesian_product_intersect : ∀ A B C D, (A × B) ∩ (C × D) ⊆ (A ∩ C) × (B ∩ D)
 
 axiom cartesian_product_subset : ∀ A B C D, A ⊆ C → B ⊆ D → (A × B) ⊆ C × D
+
+axiom fst_coor_set : ∀ A B pr, pr ∈ A × B → fst_coor pr ∈ A
+axiom snd_coor_set : ∀ A B pr, pr ∈ A × B → snd_coor pr ∈ B
 
 -- tuple syntax
 declare_syntax_cat pair_comprehension

@@ -5,6 +5,7 @@ macro "∃!" xs:explicitBinders ", " b:term : term => expandExplicitBinders ``ex
 
 
 axiom morgan_uni (α : Type) (P : α → Prop) : (∀ x, ¬ P x) ↔ (¬ ∃ x, P x)
+axiom morgan_exi (α : Type) (P : α → Prop) : (∃ x : α, ¬ P x) ↔ (¬ ∀ x : α, P x)
 axiom uni_congr (α : Type) (P Q : α → Prop) : (∀ x : α, (P x ↔ Q x)) → ((∀ x, P x) ↔ (∀ x, Q x))
 axiom uni_conj (α : Type) (P Q: α → Prop) : (∀ x, P x ∧ Q x) ↔ (∀ x, P x) ∧ (∀ x, Q x)
 axiom eq_subst (α : Type) (P : α → Prop) : (∀ (a b : α), a = b → P a → P b)

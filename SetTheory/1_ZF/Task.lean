@@ -63,7 +63,7 @@ def is_successor (m n : Set) : Prop := ∀ x, (x ∈ n ↔ x ∈ m ∨ x = m)
 -- Later we will add 7th axiom: axiom of choice
 -- The system with this axioms will be called ZFC
 
--- set equality implies logical equality of types
+-- set equality implies logical equality of objects of type Set
 axiom extensionality : ∀ A B, set_equality A B → (A = B)
 -- there exists a set of all subsets of a set
 axiom boolean : ∀ A, ∃ B, ∀ x, (x ∈ B ↔ x ⊆ A)

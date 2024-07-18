@@ -109,3 +109,7 @@ theorem union2_universum (U A : Set) (h : A ⊆ U) : A ∪ U = U := sorry
 -- without manipulation with elements of the sets
 theorem example_theorem1  : (∀ A B C, A \ (B \ C) = (A \ B) ∪ (A ∩ C)) := sorry
 theorem example_theorem2 : (∀ A B, A △ B = (A ∪ B) \ (A ∩ B)) := sorry
+
+
+-- 19) Negative monotic property of difference
+theorem neg_mon_diff : ∀ A B C, (A ⊆ B) → (C \ B) ⊆ (C \ A) := sorry

@@ -193,9 +193,6 @@ theorem non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ 
 
 
 
-
-
-
 noncomputable def boolean_func_sym : Set → Set :=
   fun (A : Set) => set_intro (fun (B : Set) => ∀ x, (x ∈ B ↔ x ⊆ A)) (unique_boolean A)
 

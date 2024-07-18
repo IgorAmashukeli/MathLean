@@ -42,7 +42,15 @@ macro_rules
   | `($f:term Fun $A:term To $B:term) => `(function $f $A $B)
 
 
--- 6) Defined and undefined value
+-- 6) Power set and its property
+noncomputable def power_set (B A : Set) : Set := {f ∈ 𝒫 (A × B) | f Fun A To B}
+syntax term "ℙow" term : term
+macro_rules
+  |`($A:term ℙow $B:term) => `(power_set $A $B)
+theorem power_set_prop : ∀ A B f, f ∈ (B ℙow A) ↔ f Fun A To B := sorry
+
+
+-- 7) Defined and undefined value
 noncomputable def val_defined (f x : Set) : Prop := x ∈ dom f
 noncomputable def val_undefined (f x : Set) : Prop := x ∉ dom f
 syntax term "↓↓" term : term
@@ -53,58 +61,74 @@ macro_rules
   | `($f:term ↑↑ $x:term) => `(val_undefined $f $x)
 
 
--- 7) Each function is partial function
+-- 8) Each function is partial function
+-- each partial function can have different B and different A
+-- each function can have different B
+-- each function has defined A
 theorem function_is_partial_function: ∀ f A B, (f Fun A To B) → (f PartFun A To B) := sorry
+theorem partial_function_change_B : ∀ f A B C, (f PartFun A To B) → (B ⊆ C) → (f PartFun A To C) := sorry
+theorem partial_function_change_A : ∀ f A B C, (f PartFun A To B) → (A ⊆ C) → (f PartFun C To B) := sorry
+theorem function_change_B : ∀ f A B C, (f Fun A To B) → (B ⊆ C) → (f Fun A To C) := sorry
+theorem function_no_change_A : ∀ f A B C, (f Fun A To B) → (f Fun C To B) → (A = C) := sorry
 
 
--- 8) Domain and range of partial function and function properties
+-- 9) Domain and range of partial function and function properties
 theorem dom_partial_function : ∀ f A B, (f PartFun A To B) → dom f ⊆ A := sorry
 theorem rng_partial_function : ∀ f A B, (f PartFun A To B) → rng f ⊆ B := sorry
 theorem dom_function: ∀ f A B, (f Fun A To B) → A = dom f := sorry
 
 
--- 9) Value of a partial function/function
+-- 10) Value of a partial function/function
 noncomputable def value_pick (f x : Set) : Set := ⋃ (f  .[ { x } ])
 syntax term "⦅" term "⦆" : term
 macro_rules
   | `($f:term ⦅ $x:term ⦆) => `(value_pick $f $x)
 
 
--- 10) Value main properties
+-- 11) Value main properties
 theorem partial_function_value_pick_property_defined : ∀ f A B x, (f PartFun A To B) → (f ↓↓ x) → (x . f . (f⦅x⦆)) := sorry
 theorem function_value_pick_property: ∀ f A B, ∀ x ∈ A; (f Fun A To B) → (x . f . (f⦅x⦆) ) := sorry
 theorem partial_function_equal_value_prop : ∀ f A B, (f PartFun A To B) → ∀ x y, (f ↓↓ x) → ( (x . f . y) ↔ (y = f⦅x⦆)) := sorry
 theorem function_equal_value_prop : ∀ f A B, (f Fun A To B) → ∀ x y, x ∈ A → ( (x . f . y) ↔ (y = f⦅x⦆)) := sorry
 
 
--- 11) Same values definition
+--  12) f⦅x ; y⦆, f⦅x ; y ; z⦆, f⦅x ; y ; z ; a⦆ defnitions
+syntax term "⦅" term "," term "⦆" : term
+syntax term "⦅" pair_comprehension "⦆" : term
+macro_rules
+| `($f:term ⦅ $x:term ; $y:term ⦆) =>  `($f⦅($x, $y)⦆)
+| `($f:term ⦅ $x:pair_comprehension ; $y:term ⦆) => `($f⦅⁅ $x ; $y ⁆⦆)
+
+
+-- 13) Same values definition
 noncomputable def part_same_val (f g x y : Set) : Prop := ((f ↑↑ x) ∧ g ↑↑ y) ∨ (((f ↓↓ x) ∧ (g ↓↓ y)) ∧ (f⦅x⦆ = g⦅y⦆))
 syntax term "（" term "）" "≈" term "﹙" term "﹚" : term
 macro_rules
   | `($f:term （ $x:term ） ≈ $g:term ﹙ $y:term ﹚) => `(part_same_val $f $g $x $y)
 
 
--- 12) Paritial function and function equality criteria
+-- 14) Paritial function and function equality criteria
 theorem partial_equal_functions : ∀ f g A B C D, (f PartFun A To B) → (g PartFun C To D) → ((f = g) ↔ (∀ x, (f（x） ≈ g﹙x﹚))) := sorry
 theorem equal_functions_abcd : ∀ f g A B C D, (f Fun A To B) → (g Fun C To D) → ((f = g) ↔ (dom f = dom g ∧ ∀ x, f⦅x⦆ = g⦅x⦆)) := sorry
 theorem equal_functions_abc: ∀ f g A B C, (f Fun A To B) → (g Fun A To C) → ((f = g) ↔ (∀ x, f⦅x⦆ = g⦅x⦆)) := sorry
 theorem equal_functions_abc_A:  ∀ f g A B C, (f Fun A To B) → (g Fun A To C) → ((f = g) ↔ (∀ x ∈ A; f⦅x⦆ = g⦅x⦆)) := sorry
 
 
--- 13) Value membership
+-- 15) Value membership
 theorem part_val_in_B : ∀ f A B, (f PartFun A To B) → ∀ x ∈ dom f; f⦅x⦆ ∈ B := sorry
 theorem part_val_in_rng : ∀ f A B, (f PartFun A To B) → ∀ x ∈ dom f; f⦅x⦆ ∈ rng f := sorry
 theorem val_in_B : ∀ f A B, (f Fun A To B) → ∀ x ∈ A; f⦅x⦆ ∈ B := sorry
 theorem val_in_rng : ∀ f A B, (f Fun A To B) → ∀ x ∈ A; f⦅x⦆ ∈ rng f := sorry
 
 
--- 14) Image/preimage and value
+-- 16) Image/preimage and value and image property
 theorem part_fun_val_image_prop : ∀ f A B, (f PartFun A To B) → ∀ x y, (x ∈ dom f) → ((f⦅x⦆ = y) ↔ (f.[{x}] = {y})) := sorry
 theorem func_val_image_singl_prop : ∀ f A B, (f Fun A To B) → ∀ x y, (x ∈ A) → ((f⦅x⦆ = y) ↔ (f.[{x}] = {y})) := sorry
 theorem part_func_val_preimage_prop : ∀ f A B C, (f PartFun A To B) → ∀ x ∈ dom f; f⦅x⦆ ∈ C ↔ x ∈ f⁻¹.[C] := sorry
+theorem part_func_img_prop : ∀ f A B, (f PartFun A To B) → ∀ X, f.[X] ⊆ B := sorry
 
 
--- 15) Composition of partial function and function
+-- 17) Composition of partial function and function
 theorem partial_composition :
  ∀ f g A B C, (f PartFun A To B) → (g PartFun B To C) → (((g ∘ f) PartFun A To C) ∧ (∀ x ∈ dom f; (g ∘ f)（x） ≈ g﹙f⦅x⦆﹚)) := sorry
 theorem function_composition :
@@ -113,7 +137,7 @@ theorem function_composition_A :
 ∀ f g A B C, (f Fun A To B) → (g Fun B To C) → (((g ∘ f) Fun A To C) ∧ (∀ x ∈ A; (g ∘ f)⦅x⦆ = g⦅f⦅x⦆⦆)) := sorry
 
 
--- 16) Lambda function set
+-- 18) Lambda function set
 noncomputable def lam_fun (A B : Set) (P : Set → Set): Set := {z ∈ A × B | ∃ x, z = (x, P x)}
 theorem lam_then_part_fun_prop (P : Set → Set) :
 ∀ A B, (∀ x ∈ dom (lam_fun A B P); P x ∈ B)
@@ -126,7 +150,7 @@ theorem prop_then_lam_fun (P : Set → Set) : ∀ A B f, (f Fun A To B) → (∀
 
 
 
--- 17) Lambda function set with condition
+-- 19) Lambda function set with condition
 noncomputable def lam_cond_fun (A B : Set) (P : Set → Prop) (c d : Set → Set) :=
   {z ∈ A × B | ∃ x, (P x → z = (x, c x)) ∧ (¬P x → z = (x, d x))}
 theorem lam_cond_part_fun_prop : ∀ A B : Set, ∀ P : Set → Prop, ∀ c d : Set → Set,
@@ -139,7 +163,7 @@ theorem lam_cond_fun_prop : ∀ A B : Set, ∀ P : Set → Prop, ∀ c d : Set �
   (∀ x ∈ A ; (P x → (lam_cond_fun A B P c d)⦅x⦆ = c x) ∧ (¬P x → (lam_cond_fun A B P c d)⦅x⦆ = d x)) := sorry
 
 
--- 18) Parial function and function restrictions
+-- 20) Parial function and function restrictions
 noncomputable def fun_restriction (f A : Set) := f ∩ (A × rng f)
 infix:50 (priority := high) "⨡" => fun_restriction
 theorem part_fun_restriction_prop : ∀ A B X f, (f PartFun A To B) → (f ⨡ X) PartFun X To B := sorry
@@ -148,11 +172,11 @@ theorem fun_restriction_prop : ∀ A B X f, (f Fun A To B) → (f ⨡ X) Fun (A 
 theorem inj_restriction_prop : ∀ X f, (is_injective f) → (is_injective (f ⨡ X)) := sorry
 theorem surj_restriction_prop : ∀ Y f, (is_surjective f Y) → (is_surjective (f ⨡ X) (Y ∩ f.[X])) := sorry
 
--- 19) Monotonic operator fix point lemma
+-- 21) Monotonic operator fix point lemma
 theorem monotonic_operator_fix_point : ∀ A F, (F Fun 𝒫 A To 𝒫 A) → (∀ X Y ∈ 𝒫 A; X ⊆ Y → F⦅X⦆ ⊆ F⦅Y⦆) → (∃ Z ∈ 𝒫 A; F⦅Z⦆ = Z) := sorry
 
 
--- 20) Injection, surjection and bijection
+-- 22) Injection, surjection and bijection
 noncomputable def injection (f A B : Set) := (f Fun A To B) ∧ (is_injective f)
 noncomputable def surjection (f A B : Set) := (f Fun A To B) ∧ (is_surjective f B)
 noncomputable def bijection (f A B : Set) := (f Fun A To B) ∧ (is_injective f) ∧ (is_surjective f B)
@@ -165,33 +189,34 @@ macro_rules
   | `($f:term Bij $A:term To $B:term) => `(bijection $f $A $B)
 
 
--- 21) id relation is bijection
+-- 23) id relation is bijection
 theorem id_is_bij : ∀ A, (id_ A) Bij A To A := sorry
 
 
--- 22) Bijection, injection and surjection relations
+-- 24) Bijection, injection and surjection relations
 theorem bij_is_inj : ∀ A B f, (f Bij A To B) → (f Inj A To B) := sorry
 theorem bij_is_surj : ∀ A B f, (f Bij A To B) → (f Surj A To B) := sorry
 theorem inj_surj_is_bij : ∀ A B f, (f Inj A To B) → (f Surj A To B) → (f Bij A To B) := sorry
 
 
--- 23) Injection and surjection criteria for functions
+-- 25) Injection and surjection criteria for functions
 theorem func_inj_prop : ∀ A B f, (f Fun A To B) → ((f Inj A To B) ↔ (∀ x y ∈ A; (f⦅x⦆ = f⦅y⦆) → x = y)) := sorry
 theorem func_surj_prop : ∀ A B f, (f Fun A To B) → ((f Surj A To B) ↔ (∀ y ∈ B; ∃ x ∈ A; y = f⦅x⦆)) := sorry
+theorem func_surj_crit : ∀ A B f, (f Fun A To B) → ((f Surj A To B) ↔ rng f = B) := sorry
 
 
--- 24) Composition of injection, surjection and bijection
+-- 26) Composition of injection, surjection and bijection
 theorem injection_composition : ∀ f g A B C, (f Inj A To B) → (g Inj B To C) → (((g ∘ f) Inj A To C)) := sorry
 theorem surjection_composition : ∀ f g A B C, (f Surj A To B) → (g Surj B To C) → (((g ∘ f) Surj A To C)) := sorry
 theorem bijection_composition : ∀ f g A B C, (f Bij A To B) → (g Bij B To C) → ((g ∘ f) Bij A To C) := sorry
 
 
--- 25) Reversed relation of bijection properties
+-- 27) Reversed relation of bijection properties
 theorem bijection_inv_mp : ∀ f A B, ((f Bij A To B) → (f⁻¹ Bij B To A)) := sorry
 theorem bijection_inv : ∀ f A B, binary_relation f → ((f Bij A To B) ↔ (f⁻¹ Bij B To A)) := sorry
 
 
--- 26) Functionality, totality, injectivity, and surjectivity and bijection criteria with respect to composition, inverse and id
+-- 28) Functionality, totality, injectivity, and surjectivity and bijection criteria with respect to composition, inverse and id
 theorem id_func_criterion : ∀ f A B, binary_relation_between A B f → ((is_functional f) ↔ (f ∘ f⁻¹ ⊆ id_ B)) := sorry
 theorem id_tot_criterion : ∀ f A B, binary_relation_between A B f → ((is_total f A) ↔ (id_ A ⊆ f⁻¹ ∘ f)) := sorry
 theorem id_inj_criterion : ∀ f A B, binary_relation_between A B f → ((is_injective f) ↔ (f⁻¹ ∘ f ⊆ id_ A)) := sorry
@@ -200,7 +225,7 @@ theorem id_bijection_criterion :
 ∀ f A B, binary_relation_between A B f → ((f Bij A To B) ↔ ((f⁻¹ ∘ f = id_ A) ∧ (f ∘ f⁻¹ = id_ B))) := sorry
 
 
--- 27) Reversability definitions
+-- 29) Reversability definitions
 noncomputable def left_reversable (f A B : Set) : Prop := (f Fun A To B) ∧ ∃ g, (g Fun B To A) ∧ (g ∘ f = id_ A)
 noncomputable def right_reversable (f A B : Set) : Prop := (f Fun A To B) ∧ ∃ g, (g Fun B To A) ∧ (f ∘ g = id_ B)
 noncomputable def reversable (f A B : Set) : Prop := (f Fun A To B) ∧ ∃ g, (g Fun B To A) ∧ (g ∘ f = id_ A) ∧ (f ∘ g = id_ B)
@@ -215,18 +240,18 @@ macro_rules
   | `($f:term Rev $A:term To $B:term) => `(reversable $f $A $B)
 
 
--- 28) Reversability criterion is simple
+-- 30) Reversability criterion is simple
 theorem rev_criterion :
  ∀ f A B, (f Rev A To B) ↔ (f Bij A To B) := sorry
 
 
--- 29) Left reversability criterion has
+-- 31) Left reversability criterion has
 -- additional conditions on A and B sets
 theorem leftrev_criterion:
   ∀ f A B, (f LeftRev A To B) ↔ ((f Inj A To B) ∧ (A ≠ ∅ ∨ B = ∅)) := sorry
 
 
--- 30) Axiom of Choice
+-- 32) Axiom of Choice
 -- This is the last axiom of ZFC set theory
 -- ZFC consists of ZF and AC, ZF axioms were shown before
 -- Later all the theorems proved with this axiom will be named with ending on AC
@@ -234,33 +259,37 @@ noncomputable def choice_function (A f : Set) : Prop := (f Fun A To (⋃ A)) ∧
 syntax term "Choice" term : term
 infix:60 (priority := high) " Choice " => fun (f) => fun (A) => choice_function A f
 
-axiom axiom_of_choice : ∀ A, ∅ ∉ A → ∃ f, f Choice A
+def choice_ax : Prop := ∀ A, ∅ ∉ A → ∃ f, f Choice A
+
+axiom axiom_of_choice : choice_ax
 
 
--- 31) Right reversability criterion requires axiom of choice for the proof
-theorem rightrev_criterion_AC:
-  ∀ f A B, (f RightRev A To B) ↔ (f Surj A To B) := sorry
+
+-- 33) Right reversability criterion equivalent to axiom of choice
+def right_rev_criterion_prop : Prop := ∀ f A B, (f RightRev A To B) ↔ (f Surj A To B)
+
+theorem rightrev_criterion_AC_eq: choice_ax ↔ right_rev_criterion_prop := sorry
 
 
--- 32) Indexation with function· defintion
+-- 34) Indexation with function· defintion
 def fun_indexation (A I : Set) : Prop := ∃ X, A Fun I To X
 syntax term "IndxFun" term : term
 macro_rules
 | `($A:term IndxFun $I:term) => `(fun_indexation  $A $I)
 
--- 33) Indexed family
+-- 35) Indexed family
 noncomputable def indexed_family (A I : Set) := A.[I]
 syntax "{" term "of" term "where" term "in" term "}" : term
 macro_rules
 | `({ $A:term of $i:term where $i:term in $I:term }) => `(indexed_family $A $I)
 
 
--- 34) Element of indexation
+-- 36) Element of indexation
 noncomputable def indexed_set (A i : Set) := A⦅i⦆
 infix:60 (priority := high) " _ " => indexed_set
 
 
--- 35) Indexation defintion and its condition
+-- 37) Indexation defintion and its condition
 def indexation (A I : Set) : Prop := (∀ x, (x ∈ ({A of i where i in I})) ↔ (∃ i ∈ I; x = (A _ i)))
 syntax term "Indx" term : term
 macro_rules
@@ -269,7 +298,7 @@ theorem fun_indexed_is_indexed :
 ∀ A I, (A IndxFun I) → (A Indx I) := sorry
 
 
--- 36) Indexed_union and its property
+-- 38) Indexed_union and its property
 noncomputable def indexed_union (A I : Set) := ⋃ (A.[I])
 syntax "⋃[" term "in" term "]" term "at" term : term
 macro_rules
@@ -278,7 +307,7 @@ theorem indexed_union_is_union :
 ∀ A I, (A Indx I) → ∀ x, (x ∈ (⋃[ i in I ] A at i)) ↔ (∃ i ∈ I; x ∈ (A _ i)) := sorry
 
 
--- 37) Indexed_intersection and its property
+-- 39) Indexed_intersection and its property
 noncomputable def indexed_intersection (A I : Set) := ⋂ (A.[I])
 syntax "⋂[" term "in" term "]" term "at" term : term
 macro_rules
@@ -288,20 +317,12 @@ theorem indexed_intersection_is_intersection :
 
 
 
--- 38) Power set and its property
-noncomputable def power_set (B A : Set) : Set := {f ∈ 𝒫 (A × B) | f Fun A To B}
-syntax term "ℙow" term : term
-macro_rules
-  |`($A:term ℙow $B:term) => `(power_set $A $B)
-theorem power_set_prop : ∀ A B f, f ∈ (B ℙow A) ↔ f Fun A To B := sorry
-
-
--- 38) Indexed_porduct and its property
+-- 40) Indexed_product and its property
 noncomputable def indexed_product (A I : Set) := {f ∈ ((⋃[ i in I ] A at i) ℙow (I)) | ∀ i ∈ I; f⦅i⦆ ∈ (A _ i)}
 syntax "∏[" term "in" term "]" term "at" term : term
 macro_rules
   |  `(∏[ $i:term in $I:term ] $A:term at $i:term ) => `(indexed_product $A $I)
 -- Axiom of choice is equivalent to the fact Product of indexed set family is nonempty
-theorem product_AC_eq :
- (∀ A, (∅ ∉ A) → ∃ f, f Choice A)
-↔ (∀ A I, (A IndxFun I) → (∀ I ∈ I; (A _ I) ≠ ∅) → (∏[ i in I ] A at i) ≠ ∅) := sorry
+def product_non_empty_prop : Prop := (∀ A I, (A IndxFun I) → (∀ I ∈ I; (A _ I) ≠ ∅) → (∏[ i in I ] A at i) ≠ ∅)
+
+theorem product_AC_eq : all_sets_choice_prop ↔ product_non_empty_prop := sorry
