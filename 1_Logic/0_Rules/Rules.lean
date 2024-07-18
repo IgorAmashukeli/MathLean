@@ -38,3 +38,42 @@ theorem neg_elim (p : Prop) (hp : p) (hnp : ¬p) : False := hnp hp
 -- 7) Classical rule of contradiction
 open Classical
 theorem by_contradiction (p : Prop) (hnnp : ¬¬p) : p := byContradiction hnnp
+
+
+-- 8) Universal quantifier rules
+theorem universal_intro (α : Type) (P : α → Prop) (proof_stub : ∀ x : α, P x) : ∀ x : α, P x :=
+   fun (x : α) => proof_stub x
+   -- In real examples, proof_stub variable must be removed from context,
+   -- and some real proof after fun should be written
+theorem universal_elim (α : Type) (P : α → Prop) (h : ∀ x, P x) (t : α) : P t :=
+   h t
+
+
+-- 9) Existential quantifier rules
+theorem existential_intro (α : Type) (P : α → Prop) (x₀ : α) (hx₀ : P x₀) : ∃ x : α, P x :=
+   Exists.intro x₀ hx₀
+theorem existential_elim (α : Type) (P : α → Prop) (q : Prop) (h : ∃ x : α, P x) (hxq : ∀ x : α, P x → q) : q :=
+   Exists.elim h hxq
+
+
+-- 10) Inhabited type property
+theorem inh_property (α : Type) [Inhabited α] : α := Inhabited.default
+
+
+-- 11) Equality intro
+theorem eq_intro (α : Type) (x : α) :  x = x := Eq.refl x
+
+
+-- 12) Eqiality elimination
+theorem eq_elim (α : Type) (P : α → Prop) (a b : α) (heq : a = b) (hpa : P a) : P b :=
+   Eq.subst heq hpa
+
+
+-- 13) Introduction of equality for Prop
+theorem eq_prop_intro (p q : Prop) (h₁ : p → q) (h₂ : q → p) : p = q :=
+   Eq.propIntro h₁ h₂
+
+
+-- 14) Get element of the same type
+def eq_mp (α : Type) (β : Type) (h : α = β) (a : α) : β :=
+   Eq.mp h a
