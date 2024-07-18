@@ -1,7 +1,7 @@
 import «Header»
 
 
--- 1) (a₁, a₂) (Ordered pair) construction and propertiy
+-- 1) (a₁, a₂) (Ordered pair) construction and property
 noncomputable def ordered_pair_set (a b : Set) := {{a}, {a, b}}
 notation (priority := high) "(" a₁ ", " a₂ ")" => ordered_pair_set a₁ a₂
 theorem ordered_pair_set_prop : ∀ a b c d, (a, b) = (c, d) ↔ (a = c ∧ b = d) := sorry
