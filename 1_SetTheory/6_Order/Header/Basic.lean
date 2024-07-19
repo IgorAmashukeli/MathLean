@@ -202,16 +202,33 @@ noncomputable def composition (P Q : Set) : Set := {pr ∈ dom Q × rng P | ∃ 
 infix:60 (priority:=high) " ∘ " => composition
 
 
+axiom inv_is_rel : ∀ R, binary_relation R → (binary_relation (R⁻¹))
+axiom inv_pair_prop: ∀ R, binary_relation R → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x)
+
+
 axiom composition_assoc : ∀ P Q R, ((P ∘ Q) ∘ R) = (P ∘ (Q ∘ R))
+axiom union2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q → binary_relation (P ∪ Q)
 
 
 noncomputable def id_ (A : Set) : Set := {t ∈ (A × A) | ∃ x : Set, t = (x, x)}
+axiom id_is_rel : ∀ A, binary_relation (id_ A)
 noncomputable def rel_image (X R : Set) := {b ∈ rng R | ∃ a ∈ X; (a . R . b)}
 syntax  term ".[" term "]" : term
 macro_rules
   | `($R:term .[ $X:term ])  => `(rel_image $X $R)
 
+
+axiom id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ (y ∈ A))
+axiom rel_subset : (∀ P Q, binary_relation P → binary_relation Q → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q)
+axiom prop_then_id : ∀ A, ∀ x ∈ A; (x . (id_ A) . x)
+
+
+axiom intersect2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q → binary_relation (P ∩ Q)
+
 axiom prop_then_binary_relation : ∀ A B R, R ⊆ A × B → binary_relation R ∧ dom R ⊆ A ∧ rng R ⊆ B
+
+axiom composition_is_rel : ∀ P Q, binary_relation (P ∘ Q)
+axiom composition_pair_prop : ∀ P Q, ∀ x y, (x . (P ∘ Q) . y) ↔ ∃ z, (x . Q . z) ∧ (z . P . y)
 
 axiom id_rel_composition_left : ∀ A B  R, binary_relation_between A B R → ((id_ B) ∘ R) = R
 axiom id_rel_composition_right : ∀ A B R, binary_relation_between A B R → (R ∘ (id_ A)) = R

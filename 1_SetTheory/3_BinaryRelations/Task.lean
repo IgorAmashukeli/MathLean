@@ -130,7 +130,7 @@ theorem id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ 
 theorem prop_then_id : ∀ A, ∀ x ∈ A; (x . (id_ A) . x) := sorry
 theorem inv_id : ∀ A, ((id_ A)⁻¹) = (id_ A) := sorry
 theorem id_rel_composition_right : ∀ A B R, binary_relation_between A B R → (R ∘ (id_ A)) = R := sorry
-theorem id_rel_composition_left : ∀ A B  R, binary_relation_between A B R → ((id_ B) ∘ R) = R := sorry
+theorem id_rel_composition_left : ∀ A B R, binary_relation_between A B R → ((id_ B) ∘ R) = R := sorry
 
 
 -- 16) Image of a binary relation construction
