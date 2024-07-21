@@ -1,16 +1,21 @@
 import «Header»
 
 -- 1) Creation of a new type: Set, it has only one predicate: membership
--- and two properties: set_intro and set_intro_prop
 axiom Set : Type
 axiom membership : Set → Set → Prop
 infix:50 (priority := high) " ∈ " => membership
 infix:50 (priority := high) " ∉ " => (fun (x : Set) => (fun (y : Set) => ¬ membership x y))
+
+
+-- 2) To construct an actual object of type Set
+-- that is characterized by property P,
+-- prove that there exists unique x with property P x
 axiom set_intro (P : Set → Prop) (h : ∃! x, P x) : Set
+-- created set will have the property P and only it will have it property P
 axiom set_intro_prop (P : Set → Prop) (h : ∃! x, P x) : P (set_intro P h) ∧ ∀ x, P x → (x = set_intro P h)
 
 
--- 2) Creation of new ∀ x ∈ A/∃ x ∈ A/∃! x ∈ A notations
+-- 3) Creation of new ∀ x ∈ A/∃ x ∈ A/∃! x ∈ A notations
 def forall_in_A (P : Set → Prop) (A : Set) : Prop := (∀ x, (x ∈ A → P x))
 def exists_in_A (P : Set → Prop) (A : Set) : Prop := (∃ x, (x ∈ A ∧ P x))
 def exists_uniq_in_A (P : Set → Prop) (A : Set) : Prop := (∃! x, (x ∈ A ∧ P x))
@@ -29,23 +34,23 @@ macro_rules
   | `(∃! $idnt:ident $idnts:idents ∈ $A:term; $b:term) => `(exists_uniq_in_A (fun $idnt:ident => (∀ $idnts:idents ∈ $A; $b)) $A)
 
 
--- 3) Empty and non-empty definitions
+-- 4) Empty and non-empty definitions
 def empty (A : Set) : Prop := ∀ b, (b ∉ A)
 def non_empty (A : Set) : Prop := ∃ b, (b ∈ A)
 
 
--- 4) Subset notation
+-- 5) Subset notation
 def subset (A B : Set) : Prop := ∀ x ∈ A; x ∈ B
 infix:50 (priority := high) " ⊆ " => subset
 
 
--- 5) Some useful definitions before listing ZF axioms
+-- 6) Some useful definitions before listing ZF axioms
 def set_equality (A B : Set) := ∀ x, (x ∈ A ↔ x ∈ B)
 def functional_predicate (A : Set) (P : Set → Set → Prop) : Prop := ∀ x ∈ A; ∃! y, P x y
 def is_successor (m n : Set) : Prop := ∀ x, (x ∈ n ↔ x ∈ m ∨ x = m)
 
 
--- 6) ZF axioms
+-- 7) ZF axioms
 -- set equality implies logical equality of objects of type Set
 axiom extensionality : ∀ A B, set_equality A B → (A = B)
 -- there exists a set of all subsets of a set

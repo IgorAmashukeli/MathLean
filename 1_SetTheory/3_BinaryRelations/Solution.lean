@@ -221,8 +221,6 @@ theorem union_pair_is_all_coords : ∀ a b, ⋃ (a, b) = {a, b} :=
 
 
 
-axiom contraposition (p q : Prop) : (p → q) ↔ (¬q → ¬p)
-
 open Classical
 
 
@@ -520,8 +518,20 @@ macro_rules
 
 
 noncomputable def binary_relation (R : Set) : Prop := ∀ z ∈ R; ∃ a, ∃ b, z = (a, b)
+noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
+noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
 
--- write (x . P . y) istead of (x, y) ∈ P
+syntax "BinRel" term : term
+macro_rules
+|  `(BinRel $R:term) => `(binary_relation $R)
+syntax term "BinRelOn" term : term
+macro_rules
+| `($R:term BinRelOn $A:term) => `(binary_relation_on $A $R)
+syntax term "BinRelBtw" term "AND" term : term
+macro_rules
+| `($R:term BinRelBtw $A:term AND $B:term) => `(binary_relation_between $A $B $R)
+
+
 macro_rules
 | `(($x:term . $P:term . $y:term)) => `(($x, $y) ∈ $P)
 
@@ -545,9 +555,9 @@ noncomputable def dom (R : Set) := {x ∈ ⋃ (⋃ R) | ∃ y, (x . R . y)}
 noncomputable def rng (R : Set) := {y ∈ ⋃ (⋃ R) | ∃ x, (x . R . y)}
 
 
-theorem dom_rng_rel_prop: ∀ R, (binary_relation R) → (dom R ∪ rng R = ⋃ (⋃ R)) :=
+theorem dom_rng_rel_prop: ∀ R, (BinRel R) → (dom R ∪ rng R = ⋃ (⋃ R)) :=
     fun (R : Set) =>
-      fun (h : (binary_relation R)) =>
+      fun (h : (BinRel R)) =>
         subset_then_equality (dom R ∪ rng R) (⋃ (⋃ R)) (
           And.intro
           (
@@ -684,8 +694,8 @@ theorem rng_prop : ∀ R y, y ∈ rng R ↔ ∃ x, (x . R . y) :=
 
 
 
-theorem binary_relation_prop : ∀ R, binary_relation R → R ⊆ dom R × rng R :=
-  fun (R) => fun (h : binary_relation R) =>
+theorem binary_relation_prop : ∀ R, (BinRel R) → (R BinRelBtw (dom R) AND (rng R)) :=
+  fun (R) => fun (h : (BinRel R)) =>
     fun (pr) =>
       fun (g : pr ∈ R) =>
         Exists.elim  (h pr g)
@@ -713,9 +723,9 @@ theorem binary_relation_prop : ∀ R, binary_relation R → R ⊆ dom R × rng R
 
 
 
-theorem prop_then_binary_relation : ∀ A B R, R ⊆ A × B → binary_relation R ∧ dom R ⊆ A ∧ rng R ⊆ B :=
+theorem prop_then_binary_relation : ∀ A B R, (R BinRelBtw A AND B) → (BinRel R) ∧ dom R ⊆ A ∧ rng R ⊆ B :=
   fun (A B R) => fun (h : R ⊆ A × B) =>
-    let first : binary_relation R := fun (z) => fun (g : z ∈ R) =>
+    let first : (BinRel R) := fun (z) => fun (g : z ∈ R) =>
       Exists.elim (Iff.mp (cartesian_product_is_cartesian A B z) (h z g))
       (
         fun (a) =>
@@ -757,8 +767,8 @@ theorem prop_then_binary_relation : ∀ A B R, R ⊆ A × B → binary_relation 
     )
 
 
-theorem rel_dom_rng_elem : ∀ R, binary_relation R → ∀ x y, (x . R . y) → x ∈ dom R ∧ y ∈ rng R :=
-  fun (R) => fun (h : binary_relation R) =>
+theorem rel_dom_rng_elem : ∀ R, (BinRel R) → ∀ x y, (x . R . y) → x ∈ dom R ∧ y ∈ rng R :=
+  fun (R) => fun (h : (BinRel R)) =>
     fun (x) => fun (y) => fun (g : (x . R . y)) =>
     let first := binary_relation_prop R h (x, y) g
     Iff.mp (cartesian_product_pair_prop (dom R) (rng R) x y) first
@@ -766,8 +776,8 @@ theorem rel_dom_rng_elem : ∀ R, binary_relation R → ∀ x y, (x . R . y) →
 
 
 
-theorem union2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q → binary_relation (P ∪ Q) :=
-  fun (P) => fun (Q) => fun (h : binary_relation P) => fun (g : binary_relation Q) =>
+theorem union2_rel_is_rel : ∀ P Q, (BinRel P) → (BinRel Q) → (BinRel (P ∪ Q)) :=
+  fun (P) => fun (Q) => fun (h : (BinRel P)) => fun (g : (BinRel Q)) =>
     fun (z) => fun (h₁ : z ∈ (P ∪ Q)) =>
       let first := Iff.mp (union2_sets_prop P Q z) h₁
       Or.elim first
@@ -781,22 +791,19 @@ theorem union2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q →
       )
 
 
-theorem intersect2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q → binary_relation (P ∩ Q) :=
-  fun (P) => fun (Q) => fun (h : binary_relation P) => fun (_ : binary_relation Q) =>
+theorem intersect2_rel_is_rel : ∀ P Q, (BinRel P) → (BinRel Q) → (BinRel (P ∩ Q)) :=
+  fun (P) => fun (Q) => fun (h : (BinRel P)) => fun (_ : (BinRel Q)) =>
     fun (z) => fun (h₁ : z ∈ (P ∩ Q)) =>
       h z ((And.left (intersect_2sets_subset_prop P Q)) z h₁)
 
 
 
 
-noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
-noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
-
 noncomputable def comp (A B R : Set) : Set := (A × B) \ R
 
 
 
-theorem comp_is_rel : ∀ A B R, binary_relation (comp A B R) :=
+theorem comp_is_rel : ∀ A B R, (BinRel (comp A B R)) :=
   fun (A B R) => fun (z) => fun (h : z ∈ (comp A B R)) =>
     let first := comp_2sets_subset_prop (A × B) R z h
     let second := (Iff.mp (cartesian_product_is_cartesian A B z) first)
@@ -824,10 +831,11 @@ macro_rules
 
 
 
-theorem inv_is_rel : ∀ R, binary_relation R → (binary_relation (R⁻¹)) :=
-  fun (R) => fun (_ : binary_relation R) =>
+theorem inv_is_rel : ∀ R, (BinRel R) → (BinRel (R⁻¹)) :=
+  fun (R) => fun (_ : (BinRel R)) =>
     fun (z) => fun (h : z ∈ R⁻¹) =>
-      let first := And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ x, ∃ y, (t = (y, x) ∧ (x . R . y))) (rng R × dom R) z) h)
+      let first := And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ x, ∃ y, (t = (y, x) ∧ (x . R . y)))
+        (rng R × dom R) z) h)
       Exists.elim first (
         fun (a) =>
           fun (ha : ∃ b, z = (b, a) ∧ (a . R . b)) =>
@@ -851,8 +859,8 @@ theorem inv_pair_prop_mp : ∀ R, ∀ x y, (x . R . y) → (y . (R⁻¹) . x) :=
     first (And.intro (fourth) (fifth))
 
 
-theorem inv_pair_prop: ∀ R, binary_relation R → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x):=
-  fun (R) => fun (_ : binary_relation R) =>
+theorem inv_pair_prop: ∀ R, (BinRel R) → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x):=
+  fun (R) => fun (_ : (BinRel R)) =>
     fun (x) => fun (y) =>
       Iff.intro
       (
@@ -878,8 +886,8 @@ theorem inv_pair_prop: ∀ R, binary_relation R → ∀ x y, (x . R . y) ↔ (y 
 
 
 
-theorem inv_prop : ∀ R, binary_relation R → (R⁻¹)⁻¹ = R :=
-  fun (R) => fun (h : binary_relation R) =>
+theorem inv_prop : ∀ R, (BinRel R) → (R⁻¹)⁻¹ = R :=
+  fun (R) => fun (h : (BinRel R)) =>
     extensionality ((R⁻¹)⁻¹) R
     (
       fun (x) =>
@@ -923,10 +931,10 @@ theorem inv_prop : ∀ R, binary_relation R → (R⁻¹)⁻¹ = R :=
     )
 
 
-theorem inv_between_mp : ∀ A B R, binary_relation_between A B R → binary_relation_between B A (R⁻¹) :=
+theorem inv_between_mp : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw B AND A) :=
   fun (A B R) =>
       (
-        fun (h : binary_relation_between A B R) =>
+        fun (h : (R BinRelBtw A AND B)) =>
           fun (s) => fun (h₁ : s ∈ (R⁻¹)) =>
             let h₂ := And.right (Iff.mp (specification_set_is_specification (fun (u) => ∃ x, ∃ y, (u = (y, x) ∧ (x . R . y))) (rng R × dom R) s) (h₁))
             Exists.elim h₂
@@ -949,8 +957,8 @@ theorem inv_between_mp : ∀ A B R, binary_relation_between A B R → binary_rel
 
 
 
-theorem inv_dom: ∀ R, binary_relation R → dom (R⁻¹) = rng R :=
-  fun (R) => fun (h : binary_relation R) =>
+theorem inv_dom: ∀ R, (BinRel R) → dom (R⁻¹) = rng R :=
+  fun (R) => fun (h : (BinRel R)) =>
     (
       extensionality (dom (R⁻¹)) (rng R) (
         fun (x) =>
@@ -981,8 +989,8 @@ theorem inv_dom: ∀ R, binary_relation R → dom (R⁻¹) = rng R :=
     )
 
 
-theorem inv_rng: ∀ R, binary_relation R → rng (R⁻¹) = dom R :=
-  fun (R) => fun (h : binary_relation R) =>
+theorem inv_rng: ∀ R, (BinRel R) → rng (R⁻¹) = dom R :=
+  fun (R) => fun (h : (BinRel R)) =>
     let first := inv_is_rel R h
     let second := Eq.symm (inv_dom (R⁻¹) first)
     eq_subst (fun (t) => rng (R⁻¹) = dom t) ((R⁻¹)⁻¹) R (inv_prop R h) second
@@ -998,7 +1006,7 @@ infix:60 (priority:=high) " ∘ " => composition
 
 
 
-theorem composition_is_rel : ∀ P Q, binary_relation (P ∘ Q) :=
+theorem composition_is_rel : ∀ P Q, (BinRel (P ∘ Q)) :=
   fun (P) => fun (Q) =>
         fun (z) => fun (r : z ∈ (P ∘ Q)) =>
           let first := specification_set_subset (fun (t) => ∃ x y, (t = (x, y) ∧ ∃ z, (x . Q . z) ∧ (z . P . y) )) (dom Q × rng P) z r
@@ -1060,8 +1068,8 @@ theorem composition_pair_prop : ∀ P Q, ∀ x y, (x . (P ∘ Q) . y) ↔ ∃ z,
 
 
 
-theorem rel_subset : (∀ P Q, binary_relation P → binary_relation Q → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q) :=
-  fun (P Q) => fun (h : binary_relation P) => fun (_ : binary_relation Q) =>
+theorem rel_subset : (∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q) :=
+  fun (P Q) => fun (h : (BinRel P)) => fun (_ : (BinRel Q)) =>
     fun (s : ∀ x y, (x . P . y) → (x . Q . y)) =>
       fun (x) =>
         fun (h₁ : x ∈ P) =>
@@ -1082,8 +1090,8 @@ theorem rel_subset : (∀ P Q, binary_relation P → binary_relation Q → (∀ 
 
 
 
-theorem relation_equality : (∀ P Q, binary_relation P → binary_relation Q → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q)) :=
-    fun (P Q) => fun (h : binary_relation P) => fun (g : binary_relation Q) =>
+theorem relation_equality : (∀ P Q, (BinRel P) → (BinRel Q) → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q)) :=
+    fun (P Q) => fun (h : (BinRel P)) => fun (g : (BinRel Q)) =>
       fun (s : ∀ x y, (x . P . y) ↔ (x . Q . y)) =>
         subset_then_equality P Q (And.intro (rel_subset P Q h g (fun (x) => fun (y) => Iff.mp (s x y))) (rel_subset Q P g h (fun (x) => fun (y) => Iff.mp (iff_comm.mp (s x y)))))
 
@@ -1142,8 +1150,8 @@ theorem composition_assoc : ∀ P Q R, ((P ∘ Q) ∘ R) = (P ∘ (Q ∘ R)) :=
 
 
 
-theorem inv_composition_pair_prop : ∀ P Q, binary_relation P → binary_relation Q → (∀ x y, (x . ((P ∘ Q)⁻¹) . y) ↔ (x . ((Q⁻¹) ∘ P⁻¹) . y)) :=
-  fun (P) => fun (Q) => fun (h : binary_relation P) => fun (g : binary_relation Q) =>
+theorem inv_composition_pair_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . ((P ∘ Q)⁻¹) . y) ↔ (x . ((Q⁻¹) ∘ P⁻¹) . y)) :=
+  fun (P) => fun (Q) => fun (h : (BinRel P)) => fun (g : (BinRel Q)) =>
     fun (x) => fun (y) =>
       Iff.intro
       (
@@ -1170,14 +1178,14 @@ theorem inv_composition_pair_prop : ∀ P Q, binary_relation P → binary_relati
 
 
 
-theorem inv_composition_prop : ∀ P Q, binary_relation P → binary_relation Q → (P ∘ Q)⁻¹ = ((Q⁻¹) ∘ (P⁻¹)) :=
-  fun (P) => fun (Q) => fun (h : binary_relation P) => fun (g : binary_relation Q) =>
+theorem inv_composition_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹ = ((Q⁻¹) ∘ (P⁻¹)) :=
+  fun (P) => fun (Q) => fun (h : (BinRel P)) => fun (g : (BinRel Q)) =>
     relation_equality ((P ∘ Q)⁻¹) ((Q⁻¹) ∘ P⁻¹) (inv_is_rel (P ∘ Q) (composition_is_rel P Q)) (composition_is_rel (Q⁻¹) (P⁻¹)) (inv_composition_pair_prop P Q h g)
 
 
 
-theorem inv_union_pair_prop : ∀ P Q, binary_relation P → binary_relation Q → ∀ x y, (x . ((P ∪ Q)⁻¹) . y) ↔ (x . (P⁻¹ ∪ Q⁻¹) . y) :=
-    fun (P) => fun (Q) => fun (h : binary_relation P) => fun (g : binary_relation Q) => fun (x) => fun (y) =>
+theorem inv_union_pair_prop : ∀ P Q, (BinRel P) → (BinRel Q) → ∀ x y, (x . ((P ∪ Q)⁻¹) . y) ↔ (x . (P⁻¹ ∪ Q⁻¹) . y) :=
+    fun (P) => fun (Q) => fun (h : (BinRel P)) => fun (g : (BinRel Q)) => fun (x) => fun (y) =>
       Iff.intro
       (
         fun (h₁ : (x . ((P ∪ Q)⁻¹) . y)) =>
@@ -1214,16 +1222,15 @@ theorem inv_union_pair_prop : ∀ P Q, binary_relation P → binary_relation Q �
       )
 
 
-theorem inv_union_prop : ∀ P Q, binary_relation P → binary_relation Q → (P ∪ Q)⁻¹ = ((P⁻¹) ∪ Q⁻¹) :=
-  fun (P) => fun (Q) => fun (h : binary_relation P) => fun (g : binary_relation Q) =>
+theorem inv_union_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∪ Q)⁻¹ = ((P⁻¹) ∪ Q⁻¹) :=
+  fun (P) => fun (Q) => fun (h : (BinRel P)) => fun (g : (BinRel Q)) =>
     relation_equality ((P ∪ Q)⁻¹) ((P⁻¹) ∪ Q⁻¹) (inv_is_rel (P ∪ Q) (union2_rel_is_rel P Q h g)) (union2_rel_is_rel (P⁻¹) (Q⁻¹) (inv_is_rel P h) (inv_is_rel Q g)) (inv_union_pair_prop P Q h g)
 
 
-axiom conj_comm (p q : Prop) : (p ∧ q ↔ q ∧ p)
-axiom neg_conj (p q : Prop) : ((p ↔ q) → (¬p ↔ ¬q))
 
-theorem comp_inv_prop_pair : ∀ P A B, binary_relation_between A B P → ∀ x y, (x . (comp A B (P⁻¹)) . y) ↔ (x . ((comp B A P)⁻¹) . y) :=
-  fun (P) => fun (A) => fun (B) => fun (h : binary_relation_between A B P) => fun (x) => fun (y) =>
+
+theorem comp_inv_prop_pair : ∀ P A B, (P BinRelBtw A AND B) → ∀ x y, (x . (comp A B (P⁻¹)) . y) ↔ (x . ((comp B A P)⁻¹) . y) :=
+  fun (P) => fun (A) => fun (B) => fun (h : (P BinRelBtw A AND B)) => fun (x) => fun (y) =>
     Iff.intro
     (
       fun (h₁ : (x . (comp A B (P⁻¹)) . y)) =>
@@ -1246,15 +1253,11 @@ theorem comp_inv_prop_pair : ∀ P A B, binary_relation_between A B P → ∀ x 
     )
 
 
-axiom iff_transitivity (p q r : Prop) : (p ↔ q) → (q ↔ r) → (p ↔ r)
-axiom conj_disj_distr_left (p q r : Prop) : (p ∧ (q ∨ r)) ↔ ((p ∧ q) ∨ (p ∧ r))
-axiom conj_disj_distr_right (p q r : Prop) : ((q ∨ r) ∧ p) ↔ ((q ∧ p) ∨ (r ∧ p))
-axiom exits_or_prop (P Q : Set → Prop) : (∃ x, (P x ∨ Q x)) ↔ ((∃ x, P x) ∨ (∃ x, Q x))
-axiom disj_congr (p q r s : Prop) : (p ↔ q) →  (r ↔ s) → (p ∨ r ↔ q ∨ s)
 
 
-theorem comp_inv_prop : ∀ P A B, binary_relation_between A B P → comp A B (P⁻¹) = (comp B A P)⁻¹ :=
-  fun (P) => fun (A) => fun (B) => fun (h : binary_relation_between A B P) =>
+
+theorem comp_inv_prop : ∀ P A B, (P BinRelBtw A AND B) → comp A B (P⁻¹) = (comp B A P)⁻¹ :=
+  fun (P) => fun (A) => fun (B) => fun (h : (P BinRelBtw A AND B)) =>
     relation_equality (comp A B (P⁻¹)) ((comp B A P)⁻¹) (comp_is_rel A B (P⁻¹)) (inv_is_rel (comp B A P) (comp_is_rel B A P)) (comp_inv_prop_pair P A B h)
 
 
@@ -1435,8 +1438,8 @@ theorem inv_id : ∀ A, ((id_ A)⁻¹) = (id_ A) :=
 
 
 
-theorem id_rel_composition_right : ∀ A B R, binary_relation_between A B R → (R ∘ (id_ A)) = R :=
-  fun (A B R) => fun (h : binary_relation_between A B R) =>
+theorem id_rel_composition_right : ∀ A B R, (R BinRelBtw A AND B) → (R ∘ (id_ A)) = R :=
+  fun (A B R) => fun (h : (R BinRelBtw A AND B)) =>
     relation_equality (R ∘ id_ A) (R)  (composition_is_rel R (id_ A)) (And.left (prop_then_binary_relation A B R (h)))  (fun (x y) => Iff.intro
     (
       fun (g : ((x . (R ∘ (id_ A)) . y))) =>
@@ -1460,8 +1463,8 @@ theorem id_rel_composition_right : ∀ A B R, binary_relation_between A B R → 
 
 
 
-theorem id_rel_composition_left : ∀ A B  R, binary_relation_between A B R → ((id_ B) ∘ R) = R :=
-  fun (A B R) => fun (h : binary_relation_between A B R) =>
+theorem id_rel_composition_left : ∀ A B  R, (R BinRelBtw A AND B) → ((id_ B) ∘ R) = R :=
+  fun (A B R) => fun (h : (R BinRelBtw A AND B)) =>
     relation_equality (id_ B ∘ R) (R)  (composition_is_rel (id_ B) (R)) (And.left (prop_then_binary_relation A B R (h)))  (fun (x y) => Iff.intro
     (
       fun (g : ((x . (id_ B ∘ R) . y))) =>
@@ -1494,8 +1497,8 @@ macro_rules
 
 
 
-theorem rng_is_rel_image : ∀ R, binary_relation R → rng R = R.[dom R] :=
-  fun (R) => fun (_ : binary_relation R) =>
+theorem rng_is_rel_image : ∀ R, (BinRel R) → rng R = R.[dom R] :=
+  fun (R) => fun (_ : (BinRel R)) =>
     extensionality (rng R) (R.[dom R]) (
       fun (x) =>
       Iff.intro
@@ -1518,8 +1521,8 @@ theorem rng_is_rel_image : ∀ R, binary_relation R → rng R = R.[dom R] :=
 
 
 
-theorem rel_pre_image_eq : ∀ Y R, binary_relation R → R⁻¹.[Y] = {a ∈ dom R | ∃ b ∈ Y; (a . R . b)} :=
-  fun (Y) => fun (R) => fun (g : binary_relation R) =>
+theorem rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | ∃ b ∈ Y; (a . R . b)} :=
+  fun (Y) => fun (R) => fun (g : (BinRel R)) =>
     extensionality (R⁻¹.[Y]) ({a ∈ dom R | ∃ b ∈ Y; (a . R . b)}) (
       fun (x) =>
       Iff.intro
@@ -1559,8 +1562,63 @@ theorem rel_pre_image_eq : ∀ Y R, binary_relation R → R⁻¹.[Y] = {a ∈ do
 
 
 
-theorem dom_preimage : ∀ A B P, binary_relation_between A B P → dom P = P⁻¹.[B] :=
-  fun (A B P) => fun (h₁ : binary_relation_between A B P) =>
+theorem image_prop : ∀ R X y, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y)) :=
+  fun (R X) =>
+      fun (y) =>
+        Iff.intro
+        (
+          fun (hy : y ∈ R.[X]) =>
+            And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ x ∈ X; (x . R . t)) (rng R) y) hy)
+
+        )
+        (
+          fun (hy : ∃ x ∈ X; (x . R . y)) =>
+            Exists.elim hy
+            (
+              fun (x) =>
+                fun (hx : x ∈ X ∧ (x . R . y)) =>
+                  let t := Iff.mpr (rng_prop R y) (Exists.intro x (And.right hx))
+
+                  Iff.mpr (specification_set_is_specification (fun (t) => ∃ x ∈ X; (x . R . t)) (rng R) y) (
+                    And.intro t (Exists.intro x (And.intro (And.left hx) (And.right hx)))
+                  )
+            )
+        )
+
+
+theorem preimage_prop : ∀ R Y, (BinRel R) → ∀ x, (x ∈ R⁻¹.[Y] ↔ ∃ y ∈ Y; (x . R . y)) :=
+  fun (R Y) =>
+    fun (hR : (BinRel R)) =>
+      let u := rel_pre_image_eq Y R hR
+      let S := {a ∈ dom R | ∃ b ∈ Y; (a . R . b)}
+      fun (x) =>
+        Iff.intro
+        (
+          fun (hx : (x ∈ R⁻¹.[Y])) =>
+            let v := eq_subst (fun (t) => x ∈ t) (R⁻¹.[Y]) S (u) (hx)
+            And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ b ∈ Y; (t . R . b)) (dom R) x) (v))
+        )
+        (
+          fun (hx : ∃ y ∈ Y; (x . R . y)) =>
+            eq_subst (fun (t) => x ∈ t) S (R⁻¹.[Y]) (Eq.symm (u)) (
+              Iff.mpr (specification_set_is_specification (fun (t) => ∃ b ∈ Y; (t . R . b)) (dom R) x) (
+                And.intro (
+                  Iff.mpr (dom_prop R x) (
+                    Exists.elim hx (
+                      fun (y) =>
+                        fun (hxp : y ∈ Y ∧ (x . R . y)) =>
+                          Exists.intro y (And.right hxp)
+                    )
+                  )
+                ) (hx)
+              )
+            )
+        )
+
+
+
+theorem dom_preimage : ∀ A B P, (P BinRelBtw A AND B) → dom P = P⁻¹.[B] :=
+  fun (A B P) => fun (h₁ : (P BinRelBtw A AND B)) =>
     extensionality (dom P) (P⁻¹.[B]) (
       fun (x) =>
         Iff.intro
@@ -1591,8 +1649,8 @@ theorem dom_preimage : ∀ A B P, binary_relation_between A B P → dom P = P⁻
     )
 
 
-theorem rel_image_union : ∀ X Y R, binary_relation R → R.[X ∪ Y] = R.[X] ∪ R.[Y] :=
-  fun (X) => fun (Y) => fun (R) => fun (_ : binary_relation R) =>
+theorem rel_image_union : ∀ X Y R, (BinRel R) → R.[X ∪ Y] = R.[X] ∪ R.[Y] :=
+  fun (X) => fun (Y) => fun (R) => fun (_ : (BinRel R)) =>
     extensionality (R.[X ∪ Y]) (R.[X] ∪ R.[Y])
     (
       fun (b) =>
@@ -1628,14 +1686,14 @@ theorem rel_image_union : ∀ X Y R, binary_relation R → R.[X ∪ Y] = R.[X] �
     )
 
 
-theorem rel_preimage_union : ∀ X Y R , binary_relation R → R⁻¹.[X ∪ Y] = R⁻¹.[X] ∪ R⁻¹.[Y] :=
-  fun (X Y R) => fun (h : binary_relation R) =>
+theorem rel_preimage_union : ∀ X Y R , (BinRel R) → R⁻¹.[X ∪ Y] = R⁻¹.[X] ∪ R⁻¹.[Y] :=
+  fun (X Y R) => fun (h : (BinRel R)) =>
     rel_image_union X Y (R⁻¹) (inv_is_rel R h)
 
 
 
-theorem monotonic_rel_image : ∀ X Y R, binary_relation R → X ⊆ Y → R.[X] ⊆ R.[Y] :=
-  fun (X Y R) => fun (_ : binary_relation R) => fun (g : X ⊆ Y) =>
+theorem monotonic_rel_image : ∀ X Y R, (BinRel R) → X ⊆ Y → R.[X] ⊆ R.[Y] :=
+  fun (X Y R) => fun (_ : (BinRel R)) => fun (g : X ⊆ Y) =>
     fun (x) => fun (s : x ∈ R.[X]) =>
       let first := Iff.mp (specification_set_is_specification (fun (u) => ∃ a ∈ X; (a . R . u)) (rng R) x) s
       Exists.elim (And.right (first))
@@ -1648,8 +1706,8 @@ theorem monotonic_rel_image : ∀ X Y R, binary_relation R → X ⊆ Y → R.[X]
 
 
 
-theorem monotonic_rel_preimage : ∀ X Y R, binary_relation R → X ⊆ Y → R⁻¹.[X] ⊆ R⁻¹.[Y] :=
-  fun (X Y R) => fun (h : binary_relation R) => fun (g : X ⊆ Y) =>
+theorem monotonic_rel_preimage : ∀ X Y R, (BinRel R) → X ⊆ Y → R⁻¹.[X] ⊆ R⁻¹.[Y] :=
+  fun (X Y R) => fun (h : (BinRel R)) => fun (g : X ⊆ Y) =>
     monotonic_rel_image X Y (R⁻¹) (inv_is_rel R h) g
 
 
@@ -1659,8 +1717,8 @@ theorem lemma_subset_intersec : ∀ A B C, A ⊆ B → A ⊆ C → A ⊆ (B ∩ 
       Iff.mpr (intersect_2sets_prop B C x) (And.intro (h x t) (g x t))
 
 
-theorem rel_image_inter : ∀ X Y R, binary_relation R → R.[X ∩ Y] ⊆ (R.[X] ∩ R.[Y]) :=
-  fun (X Y R) => fun (h : binary_relation R) =>
+theorem rel_image_inter : ∀ X Y R, (BinRel R) → R.[X ∩ Y] ⊆ (R.[X] ∩ R.[Y]) :=
+  fun (X Y R) => fun (h : (BinRel R)) =>
     let first := And.left (intersect_2sets_subset_prop X Y)
     let second := monotonic_rel_image (X ∩ Y) X R h first
     let third := And.right (intersect_2sets_subset_prop X Y)
@@ -1669,8 +1727,8 @@ theorem rel_image_inter : ∀ X Y R, binary_relation R → R.[X ∩ Y] ⊆ (R.[X
 
 
 
-theorem rel_preimage_inter : ∀ X Y R, binary_relation R → R⁻¹.[X ∩ Y] ⊆ (R⁻¹.[X] ∩ R⁻¹.[Y]) :=
-  fun (X Y R) => fun (h : binary_relation R) =>
+theorem rel_preimage_inter : ∀ X Y R, (BinRel R) → R⁻¹.[X ∩ Y] ⊆ (R⁻¹.[X] ∩ R⁻¹.[Y]) :=
+  fun (X Y R) => fun (h : (BinRel R)) =>
   rel_image_inter X Y (R⁻¹) (inv_is_rel R (h))
 
 
@@ -1753,9 +1811,50 @@ theorem rel_image_composition : ∀ P Q X, (P ∘ Q).[X] = P.[Q.[X]] :=
     )
 
 
-theorem rel_preimage_composition : ∀ P Q X, binary_relation P → binary_relation Q → (P ∘ Q)⁻¹.[X] = Q⁻¹.[P⁻¹.[X]] :=
-  fun (P Q X) => fun (h : binary_relation P) => fun (g : binary_relation Q) =>
+theorem rel_preimage_composition : ∀ P Q X, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹.[X] = Q⁻¹.[P⁻¹.[X]] :=
+  fun (P Q X) => fun (h : (BinRel P)) => fun (g : (BinRel Q)) =>
     let first : (P ∘ Q)⁻¹.[X] = (Q⁻¹ ∘ P⁻¹).[X] :=
       eq_subst (fun (u) => (P ∘ Q)⁻¹.[X] = u.[X]) ((P ∘ Q)⁻¹) (Q⁻¹ ∘ P⁻¹) (inv_composition_prop P Q h g) (Eq.refl ((P ∘ Q)⁻¹.[X]))
 
     eq_subst (fun (u) => (P ∘ Q)⁻¹.[X] = u) ((Q⁻¹ ∘ P⁻¹).[X]) (Q⁻¹.[P⁻¹.[X]]) (rel_image_composition (Q⁻¹) (P⁻¹) X) (first)
+
+
+
+
+theorem rel_image_diff : ∀ X Y R, (R.[X] \ R.[Y]) ⊆ (R.[X \ Y]) :=
+  fun (X Y R) =>
+      fun (y) =>
+        fun (hy : y ∈ (R.[X] \ R.[Y])) =>
+          let u := Iff.mp (difference_prop (R.[X]) (R.[Y]) y) hy
+          let v := Iff.mp (image_prop R X y) (And.left u)
+          Exists.elim v
+          (
+            fun (m) =>
+              fun (hm : m ∈ X ∧ (m . R . y)) =>
+                let s := Iff.mpr (image_prop R Y y)
+                let s₂ := Iff.mp (contraposition (∃ x ∈ Y; (x . R . y)) ((y ∈ (R.[Y])))) s (And.right u)
+                let s₃ := Iff.mpr (morgan_uni Set (fun (x) => (x ∈ Y ∧ (x . R . y)))) s₂ m
+                let s₄ := Iff.mpr (morgan_conj (m ∈ Y) (m . R . y)) s₃
+                Or.elim s₄
+                (
+                  fun (hmy : m ∉ Y) =>
+                    Iff.mpr (image_prop R (X \ Y) y) (
+                      Exists.intro m (And.intro (
+                        Iff.mpr (difference_prop X Y m) (And.intro (And.left hm) (hmy))
+                      ) (And.right hm))
+                    )
+                )
+                (
+                  fun (hmr : ¬ (m . R . y)) =>
+                    False.elim (hmr (And.right hm))
+                )
+
+
+
+
+          )
+
+
+theorem rel_preimage_diff : ∀ X Y R, (R⁻¹.[X] \ R⁻¹.[Y]) ⊆ (R⁻¹.[X \ Y]) :=
+  fun (X Y R) =>
+      rel_image_diff X Y (R⁻¹)

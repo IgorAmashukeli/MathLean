@@ -96,6 +96,387 @@ theorem surj_inv_tot : ∀ R X, binary_relation R → ((is_surjective R X) ↔ (
     )
 
 
+theorem func_subs : ∀ P Q, (is_functional Q) → (P ⊆ Q) → (is_functional P) :=
+  fun (P Q) =>
+    fun (hfunc : (is_functional Q)) =>
+      fun (hsubs : (P ⊆ Q)) =>
+        fun (x y z) =>
+          fun (hxy : (x . P . y)) =>
+            fun (hxz : (x . P . z)) =>
+              hfunc x y z (hsubs (x, y) hxy) (hsubs (x, z) hxz)
+
+
+theorem inj_subs : ∀ P Q, (is_injective Q) → (P ⊆ Q) → (is_injective P) :=
+  fun (P Q) =>
+    fun (hinj : (is_injective Q)) =>
+      fun (hsubs : (P ⊆ Q)) =>
+        fun (x y z) =>
+          fun (hxy : (x . P . z)) =>
+            fun (hyz : (y . P . z)) =>
+              hinj x y z (hsubs (x, z) hxy) (hsubs (y, z) hyz)
+
+
+theorem tot_subs : ∀ P Q, (is_total P A) → (P ⊆ Q) → (is_total Q (A ∪ dom Q)) :=
+  fun (P Q) =>
+    fun (hist : (is_total P A)) =>
+      fun (hpq : (P ⊆ Q)) =>
+        fun (x) =>
+          fun (hx : (x ∈ (A ∪ dom Q))) =>
+            let u := Iff.mp (union2_sets_prop A (dom Q) x) hx
+            Or.elim u
+            (
+              fun (hxA : x ∈ A) =>
+                let v := hist x hxA
+                Exists.elim v (
+                  fun (y) =>
+                    fun (hy : (x . P . y)) =>
+                      Exists.intro y (
+                        hpq (x, y) hy
+                      )
+                )
+            )
+            (
+              fun (hxQ : x ∈ dom Q) =>
+                Iff.mp (dom_prop Q x) hxQ
+            )
+
+
+theorem surj_subs : ∀ P Q, (is_surjective P A) → (P ⊆ Q) → (is_surjective Q (A ∪ rng Q)) :=
+  fun (P Q) =>
+    fun (hist : (is_surjective P A)) =>
+      fun (hpq : (P ⊆ Q)) =>
+        fun (x) =>
+          fun (hx : (x ∈ (A ∪ rng Q))) =>
+            let u := Iff.mp (union2_sets_prop A (rng Q) x) hx
+            Or.elim u
+            (
+              fun (hxA : (x ∈ A)) =>
+                let v := hist x hxA
+                Exists.elim v (
+                  fun (y) =>
+                    fun (hy : (y . P . x)) =>
+                      Exists.intro y (
+                        hpq (y, x) hy
+                      )
+                )
+            )
+            (
+              fun (hxQ : x ∈ rng Q) =>
+                Iff.mp (rng_prop Q x) hxQ
+            )
+
+
+
+
+
+theorem func_un :
+∀ A B C D P Q,
+(P BinRelBtw A AND B) → (Q BinRelBtw C AND D) → (A ∩ C = ∅) → (is_functional P) → (is_functional Q) → (is_functional (P ∪ Q)) :=
+fun (A B C D P Q) =>
+  fun (hAB : (P BinRelBtw A AND B)) =>
+    fun (hCD : (Q BinRelBtw C AND D)) =>
+      fun (hAC : (A ∩ C = ∅)) =>
+        fun (hfuncP : (is_functional P)) =>
+          fun (hfuncQ : (is_functional Q)) =>
+            fun (x y z) =>
+              fun (hxy : (x . (P ∪ Q) . y)) =>
+                fun (hxz : (x . (P ∪ Q) . z)) =>
+                  let u := Iff.mp (union2_sets_prop P Q (x, y)) hxy
+                  let v := Iff.mp (union2_sets_prop P Q (x, z)) hxz
+                  Or.elim u
+                  (
+                    fun (xpy : (x . P . y)) =>
+                      Or.elim v
+                      (
+                        fun (xpz : (x . P . z)) =>
+                          hfuncP x y z xpy xpz
+                      )
+                      (
+                        fun (xqz : (x . Q . z)) =>
+                          False.elim (
+                            let s := And.left (Iff.mp (cartesian_product_pair_prop A B x y) (hAB (x, y) xpy))
+                            let t := And.left (Iff.mp (cartesian_product_pair_prop C D x z) (hCD (x, z) xqz))
+                            let m := Iff.mpr (intersect_2sets_prop A C x) (And.intro (s) (t))
+                            empty_set_is_empty x (
+                              eq_subst (fun (n) => x ∈ n) (A ∩ C) (∅) hAC m
+                            )
+                          )
+                      )
+                  )
+                  (
+                    fun (xqy : (x . Q . y)) =>
+                      Or.elim v
+                      (
+                        fun (xpz : (x . P . z)) =>
+                          False.elim (
+                            let s := And.left (Iff.mp (cartesian_product_pair_prop A B x z) (hAB (x, z) xpz))
+                            let t := And.left (Iff.mp (cartesian_product_pair_prop C D x y) (hCD (x, y) xqy))
+                            let m := Iff.mpr (intersect_2sets_prop A C x) (And.intro (s) (t))
+                            empty_set_is_empty x (
+                              eq_subst (fun (n) => x ∈ n) (A ∩ C) (∅) hAC m
+                            )
+                          )
+                      )
+                      (
+                        fun (xqz : (x . Q . z)) =>
+                          hfuncQ x y z xqy xqz
+                      )
+                  )
+
+
+theorem inj_un :
+∀ A B C D P Q,
+(P BinRelBtw A AND B) → (Q BinRelBtw C AND D) → (B ∩ D = ∅) → (is_injective P) → (is_injective Q) → (is_injective (P ∪ Q)) :=
+  fun (A B C D P Q) =>
+    fun (hAB : (P BinRelBtw A AND B)) =>
+      fun (hCD : (Q BinRelBtw C AND D)) =>
+        fun (hBD : (B ∩ D = ∅)) =>
+          fun (hP : (is_injective P)) =>
+            fun (hQ : (is_injective Q)) =>
+              let a₁ := And.left (prop_then_binary_relation A B P hAB)
+              let a₂ := And.left (prop_then_binary_relation C D Q hCD)
+              let u := Iff.mp (inj_inv_func P (a₁)) hP
+              let v := Iff.mp (inj_inv_func Q (a₂)) hQ
+              let s := inv_between_mp A B P hAB
+              let t := inv_between_mp C D Q hCD
+              let m := func_un B A D C (P⁻¹) (Q⁻¹) s t hBD u v
+              let res₁ := inv_union_prop P Q a₁ a₂
+              let res₂ := eq_subst (fun (n) => is_functional n) ((P⁻¹) ∪ (Q⁻¹)) ((P ∪ Q)⁻¹) (Eq.symm (res₁)) (m)
+              Iff.mpr (inj_inv_func (P ∪ Q) (union2_rel_is_rel P Q a₁ a₂)) (
+                res₂
+              )
+
+
+theorem tot_un :
+∀ A B P Q, (is_total P A) → (is_total Q B) → (is_total (P ∪ Q) (A ∪ B)) :=
+  fun (A B P Q) =>
+      fun (hPt : (is_total P A)) =>
+        fun (hQt : (is_total Q B)) =>
+          fun (x) =>
+            fun (hx : (x ∈ (A ∪ B))) =>
+              let u := Iff.mp (union2_sets_prop A B x) hx
+              Or.elim u
+              (
+                fun (hxa : x ∈ A) =>
+                  Exists.elim (hPt x hxa) (
+                    fun (y) =>
+                      fun (hy : (x . P . y)) =>
+                        Exists.intro y (
+                          And.left (union2_sets_subset_prop P Q) (x, y) hy
+                        )
+                  )
+              )
+              (
+                fun (hxb : x ∈ B) =>
+                  Exists.elim (hQt x hxb) (
+                    fun (y) =>
+                      fun (hy : (x . Q . y)) =>
+                        Exists.intro y (
+                          And.right (union2_sets_subset_prop P Q) (x, y) hy
+                        )
+                  )
+              )
+
+
+theorem surj_un :
+∀ A B P Q, (is_surjective P A) → (is_surjective Q B) → (is_surjective (P ∪ Q) (A ∪ B)) :=
+  fun (A B P Q) =>
+    fun (hPt : (is_surjective P A)) =>
+        fun (hQt : (is_surjective Q B)) =>
+          fun (x) =>
+            fun (hx : (x ∈ (A ∪ B))) =>
+              let u := Iff.mp (union2_sets_prop A B x) hx
+              Or.elim u
+              (
+                fun (hxa : x ∈ A) =>
+                  Exists.elim (hPt x hxa) (
+                    fun (y) =>
+                      fun (hy : (y . P . x)) =>
+                        Exists.intro y (
+                          And.left (union2_sets_subset_prop P Q) (y, x) hy
+                        )
+                  )
+              )
+              (
+                fun (hxb : x ∈ B) =>
+                  Exists.elim (hQt x hxb) (
+                    fun (y) =>
+                      fun (hy : (y . Q . x)) =>
+                        Exists.intro y (
+                          And.right (union2_sets_subset_prop P Q) (y, x) hy
+                        )
+                  )
+              )
+
+
+theorem func_intr :
+∀ P Q, (is_functional P ∨ is_functional Q) → (is_functional (P ∩ Q)) :=
+  fun (P Q) =>
+    fun (hfuncPQ : (is_functional P ∨ is_functional Q)) =>
+      Or.elim hfuncPQ
+      (
+        fun (hfuncP : (is_functional P)) =>
+          func_subs (P ∩ Q) P (hfuncP) (
+            And.left (intersect_2sets_subset_prop P Q)
+          )
+      )
+      (
+        fun (hfuncQ : (is_functional Q)) =>
+          func_subs (P ∩ Q) Q (hfuncQ) (
+            And.right (intersect_2sets_subset_prop P Q)
+          )
+      )
+
+
+theorem inj_intr :
+∀ P Q, (is_injective P ∨ is_injective Q) → (is_injective (P ∩ Q)) :=
+  fun (P Q) =>
+    fun (hinjPQ : (is_injective P ∨ is_injective Q)) =>
+      Or.elim hinjPQ
+      (
+        fun (hinjP : (is_injective P)) =>
+          inj_subs (P ∩ Q) P (hinjP) (
+            And.left (intersect_2sets_subset_prop P Q)
+          )
+      )
+      (
+        fun (hinjQ : (is_injective Q)) =>
+          inj_subs (P ∩ Q) Q (hinjQ) (
+            And.right (intersect_2sets_subset_prop P Q)
+          )
+      )
+
+
+theorem tot_intr :
+∀ P Q A B, (is_total P A) → (is_total Q B) → (is_functional (P ∪ Q)) → (is_total (P ∩ Q) (A ∩ B)) :=
+  fun (P Q A B) =>
+    fun (htota : (is_total P A)) =>
+      fun (htotb : (is_total Q B)) =>
+        fun (hfunc : (is_functional (P ∪ Q))) =>
+          fun (x) =>
+            fun (hx : x ∈ A ∩ B) =>
+              let u := Iff.mp (intersect_2sets_prop A B x) hx
+              let v := htota x (And.left u)
+              let s := htotb x (And.right u)
+              Exists.elim v (
+                fun (y) =>
+                  fun (hy : (x . P . y)) =>
+                    Exists.elim s (
+                      fun (z) =>
+                        fun (hz : (x . Q . z)) =>
+                          let frst := And.left (union2_sets_subset_prop P Q) (x, y) hy
+                          let scnd := And.right (union2_sets_subset_prop P Q) (x, z) hz
+                          let thrd := hfunc x y z frst scnd
+                          Exists.intro y (
+                            Iff.mpr (intersect_2sets_prop P Q (x, y)) (
+                              And.intro hy (
+                                eq_subst (fun (t) => (x . Q . t)) z y (Eq.symm thrd) (hz)
+                              )
+                            )
+                          )
+                    )
+              )
+
+
+theorem surj_intr :
+∀ P Q A B, (is_surjective P A) → (is_surjective Q B) → (is_injective (P ∪ Q)) → (is_surjective (P ∩ Q) (A ∩ B)) :=
+  fun (P Q A B) =>
+    fun (hsurja : (is_surjective P A)) =>
+      fun (hsurjb : (is_surjective Q B)) =>
+        fun (hinj : (is_injective (P ∪ Q))) =>
+          fun (x) =>
+            fun (hx : x ∈ A ∩ B) =>
+              let u := Iff.mp (intersect_2sets_prop A B x) hx
+              let v := hsurja x (And.left u)
+              let s := hsurjb x (And.right u)
+              Exists.elim v (
+                fun (y) =>
+                  fun (hy : (y . P . x)) =>
+                    Exists.elim s (
+                      fun (z) =>
+                        fun (hz : (z . Q . x)) =>
+                          let frst := And.left (union2_sets_subset_prop P Q) (y, x) hy
+                          let scnd := And.right (union2_sets_subset_prop P Q) (z, x) hz
+                          let thrd := hinj y z x frst scnd
+                          Exists.intro y (
+                            Iff.mpr (intersect_2sets_prop P Q (y, x)) (
+                              And.intro hy (
+                                eq_subst (fun (t) => (t . Q . x)) z y (Eq.symm thrd) (hz)
+                              )
+                            )
+                          )
+                    )
+              )
+
+theorem func_diff :
+∀ P Q, (is_functional P) → (is_functional (P \ Q)) :=
+  fun (P Q) =>
+    fun (hfunc : (is_functional P)) =>
+      func_subs (P \ Q) P hfunc (
+        difference_subset_prop P Q
+      )
+
+
+theorem inj_diff :
+∀ P Q, (is_injective P) → (is_injective (P \ Q)) :=
+  fun (P Q) =>
+    fun (hinj : (is_injective P)) =>
+      inj_subs (P \ Q) P hinj (
+        difference_subset_prop P Q
+      )
+
+theorem tot_diff :
+∀ P Q A, (is_total P A) → (is_total (P \ Q) (A \ (dom (P ∩ Q)) )) :=
+  fun (P Q A) =>
+      fun (htotA : (is_total P A)) =>
+          fun (x) =>
+            fun (hx : x ∈ (A \ (dom (P ∩ Q)))) =>
+              let u := Iff.mp (difference_prop A (dom (P ∩ Q)) x) hx
+              let v := htotA x (And.left u)
+              Exists.elim v (
+                fun (y) =>
+                  fun (hPy : (x . P . y)) =>
+                    Exists.intro y (
+                      Iff.mpr (difference_prop P Q (x, y)) (
+                        And.intro (hPy) (
+                          fun (hQy : (x . Q . y)) =>
+                            let s := Iff.mpr (intersect_2sets_prop P Q (x, y)) (And.intro hPy hQy)
+                            And.right u (
+                              Iff.mpr (dom_prop (P ∩ Q) x) (
+                                Exists.intro y (s)
+                              )
+                            )
+                        )
+                      )
+                    )
+              )
+
+
+theorem surj_diff : ∀ P Q A, (is_surjective P A) → (is_surjective (P \ Q) (A \ (rng (P ∩ Q)))) :=
+  fun (P Q A) =>
+    fun (hsurjA : (is_surjective P A)) =>
+      fun (x) =>
+          fun (hx : x ∈ (A \ (rng (P ∩ Q)))) =>
+            let u := Iff.mp (difference_prop A (rng (P ∩ Q)) x) hx
+            let v := hsurjA x (And.left u)
+            Exists.elim v (
+              fun (y) =>
+                fun (hPy : (y . P . x)) =>
+                  Exists.intro y (
+                    Iff.mpr (difference_prop P Q (y, x)) (
+                      And.intro (hPy) (
+                        fun (hQy : (y . Q . x)) =>
+                          let s := Iff.mpr (intersect_2sets_prop P Q (y, x)) (And.intro hPy hQy)
+                          And.right u (
+                            Iff.mpr (rng_prop (P ∩ Q) x) (
+                              Exists.intro y (s)
+                            )
+                          )
+                      )
+                    )
+                  )
+            )
+
 
 theorem tot_dom_prop : ∀ R X, ((is_total R X) ↔ (X ⊆ dom R)) :=
   fun (R) => fun (X) =>
@@ -154,6 +535,201 @@ theorem surj_rng_prop : ∀ R X, ((is_surjective R X) ↔ (X ⊆ rng R)) :=
     )
 
 
+
+theorem preimage_inter_func : ∀ R, (BinRel R) → ((is_functional R) ↔ (∀ X Y, R⁻¹.[X ∩ Y] = (R⁻¹.[X] ∩ R⁻¹.[Y]))) :=
+  fun (R) =>
+    fun (hR : (BinRel R)) =>
+      Iff.intro
+      (
+        fun (hfunc : (is_functional R)) =>
+          fun (X Y) =>
+            Iff.mp (subs_subs_eq (R⁻¹.[X ∩ Y]) (R⁻¹.[X] ∩ R⁻¹.[Y])) (
+              And.intro (rel_preimage_inter X Y R hR) (
+                fun (x) =>
+                  fun (hx : (x ∈ R⁻¹.[X] ∩ R⁻¹.[Y])) =>
+                    let u := Iff.mp (intersect_2sets_prop (R⁻¹.[X]) (R⁻¹.[Y]) x) hx
+                    let v := Iff.mp (preimage_prop R X hR x) (And.left u)
+                    let s := Iff.mp (preimage_prop R Y hR x) (And.right u)
+                    Exists.elim v (
+                      fun (y) =>
+                        fun (hy : y ∈ X ∧ (x . R . y)) =>
+                          Exists.elim s (
+                            fun (s) =>
+                              fun (hs : s ∈ Y ∧ (x . R . s)) =>
+                                let first := hfunc x y s (And.right hy) (And.right hs)
+                                Iff.mpr (preimage_prop R (X ∩ Y) hR x) (
+                                  Exists.intro y (
+                                    And.intro (
+                                      Iff.mpr (intersect_2sets_prop X Y y) (
+                                        And.intro (And.left hy) (
+                                          eq_subst (fun (t) => t ∈ Y) s y (Eq.symm first) (And.left hs)
+                                        )
+                                      )
+                                    ) (And.right hy)
+                                  )
+                                )
+                          )
+                    )
+              )
+            )
+      )
+      (
+        fun (him : (∀ X Y, R⁻¹.[X ∩ Y] = (R⁻¹.[X] ∩ R⁻¹.[Y]))) =>
+          fun (x y z) =>
+            fun (hxy : (x . R . y)) =>
+              fun (hxz : (x . R . z)) =>
+                let u := him {y} {z}
+                let v := Iff.mpr (preimage_prop R {y} hR x) (
+                  Exists.intro y (And.intro (elem_in_singl y) (hxy))
+                )
+                let s := Iff.mpr (preimage_prop R {z} hR x) (
+                  Exists.intro z (And.intro (elem_in_singl z) (hxz))
+                )
+                let t := Iff.mpr (intersect_2sets_prop (R⁻¹.[{y}]) (R⁻¹.[{z}]) x) (
+                  And.intro (v) (s)
+                )
+                let res := eq_subst (fun (m) => x ∈ m) ((R⁻¹.[{y}]) ∩ (R⁻¹.[{z}])) (R⁻¹.[{y} ∩ {z}]) (Eq.symm u) (t)
+                let res₂ := Iff.mp (preimage_prop R ({y} ∩ {z}) hR x) res
+                Exists.elim res₂ (
+                  fun (n) =>
+                    fun (hn : n ∈ ({y} ∩ {z}) ∧ (x . R . n)) =>
+                      let res₃ := And.left hn
+                      let res₄ := Iff.mp (intersect_2sets_prop {y} {z} n) res₃
+                      let res₅ := in_singl_elem y n (And.left res₄)
+                      let res₆ := in_singl_elem z n (And.right res₄)
+                      Eq.trans (Eq.symm res₅) (res₆)
+                )
+      )
+
+
+
+theorem image_inter_inject : ∀ R, (BinRel R) → ((is_injective R) ↔ (∀ X Y, R.[X ∩ Y] = (R.[X] ∩ R.[Y]))) :=
+  fun (R) =>
+    fun (hR : (BinRel R)) =>
+      Iff.intro
+      (
+        fun (injR : (is_injective R)) =>
+          let u := Iff.mp (inj_inv_func R hR) injR
+          let v := inv_is_rel R hR
+          let res := Iff.mp (preimage_inter_func (R⁻¹) v) u
+          eq_subst (fun (t) => ∀ X Y, t.[X ∩ Y] = (t.[X] ∩ t.[Y])) ((R⁻¹)⁻¹) R (inv_prop R hR) (res)
+      )
+      (
+        fun (himg : ∀ X Y, R.[X ∩ Y] = (R.[X] ∩ R.[Y])) =>
+          let res₁ := eq_subst (fun (t) => ∀ X Y, t.[X ∩ Y] = (t.[X] ∩ t.[Y])) R ((R⁻¹)⁻¹) (Eq.symm (inv_prop R hR)) (himg)
+          let res₂ := inv_is_rel R hR
+          let res₃ := Iff.mpr (preimage_inter_func (R⁻¹) res₂) res₁
+          Iff.mpr (inj_inv_func R hR) (res₃)
+      )
+
+open Classical
+
+
+theorem preimage_diff_func : ∀ R, (BinRel R) → ((is_functional R) ↔ (∀ X Y, R⁻¹.[X \ Y] = (R⁻¹.[X]) \ (R⁻¹.[Y]))) :=
+  fun (R) =>
+    fun (hR : (BinRel R)) =>
+      Iff.intro
+      (
+        fun (hisf : (is_functional R)) =>
+          fun (X Y) =>
+            Iff.mp (subs_subs_eq (R⁻¹.[X \ Y]) ((R⁻¹.[X]) \ (R⁻¹.[Y]))) (
+              And.intro (
+                fun (x) =>
+                  fun (hx : x ∈ R⁻¹.[X \ Y]) =>
+                    let u := Iff.mp (preimage_prop R (X \ Y) hR x) hx
+                    Exists.elim u (
+                      fun (y) =>
+                        fun (hy : y ∈ (X \ Y) ∧ (x . R . y)) =>
+                          Iff.mpr (difference_prop (R⁻¹.[X]) (R⁻¹.[Y]) x) (
+                            And.intro (
+                              Iff.mpr (preimage_prop R X hR x) (
+                                Exists.intro y (And.intro (And.left (Iff.mp (difference_prop X Y y) (
+                                  And.left hy
+                                ))) (And.right hy))
+                              )
+                            ) (
+                              fun (hxr : x ∈ (R⁻¹.[Y])) =>
+                                let v := Iff.mp (preimage_prop R Y hR x) hxr
+                                Exists.elim v (
+                                  fun (m) =>
+                                    fun (hm : m ∈ Y ∧ (x . R . m)) =>
+                                      let s := hisf x y m (And.right hy) (And.right hm)
+                                      And.right (Iff.mp (difference_prop X Y y) (And.left hy)) (
+                                        eq_subst (fun (t) => t ∈ Y) m y (Eq.symm s) (And.left hm)
+                                      )
+                                )
+
+                            )
+                          )
+                    )
+
+              ) (rel_preimage_diff X Y R)
+            )
+
+      )
+      (
+        fun (him : (∀ X Y, R⁻¹.[X \ Y] = (R⁻¹.[X] \ R⁻¹.[Y]))) =>
+          fun (x y z) =>
+            fun (hxy : (x . R . y)) =>
+              fun (hxz : (x . R . z)) =>
+                let A := R⁻¹.[{y} \ {z}]
+                let B := (R⁻¹.[{y}] \ R⁻¹.[{z}])
+                let u := him {y} {z}
+                Or.elim (em (y = z))
+                (fun (hyz : y = z) => hyz)
+                (
+                  fun (hnyz : y ≠ z) =>
+                    let s := Iff.mpr (preimage_prop R ({y} \ {z}) hR x) (
+                      Exists.intro y (And.intro (
+                        Iff.mpr (difference_prop {y} {z} y) (
+                          And.intro (elem_in_singl y) (
+                            fun (hsigyz : y ∈ {z}) =>
+                              hnyz (
+                                in_singl_elem z y hsigyz
+                              )
+                          )
+                        )
+                      ) (hxy))
+                    )
+
+                    let m := eq_subst (fun (t) => x ∈ t) A B u s
+
+                    let m₂ := And.right (Iff.mp (difference_prop (R⁻¹.[{y}]) (R⁻¹.[{z}]) x) m)
+
+                    let m₃ := Iff.mpr (preimage_prop R {z} hR x)
+
+                    let m₄ := Iff.mp (contraposition (∃ t ∈ {z}; (x . R . t)) (x ∈ R⁻¹.[{z}])) m₃ m₂
+
+                    let m₅ := Iff.mpr (morgan_uni Set (fun (t) => t ∈ {z} ∧ (x . R . t))) m₄ z
+
+
+                    False.elim (
+                      m₅ (And.intro (elem_in_singl z) (hxz))
+                    )
+                )
+
+      )
+
+
+
+theorem image_diff_inj : ∀ R, (BinRel R) → ((is_injective R) ↔ (∀ X Y, R.[X \ Y] = (R.[X]) \ (R.[Y]))) :=
+  fun (R) =>
+    fun (hr : (BinRel R)) =>
+      Iff.intro
+      (
+        fun (hinj : (is_injective R)) =>
+          let u := Iff.mp (inj_inv_func R hr) hinj
+          let v := inv_is_rel R hr
+          let s := Iff.mp (preimage_diff_func (R⁻¹) v) u
+          eq_subst (fun (t) => (∀ X Y, t.[X \ Y] = (t.[X]) \ (t.[Y]))) ((R⁻¹)⁻¹) (R) (inv_prop R hr) (s)
+      )
+      (
+        fun (hrxy : (∀ X Y, R.[X \ Y] = (R.[X]) \ (R.[Y]))) =>
+          let u := eq_subst (fun (t) => (∀ X Y, t.[X \ Y] = (t.[X]) \ (t.[Y]))) R ((R⁻¹)⁻¹) (Eq.symm (inv_prop R hr)) hrxy
+          let v := inv_is_rel R hr
+          let s := Iff.mpr ((preimage_diff_func (R⁻¹) v)) u
+          Iff.mpr (inj_inv_func R hr) (s)
+      )
 
 
 
@@ -473,7 +1049,7 @@ macro_rules
   | `($f:term （ $x:term ） ≈ $g:term ﹙ $y:term ﹚) => `(part_same_val $f $g $x $y)
 
 
-open Classical
+
 
 
 theorem partial_equal_functions : ∀ f g A B C D, (f PartFun A To B) → (g PartFun C To D) → ((f = g) ↔ (∀ x, (f（x） ≈ g﹙x﹚))) :=
@@ -1961,6 +2537,8 @@ theorem injection_property_hard :
                     Exists.intro g
                     (
 
+
+
                       let f_binary_prop := And.left (prop_then_binary_relation A B f (And.left (And.left (h))))
 
                       let dom_prop₀ := inv_dom f f_binary_prop
@@ -2850,7 +3428,7 @@ theorem rightrev_criterion_AC_eq:
               let g_surj_prop : is_surjective g A := fun (y) => fun (hy : y ∈ A) =>
                 let hy_nempt := fun (hy_empt : y = ∅) =>
                   hnempty (eq_subst (fun (t) => t ∈ A) y (∅) (hy_empt) hy)
-                let exi_pr := non_empty_uni_then_exi (fun (t) => True) y (hy_nempt) (fun (t) => fun (_ : t ∈ y) => True.intro)
+                let exi_pr := non_empty_uni_then_exi (fun (_) => True) y (hy_nempt) (fun (t) => fun (_ : t ∈ y) => True.intro)
                 Exists.elim exi_pr (
                   fun (x) =>
                     fun (hx : x ∈ y ∧ True) =>
@@ -2932,6 +3510,177 @@ syntax "∏[" term "in" term "]" term "at" term : term
 macro_rules
   |  `(∏[ $_:term in $I:term ] $A:term at $_:term ) => `(indexed_product $A $I)
 def product_non_empty_prop : Prop := (∀ A I, (A IndxFun I) → (∀ I ∈ I; (A _ I) ≠ ∅) → (∏[ i in I ] A at i) ≠ ∅)
+
+
+theorem lemma_power_emp : ∀ A B, (A = ∅) → ((B ℙow A) = {∅}) :=
+  fun (A B) =>
+    fun (hAemp : (A = ∅)) =>
+      extensionality (B ℙow A) {∅} (
+        fun (t) =>
+          Iff.intro
+          (
+            fun (ht : t ∈ B ℙow A) =>
+              eq_subst (fun (r) => r ∈ {∅}) (∅) t (Eq.symm (
+                extensionality t (∅) (fun (u) =>
+                Iff.intro (
+                  fun (hut : u ∈ t) =>
+                    let v := And.left (And.left (Iff.mp (power_set_prop A B t) ht)) u hut
+                    let m := Iff.mp (cartesian_product_is_cartesian A B u) v
+                    Exists.elim m
+                    (
+                      fun (x) =>
+                        fun (hx : x ∈ A ∧ ∃ y ∈ B; u = (x, y)) =>
+                          False.elim (
+                            empty_set_is_empty x (
+                              eq_subst (fun (i) => x ∈ i) (A) (∅) (hAemp) (And.left hx)
+                            )
+                          )
+                    )
+                ) (empty_set_is_subset_any t u))
+              )) (elem_in_singl ∅)
+          )
+          (
+            fun (ht : t ∈ {∅}) =>
+              let u := in_singl_elem ∅ t ht
+              eq_subst (fun (i) => i ∈ (B ℙow A)) ∅ t (Eq.symm u) (
+                Iff.mpr (power_set_prop A B ∅) (
+                  And.intro (And.intro (empty_set_is_subset_any (A × B)) (
+                    fun (x y _) =>
+                      fun (hxy : (x . ∅ . y)) =>
+                        False.elim (
+                          empty_set_is_empty (x, y) (hxy)
+                        )
+                  )) (
+                    fun (x) =>
+                      fun (hx : x ∈ A) =>
+                        let u := eq_subst (fun (i) => x ∈ i) A ∅ (hAemp) (hx)
+                        False.elim (
+                          empty_set_is_empty x u
+                        )
+                  )
+                )
+              )
+          )
+      )
+
+
+theorem prod_pow_emp : ∀ A I B, (I = ∅) → (∏[ i in I ] A at i) = B ℙow I :=
+  fun (A I B) =>
+    fun (hI : (I = ∅)) =>
+          extensionality (∏[ i in I ] A at i) (B ℙow I) (
+            fun (f) =>
+              Iff.intro
+              (
+                fun (hf : f ∈ (∏[ i in I ] A at i)) =>
+                  let P := fun (f) => ∀ i ∈ I; f⦅i⦆ ∈ (A _ i)
+                  let S := ((⋃[ i in I ] A at i) ℙow (I))
+                  let res₁ := specification_set_subset P S f hf
+                  let res₂ := lemma_power_emp I (⋃[ i in I ] A at i) hI
+                  let res₃ := lemma_power_emp I B hI
+                  let res₄ := Eq.trans (res₂) (Eq.symm res₃)
+                  eq_subst (fun (M) => f ∈ M) S (B ℙow I) (res₄) (res₁)
+              )
+              (
+                fun (hf : f ∈ (B ℙow I)) =>
+                  let P := fun (f) => ∀ i ∈ I; f⦅i⦆ ∈ (A _ i)
+                  let S := ((⋃[ i in I ] A at i) ℙow (I))
+                  let res₂ := lemma_power_emp I (⋃[ i in I ] A at i) hI
+                  let res₃ := lemma_power_emp I B hI
+                  let res₄ := Eq.trans (res₂) (Eq.symm res₃)
+                  let res₅ := eq_subst (fun (M) => f ∈ M) (B ℙow I) S (Eq.symm (res₄)) (hf)
+                  Iff.mpr (specification_set_is_specification P S f) (
+                    And.intro (res₅) (fun (i) =>
+                      fun (hi : i ∈ I) =>
+                        False.elim (
+                          empty_set_is_empty i (
+                            eq_subst (fun (M) => i ∈ M) I ∅ (hI) (hi)
+                          )
+                        )
+                    )
+                  )
+              )
+          )
+
+
+
+
+theorem prod_pow_nemp : ∀ A I B, (I ≠ ∅) → (A Indx I) → (∀ i ∈ I; (A _ i = B)) → (∏[ i in I ] A at i) = B ℙow I :=
+  fun (A I B) =>
+    fun (hI : (I ≠ ∅)) =>
+      fun (hAI : (A Indx I)) =>
+          fun (hB : ∀ i ∈ I; (A _ i = B)) =>
+            let u := extensionality (⋃[ i in I ] A at i) (B) (
+              fun (t) =>
+                Iff.intro
+                (
+                  fun (ht : t ∈ (⋃[ i in I ] A at i)) =>
+                    let u := Iff.mp (indexed_union_is_union A I hAI t) ht
+                    Exists.elim u (
+                      fun (i) =>
+                        fun (hi : i ∈ I ∧ t ∈ (A _ i)) =>
+                          eq_subst (fun (r) => t ∈ r) (A _ i) B (hB i (And.left hi)) (And.right hi)
+                    )
+                )
+                (
+                  fun (ht : t ∈ B) =>
+                    let u := Iff.mpr (indexed_union_is_union A I hAI t)
+                    let v := non_empty_uni_then_exi (fun (i) => (A _ i = B)) I hI hB
+
+                    Exists.elim v (
+                      fun (i) =>
+                        fun (hi : i ∈ I ∧ A _ i = B) =>
+                          u (
+                            Exists.intro i (And.intro (And.left hi) (
+                              eq_subst (fun (r) => t ∈ r) B (A _ i) (Eq.symm (And.right hi)) (ht)
+                            ))
+                          )
+                    )
+
+
+
+                )
+            )
+            extensionality ((∏[ i in I ] A at i)) (B ℙow I) (
+              fun (t) =>
+                Iff.intro
+                (
+                  fun (ht : t ∈ (∏[ i in I ] A at i)) =>
+                    let P := fun (f) => ∀ i ∈ I; f⦅i⦆ ∈ (A _ i)
+                    let S := ((⋃[ i in I ] A at i) ℙow (I))
+                    let res₁ := specification_set_subset P S t ht
+                    eq_subst (fun (m) => t ∈ m ℙow I) ((⋃[ i in I ] A at i)) (B) (u) (res₁)
+                )
+                (
+                  fun (ht : t ∈ (B ℙow I)) =>
+                    let P := fun (f) => ∀ i ∈ I; f⦅i⦆ ∈ (A _ i)
+                    let S := ((⋃[ i in I ] A at i) ℙow (I))
+                    let res₁ := eq_subst (fun (m) => t ∈ m ℙow I) (B) ((⋃[ i in I ] A at i)) (Eq.symm u) (ht)
+                    Iff.mpr (specification_set_is_specification P S t) (
+                      And.intro (res₁) (
+                        fun (i) =>
+                          fun (hi : i ∈ I) =>
+                            let res₂ := Iff.mp (power_set_prop I B t) ht
+                            let res₃ := val_in_B t I B (res₂) i hi
+                            eq_subst (fun (R) => (t⦅i⦆) ∈ R) B (A _ i) (Eq.symm (hB i hi)) (res₃)
+                      )
+                    )
+                )
+            )
+
+
+
+theorem prod_pow : ∀ A I B, (A Indx I) → (∀ i ∈ I; (A _ i = B)) → (∏[ i in I ] A at i) = B ℙow I :=
+  fun (A I B) =>
+    fun (hI : (A Indx I)) =>
+      fun (hi : (∀ i ∈ I; (A _ i = B))) =>
+        Or.elim (em (I = ∅))
+        (
+          fun (hemp : (I = ∅)) =>
+            prod_pow_emp A I B hemp
+        )
+        (fun (hnemp : (I ≠ ∅)) =>
+            prod_pow_nemp A I B hnemp hI hi
+        )
 
 
 

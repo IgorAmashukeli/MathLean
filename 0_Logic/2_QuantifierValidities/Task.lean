@@ -73,6 +73,6 @@ theorem inh_brackets_left_exi_impl (α : Type) [Inhabited α] (P : Prop) (Q : α
 theorem inh_brackets_right_uni_impl (α : Type) [Inhabited α] (P: α → Prop)  (Q : Prop) :  ((∀ x : α, P x) → Q) ↔ (∃ x : α, (P x → Q)) := sorry
 
 
--- 17) In non empty pub there is someone in the pub such that, if he or she is drinking, then everyone in the pub is drinking
+-- 17*) In non empty pub there is someone in the pub such that, if he or she is drinking, then everyone in the pub is drinking
 theorem drinker_paradox (pub_visitor : Type) (is_drinking : pub_visitor → Prop) [Inhabited pub_visitor] :
  (∃ someone : pub_visitor, (is_drinking someone  → ∀ person : pub_visitor, is_drinking person)) := sorry

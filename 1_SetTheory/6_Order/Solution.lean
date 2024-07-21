@@ -1,14 +1,14 @@
 import «Header»
 
 
-def rel_reflexive (R A : Set) : Prop := ∀ x ∈ A; (x . R . x)
-def rel_irreflexive (R : Set) : Prop := ∀ x, ¬ (x . R . x)
-def rel_symmetric (R : Set) : Prop := ∀ x y, ((x . R . y) → (y . R . x))
-def rel_antisymmetric (R : Set) : Prop := ∀ x y, ((x . R . y) ∧ (y . R . x) → (x = y))
-def rel_asymmetric (R : Set) : Prop := ∀ x y, ((x . R . y) → ¬ (y . R . x))
-def rel_transitive (R : Set) : Prop := ∀ x y z, (x . R . y) ∧ (y . R . z) → (x . R . z)
-def rel_strongly_connected (R A : Set) : Prop := ∀ x y ∈ A; ((x . R . y) ∨ (y . R . x))
-def rel_weakly_connected (R A : Set) : Prop := ∀ x y ∈ A; ((x ≠ y) → (x . R . y) ∨ (y . R . x))
+def refl (R A : Set) : Prop := ∀ x ∈ A; (x . R . x)
+def irrefl (R : Set) : Prop := ∀ x, ¬ (x . R . x)
+def symm (R : Set) : Prop := ∀ x y, ((x . R . y) → (y . R . x))
+def antisymm (R : Set) : Prop := ∀ x y, ((x . R . y) ∧ (y . R . x) → (x = y))
+def asymm (R : Set) : Prop := ∀ x y, ((x . R . y) → ¬ (y . R . x))
+def transit (R : Set) : Prop := ∀ x y z, (x . R . y) ∧ (y . R . z) → (x . R . z)
+def str_conn (R A : Set) : Prop := ∀ x y ∈ A; ((x . R . y) ∨ (y . R . x))
+def wkl_conn (R A : Set) : Prop := ∀ x y ∈ A; ((x ≠ y) → (x . R . y) ∨ (y . R . x))
 
 
 
@@ -18,12 +18,12 @@ theorem bin_on_is_bin : ∀ A R, binary_relation_on A R → binary_relation R :=
       And.left (prop_then_binary_relation A A R hAR)
 
 
-theorem reflex_crit : ∀ A R, binary_relation_on A R → ((rel_reflexive R A) ↔ ((id_ A) ⊆ R)) :=
+theorem refl_crit : ∀ A R, binary_relation_on A R → ((refl R A) ↔ ((id_ A) ⊆ R)) :=
   fun (A R) =>
     fun (hAR : binary_relation_on A R) =>
       Iff.intro
       (
-        fun (hrefl : (rel_reflexive R A)) =>
+        fun (hrefl : (refl R A)) =>
           rel_subset (id_ A) R (id_is_rel A) (bin_on_is_bin A R (hAR)) (
             fun (x y) =>
               fun (hxy : (x . (id_ A) . y)) =>
@@ -41,12 +41,12 @@ theorem reflex_crit : ∀ A R, binary_relation_on A R → ((rel_reflexive R A) �
       )
 
 
-theorem irreflex_crit : ∀ A R, binary_relation_on A R → ((rel_irreflexive R) ↔ (R ∩ (id_ A) = ∅)) :=
+theorem irrefl_crit : ∀ A R, binary_relation_on A R → ((irrefl R) ↔ (R ∩ (id_ A) = ∅)) :=
   fun (A R) =>
     fun (hAR : binary_relation_on A R) =>
       Iff.intro
       (
-        fun (hirrefl : (rel_irreflexive R)) =>
+        fun (hirrefl : (irrefl R)) =>
           extensionality (R ∩ (id_ A)) ∅ (
             fun (pr) =>
               Iff.intro
@@ -88,12 +88,12 @@ theorem irreflex_crit : ∀ A R, binary_relation_on A R → ((rel_irreflexive R)
 
 
 
-theorem symmetric_crit_sub_left : ∀ A R, binary_relation_on A R → ((rel_symmetric R) ↔ (R ⊆ R⁻¹)) :=
+theorem symmetric_crit_sub_left : ∀ A R, binary_relation_on A R → ((symm R) ↔ (R ⊆ R⁻¹)) :=
   fun (A R) =>
     fun (hAR : (binary_relation_on A R)) =>
       Iff.intro
       (
-        fun (hrelsymm : (rel_symmetric R)) =>
+        fun (hrelsymm : (symm R)) =>
           rel_subset R (R⁻¹) (bin_on_is_bin A R (hAR)) (inv_is_rel R (bin_on_is_bin A R hAR)) (
             fun (x y) =>
               fun (hxy : (x . R . y)) =>
@@ -111,12 +111,12 @@ theorem symmetric_crit_sub_left : ∀ A R, binary_relation_on A R → ((rel_symm
               )
       )
 
-theorem symmetric_crit_sub_right : ∀ A R, binary_relation_on A R → ((rel_symmetric R) ↔ (R⁻¹ ⊆ R)) :=
+theorem symmetric_crit_sub_right : ∀ A R, binary_relation_on A R → ((symm R) ↔ (R⁻¹ ⊆ R)) :=
   fun (A R) =>
     fun (hAR : (binary_relation_on A R)) =>
       Iff.intro
       (
-        fun (hrelsymm : (rel_symmetric R)) =>
+        fun (hrelsymm : (symm R)) =>
           rel_subset (R⁻¹) R (inv_is_rel R (bin_on_is_bin A R hAR)) (bin_on_is_bin A R (hAR)) (
             fun (x y) =>
               fun (hxy : (x . (R⁻¹) . y)) =>
@@ -133,12 +133,12 @@ theorem symmetric_crit_sub_right : ∀ A R, binary_relation_on A R → ((rel_sym
               hrr (y, x) u
       )
 
-theorem symmetric_crit_eq : ∀ A R, binary_relation_on A R → ((rel_symmetric R) ↔ (R = R⁻¹)) :=
+theorem symmetric_crit_eq : ∀ A R, binary_relation_on A R → ((symm R) ↔ (R = R⁻¹)) :=
   fun (A R) =>
     fun (hAR : (binary_relation_on A R)) =>
       Iff.intro
       (
-        fun (hsym : (rel_symmetric R)) =>
+        fun (hsym : (symm R)) =>
           extensionality R (R⁻¹) (
             fun (t) =>
               Iff.intro
@@ -159,12 +159,12 @@ theorem symmetric_crit_eq : ∀ A R, binary_relation_on A R → ((rel_symmetric 
 
 
 
-theorem antisymmetric_crit : ∀ A R, binary_relation_on A R → ((rel_antisymmetric R) ↔ (R ∩ R⁻¹ ⊆ (id_ A))) :=
+theorem antisymmetric_crit : ∀ A R, binary_relation_on A R → ((antisymm R) ↔ (R ∩ R⁻¹ ⊆ (id_ A))) :=
   fun (A R) =>
     fun (hAR : (binary_relation_on A R)) =>
       Iff.intro
       (
-        fun (hantisym : (rel_antisymmetric R)) =>
+        fun (hantisym : (antisymm R)) =>
           let v := (intersect2_rel_is_rel R (R⁻¹) (bin_on_is_bin A R hAR)
           (inv_is_rel R (bin_on_is_bin A R hAR)))
           rel_subset (R ∩ R⁻¹) (id_ A) v (id_is_rel A) (
@@ -191,12 +191,12 @@ theorem antisymmetric_crit : ∀ A R, binary_relation_on A R → ((rel_antisymme
       )
 
 
-theorem asymmetric_crit : ∀ A R, binary_relation_on A R → ((rel_asymmetric R) ↔ (R ∩ R⁻¹ = ∅)) :=
+theorem asymmetric_crit : ∀ A R, binary_relation_on A R → ((asymm R) ↔ (R ∩ R⁻¹ = ∅)) :=
   fun (A R) =>
     fun (hAR : (binary_relation_on A R)) =>
       Iff.intro
       (
-        fun (hrr : (rel_asymmetric R)) =>
+        fun (hrr : (asymm R)) =>
           extensionality (R ∩ (R⁻¹)) (∅) (
             fun (f) =>
               Iff.intro
@@ -232,12 +232,12 @@ theorem asymmetric_crit : ∀ A R, binary_relation_on A R → ((rel_asymmetric R
       )
 
 
-theorem transitive_crit : ∀ A R, binary_relation_on A R → ((rel_transitive R) ↔ (R ∘ R ⊆ R)) :=
+theorem transitive_crit : ∀ A R, binary_relation_on A R → ((transit R) ↔ (R ∘ R ⊆ R)) :=
   fun (A R) =>
     fun (hAR : (binary_relation_on A R)) =>
       Iff.intro
       (
-        fun (hr : (rel_transitive R)) =>
+        fun (hr : (transit R)) =>
           rel_subset (R ∘ R) R (composition_is_rel R R) (bin_on_is_bin A R hAR) (
             fun (x y) =>
               fun (hxy : (x . (R ∘ R) . y)) =>
@@ -259,12 +259,12 @@ theorem transitive_crit : ∀ A R, binary_relation_on A R → ((rel_transitive R
 
 open Classical
 
-theorem strongly_connected_crit : ∀ A R, binary_relation_on A R → ((rel_strongly_connected R A) ↔ ((A × A) ⊆ (R ∪ R⁻¹))) :=
+theorem strongly_connected_crit : ∀ A R, binary_relation_on A R → ((str_conn R A) ↔ ((A × A) ⊆ (R ∪ R⁻¹))) :=
   fun (A R) =>
     fun (hAR : (binary_relation_on A R)) =>
       Iff.intro
       (
-        fun (hrr : (rel_strongly_connected R A)) =>
+        fun (hrr : (str_conn R A)) =>
           rel_subset (A × A) (R ∪ R⁻¹) (bin_on_is_bin A (A × A) (subset_refl (A × A))) (
             union2_rel_is_rel R (R⁻¹) (bin_on_is_bin A R hAR) (inv_is_rel R (bin_on_is_bin A R hAR))
           ) (
@@ -302,12 +302,12 @@ theorem strongly_connected_crit : ∀ A R, binary_relation_on A R → ((rel_stro
               )
       )
 
-theorem weakly_connected_crit : ∀ A R, binary_relation_on A R → ((rel_weakly_connected R A) ↔ (((A × A) \ (id_ A)) ⊆ (R ∪ R⁻¹))) :=
+theorem weakly_connected_crit : ∀ A R, binary_relation_on A R → ((wkl_conn R A) ↔ (((A × A) \ (id_ A)) ⊆ (R ∪ R⁻¹))) :=
   fun (A R) =>
     fun (hAR : (binary_relation_on A R)) =>
       Iff.intro
       (
-        fun (relw : (rel_weakly_connected R A)) =>
+        fun (relw : (wkl_conn R A)) =>
           rel_subset ((A × A) \ (id_ A)) (R ∪ R⁻¹) (
             bin_on_is_bin A ((A × A) \ (id_ A)) (difference_subset_prop (A × A) (id_ A))
           ) (
@@ -317,7 +317,7 @@ theorem weakly_connected_crit : ∀ A R, binary_relation_on A R → ((rel_weakly
               fun (hxy : (x . ((A × A) \ (id_ A)) . y)) =>
                 let u := difference_subset_prop (A × A) (id_ A) (x, y) hxy
                 let v := Iff.mp (cartesian_product_pair_prop A A x y) u
-                let s := relw x (And.left v) y (And.right v)
+                let _ := relw x (And.left v) y (And.right v)
                 let t := And.right (Iff.mp (difference_prop (A × A) (id_ A) (x, y)) hxy)
                 let r := fun (hxey : (x = y)) =>
                   t (
@@ -365,3 +365,267 @@ theorem weakly_connected_crit : ∀ A R, binary_relation_on A R → ((rel_weakly
                         ))
                     )
       )
+
+
+
+theorem assym_then_antisymm : ∀ A R, binary_relation_on A R → ((asymm R) ↔ (antisymm R ∧ irrefl R)) :=
+  fun (A R) =>
+    fun (hAR : (binary_relation_on A R)) =>
+      Iff.intro
+      (
+        fun (hassym : (asymm R)) =>
+          And.intro
+          (
+            Iff.mpr (antisymmetric_crit A R hAR) (
+              eq_subst (fun (t) => t ⊆ (id_ A)) (∅) (R ∩ R⁻¹) (Eq.symm (Iff.mp (asymmetric_crit A R hAR) hassym)) (
+                empty_set_is_subset_any (id_ A)
+              )
+            )
+          ) (
+            fun (x) =>
+              fun (hx : (x . R . x)) =>
+                  (hassym x x) hx hx
+          )
+      )
+      (
+        fun (hr : (antisymm R ∧ irrefl R)) =>
+          fun (x y) =>
+            fun (hxy : (x . R . y)) =>
+              fun (hyx : (y . R . x)) =>
+                let u := And.left hr x y (And.intro hxy hyx)
+                And.right hr x (
+                  eq_subst (fun (t) => (x . R . t)) y x (Eq.symm u) (hxy)
+                )
+      )
+
+
+
+theorem strcon_iff_wkcon_refl :
+∀ A R, binary_relation_on A R → ((str_conn R A) ↔ (wkl_conn R A ∧ refl R A)) :=
+  fun (A R) =>
+    fun (_ : (binary_relation_on A R)) =>
+      Iff.intro
+      (
+        fun (hstr : (str_conn R A)) =>
+          And.intro (
+            fun (x) =>
+              fun (hx : x ∈ A) =>
+                fun (y) =>
+                  fun (hy : y ∈ A) =>
+                    fun (_ : x ≠ y) =>
+                      hstr x hx y hy
+          ) (
+            fun (x) =>
+              fun (hx : x ∈ A) =>
+                Or.elim (hstr x hx x hx)
+                (
+                  fun (hxr : (x . R . x)) =>
+                    hxr
+                )
+                (fun (hxr : (x . R . x)) =>
+                    hxr
+                )
+          )
+      )
+      (
+        fun (hwcrfl : (wkl_conn R A ∧ refl R A)) =>
+          fun (x) =>
+            fun (hx : x ∈ A) =>
+              fun (y) =>
+                fun (hy : y ∈ A) =>
+                  Or.elim (em (x = y))
+                  (
+                    fun (hxy : (x = y)) =>
+                      Or.inl (
+                        eq_subst (fun (t) => (x . R . t)) x y (hxy) (And.right hwcrfl x hx)
+                      )
+                  )
+                  (
+                    And.left (hwcrfl) x hx y hy
+                  )
+
+      )
+
+
+
+theorem emp_refl_irrefl :
+∀ A R, binary_relation_on A R → ((A = ∅) ↔ (refl R A ∧ irrefl R)) :=
+  fun (A R) =>
+    fun (hAR : (binary_relation_on A R)) =>
+      Iff.intro
+      (
+        fun (Aemp : (A = ∅)) =>
+          And.intro (
+            fun (x) =>
+              fun (hx : x ∈ A) =>
+                False.elim (
+                  empty_set_is_empty x (
+                    eq_subst (fun (t) => x ∈ t) A ∅ (Aemp) (hx)
+                  )
+                )
+
+          ) (
+            fun (x) =>
+              fun (hxR : (x . R . x)) =>
+                Or.elim (em (x ∈ A))
+                (
+                  fun (hx : x ∈ A) =>
+                  False.elim (
+                    empty_set_is_empty x (
+                      eq_subst (fun (t) => x ∈ t) A ∅ (Aemp) (hx)
+                    )
+                  )
+                )
+                (
+                  fun (hx : x ∉ A) =>
+                    hx (
+                      And.left (Iff.mp (cartesian_product_pair_prop A A x x) (
+                        hAR (x, x) (hxR)
+                      ))
+                    )
+                )
+          )
+      )
+      (
+       fun (hrr : (refl R A ∧ irrefl R)) =>
+        extensionality A ∅ (
+          fun (x) =>
+            Iff.intro
+            (
+              fun (hx : (x ∈ A)) =>
+                False.elim (And.right hrr x (
+                  And.left hrr x hx
+                ))
+            )
+            (empty_set_is_subset_any A x)
+        )
+      )
+
+
+theorem emp_symm_asymm :
+∀ A R, binary_relation_on A R → ((R = ∅) ↔ (symm R ∧ asymm R)) :=
+  fun (A R) =>
+    fun (hAR : (binary_relation_on A R)) =>
+      Iff.intro
+      (
+        fun (Aemp : (R = ∅)) =>
+          And.intro (
+            fun (x y) =>
+              fun (hxy : (x . R . y)) =>
+                False.elim (
+                  empty_set_is_empty (x, y) (
+                    eq_subst (fun (t) => (x . t . y)) R ∅ (Aemp) (hxy)
+                  )
+                )
+
+
+          ) (fun (x y) =>
+              fun (hxy : (x . R . y)) =>
+                False.elim (
+                  empty_set_is_empty (x, y) (
+                    eq_subst (fun (t) => (x . t . y)) R ∅ (Aemp) (hxy)
+                  )
+                ))
+      )
+      (
+        fun (hsymasymm : (symm R ∧ asymm R)) =>
+          extensionality R ∅ (
+            fun (s) =>
+              Iff.intro
+              (
+                rel_subset R ∅ (bin_on_is_bin A R (hAR)) (bin_on_is_bin A ∅ (empty_set_is_subset_any (A × A))) (
+                  fun (x y) =>
+                    fun (hxy : (x . R . y)) =>
+                      False.elim (
+                        And.right hsymasymm x y hxy (
+                          And.left hsymasymm x y (hxy)
+                        )
+                      )
+                ) s
+              )
+              (empty_set_is_subset_any R s)
+          )
+      )
+
+
+
+theorem trans_irrefl_antisymm :
+∀ A R, binary_relation_on A R → (transit R) → (irrefl R) → (antisymm R) :=
+  fun (A R) =>
+    fun (_ : (binary_relation_on A R)) =>
+      fun (htr : (transit R)) =>
+        fun (hirr : (irrefl R)) =>
+          fun (x y) =>
+            fun (hxy : (x . R . y) ∧ (y . R . x)) =>
+              let u := htr x y x hxy
+              False.elim (
+                hirr x u
+              )
+
+
+theorem trans_irrefl_ansymm :
+∀ A R, binary_relation_on A R → (transit R) → (irrefl R) → (asymm R) :=
+  fun (A R) =>
+    fun (hAR : (binary_relation_on A R)) =>
+      fun (htr : (transit R)) =>
+        fun (hirr : (irrefl R)) =>
+          Iff.mpr (assym_then_antisymm A R hAR) (
+            And.intro (trans_irrefl_antisymm A R hAR htr hirr) (hirr)
+          )
+
+
+theorem refl_symm_antisymm :
+∀ A R, binary_relation_on A R → (((refl R A) ∧ (symm R) ∧ (antisymm R)) ↔ (R = (id_ A))) :=
+  fun (A R) =>
+    fun (hAR : (binary_relation_on A R)) =>
+      Iff.intro
+      (
+        fun (hr : ((refl R A) ∧ (symm R) ∧ (antisymm R))) =>
+          extensionality (R) (id_ A) (
+            fun (t) =>
+              Iff.intro
+              (
+                let u := Iff.mp (symmetric_crit_eq A R hAR) (And.left (And.right hr))
+
+                let v := Iff.mp (antisymmetric_crit A R hAR) (And.right (And.right hr))
+
+                let s := eq_subst (fun (t) => R ∩ t ⊆ (id_ A)) (R⁻¹) (R) (Eq.symm u) (v)
+
+                let k := eq_subst (fun (t) => t ⊆ (id_ A)) (R ∩ R) (R) (
+                  intersec2_idemp R
+
+                ) (s)
+
+                k t
+
+              )
+              (Iff.mp (refl_crit A R hAR) (And.left hr) t)
+          )
+      )
+      (
+        fun (hR : (R = (id_ A))) =>
+          And.intro (Iff.mpr (refl_crit A R hAR) (
+            eq_subst (fun (t) => t ⊆ R) (R) (id_ A) (hR) (subset_refl R)
+          )) (And.intro (
+            fun (x y) =>
+              fun (hxy : (x . R . y)) =>
+                eq_subst (fun (t) => (t . R . x)) x y (
+                  And.left (And.left (id_prop A x y (
+                    eq_subst (fun (q) => (x . q . y)) R (id_ A) (hR) (hxy)
+                  )))
+                ) (
+                  eq_subst (fun (q) => (x . q . x)) (id_ A) R (Eq.symm hR) (prop_then_id A x (
+
+                    And.left (Iff.mp (cartesian_product_pair_prop A A x y) (
+                      hAR (x, y) hxy
+                    ))
+                  ))
+                )
+          ) (
+            fun (x y) =>
+              fun (hxy : (x . R . y) ∧ (y . R . x)) =>
+                And.left (And.left ((id_prop A x y) (
+                  eq_subst (fun (t) => (x . t . y)) R (id_ A) (hR) (And.left hxy))
+                )))
+          )
+        )

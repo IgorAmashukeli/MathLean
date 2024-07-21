@@ -119,9 +119,9 @@ theorem imp_def (p q : Prop) : (p → q) ↔ (¬p ∨ q) := sorry
 theorem neg_imp_def (p q : Prop) :  ¬ (p → q) ↔ p ∧ ¬ q := sorry
 
 
--- 26) Contraposition law
+-- 25) Contraposition law
 theorem contraposition (p q : Prop) : (p → q) ↔ (¬q → ¬p) := sorry
 
 
--- 27) Peirce law
+-- 26) Peirce law
 theorem peirce (p q : Prop) : (((p → q) → p) → p) := sorry

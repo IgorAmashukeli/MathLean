@@ -1,4 +1,13 @@
 -- previous problem defitions
+axiom conj_comm (p q : Prop) : (p ∧ q ↔ q ∧ p)
+axiom neg_conj (p q : Prop) : ((p ↔ q) → (¬p ↔ ¬q))
+axiom iff_transitivity (p q r : Prop) : (p ↔ q) → (q ↔ r) → (p ↔ r)
+axiom conj_disj_distr_left (p q r : Prop) : (p ∧ (q ∨ r)) ↔ ((p ∧ q) ∨ (p ∧ r))
+axiom conj_disj_distr_right (p q r : Prop) : ((q ∨ r) ∧ p) ↔ ((q ∧ p) ∨ (r ∧ p))
+axiom disj_congr (p q r s : Prop) : (p ↔ q) →  (r ↔ s) → (p ∨ r ↔ q ∨ s)
+axiom morgan_conj (p q : Prop) : ¬p ∨ ¬q ↔ ¬(p ∧ q)
+axiom morgan_uni (α : Type) (P : α → Prop) : (∀ x : α, ¬ P x) ↔ (¬ ∃ x : α, P x)
+axiom contraposition (p q : Prop) : (p → q) ↔ (¬q → ¬p)
 def exists_unique (P : α → Prop) : Prop := (∃ (x : α), P x ∧ (∀ y : α, (P y → x = y)))
 open Lean TSyntax.Compat in
 macro "∃!" xs:explicitBinders ", " b:term : term => expandExplicitBinders ``exists_unique xs b
@@ -8,6 +17,9 @@ infix:50 (priority := high) " ∈ " => membership
 infix:50 (priority := high) " ∉ " => (fun (x : Set) => (fun (y : Set) => ¬ membership x y))
 axiom set_intro (P : Set → Prop) (h : ∃! x, P x) : Set
 axiom set_intro_prop (P : Set → Prop) (h : ∃! x, P x) : P (set_intro P h) ∧ ∀ x, x ≠ set_intro P h → ¬P x
+
+axiom exits_or_prop (P Q : Set → Prop) : (∃ x, (P x ∨ Q x)) ↔ ((∃ x, P x) ∨ (∃ x, Q x))
+
 def forall_in_A (P : Set → Prop) (A : Set) : Prop := (∀ x, (x ∈ A → P x))
 def exists_in_A (P : Set → Prop) (A : Set) : Prop := (∃ x, (x ∈ A ∧ P x))
 def exists_uniq_in_A (P : Set → Prop) (A : Set) : Prop := (∃! x, (x ∈ A ∧ P x))

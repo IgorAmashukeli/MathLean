@@ -145,6 +145,16 @@ theorem non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ 
         )
 
 
+theorem non_empty_then_exi : ∀ A, (A ≠ ∅) → ∃ x, x ∈ A :=
+  fun (A) =>
+    fun (h : A ≠ ∅) =>
+      Exists.elim (non_empty_uni_then_exi (fun (t) => True) A h (fun (x) => fun (hx : x ∈ A) => True.intro)) (
+        fun (s) =>
+          fun (hs : s ∈ A ∧ True) =>
+            Exists.intro s (And.left hs)
+      )
+
+
 
 noncomputable def boolean_func_sym : Set → Set :=
   fun (A : Set) => set_intro (fun (B : Set) => ∀ x, (x ∈ B ↔ x ⊆ A)) (unique_boolean A)

@@ -26,6 +26,7 @@ notation (priority := high) "∅" => empty_set
 theorem empty_set_is_empty : empty ∅ := sorry
 theorem empty_set_subset_any : ∀ A, ∅ ⊆ A := sorry
 theorem non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ x ∈ A; P x) → ∃ x ∈ A; P x := sorry
+theorem non_empty_then_exi : ∀ A, (A ≠ ∅) → ∃ x, x ∈ A := sorry
 
 
 -- 5) construction of 𝒫 A from A (boolean set)

@@ -175,6 +175,19 @@ macro_rules
 
 
 noncomputable def binary_relation (R : Set) : Prop := ∀ z ∈ R; ∃ a, ∃ b, z = (a, b)
+noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
+noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
+
+
+syntax "BinRel" term : term
+macro_rules
+|  `(BinRel $R:term) => `(binary_relation $R)
+syntax term "BinRelOn" term : term
+macro_rules
+| `($R:term BinRelOn $A:term) => `(binary_relation_on $A $R)
+syntax term "BinRelBtw" term "AND" term : term
+macro_rules
+| `($R:term BinRelBtw $A:term AND $B:term) => `(binary_relation_between $A $B $R)
 
 -- write (x . P . y) istead of (x, y) ∈ P
 macro_rules
@@ -188,8 +201,7 @@ noncomputable def rng (R : Set) := {y ∈ ⋃ (⋃ R) | ∃ x, (x . R . y)}
 axiom dom_prop : ∀ R x, x ∈ dom R ↔ ∃ y, (x . R . y)
 axiom rng_prop : ∀ R y, y ∈ rng R ↔ ∃ x, (x . R . y)
 
-noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
-noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
+
 noncomputable def comp (A B R : Set) : Set := (A × B) \ R
 
 

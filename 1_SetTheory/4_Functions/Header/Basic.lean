@@ -1,3 +1,4 @@
+axiom contraposition (p q : Prop) : (p → q) ↔ (¬q → ¬p)
 def exists_unique (P : α → Prop) : Prop := (∃ (x : α), P x ∧ (∀ y : α, (P y → x = y)))
 open Lean TSyntax.Compat in
 macro "∃!" xs:explicitBinders ", " b:term : term => expandExplicitBinders ``exists_unique xs b
@@ -124,6 +125,7 @@ axiom empty_set_is_empty : empty ∅
 axiom empty_set_is_subset_any : ∀ A, ∅ ⊆ A
 axiom subs_subs_eq : ∀ A B, A ⊆ B ∧ B ⊆ A ↔ A = B
 axiom non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ x ∈ A; P x) → ∃ x ∈ A; P x
+axiom non_empty_then_exi : ∀ A, (A ≠ ∅) → ∃ x, x ∈ A
 axiom elem_in_singl : ∀ x, x ∈ {x}
 axiom in_singl_elem : ∀ a x, x ∈ {a} → x = a
 axiom unordered_pair_set_is_unordered_pair : ∀ a₁ a₂ x, x ∈ {a₁, a₂} ↔ x = a₁ ∨ x = a₂
@@ -157,8 +159,7 @@ noncomputable def boolean_func_sym : Set → Set :=
 
 notation (priority := high) "𝒫" => boolean_func_sym
 
-theorem boolean_set_is_boolean : ∀ A, (∀ x, x ∈ 𝒫 A ↔ x ⊆ A) :=
-  fun (A : Set) => And.left (prop_to_set (fun (B : Set) => ∀ x, (x ∈ B ↔ x ⊆ A)) (unique_boolean A))
+axiom boolean_set_is_boolean : ∀ A, (∀ x, x ∈ 𝒫 A ↔ x ⊆ A)
 
 noncomputable def ordered_pair_set (a b : Set) := {{a}, {a, b}}
 notation (priority := high) "(" a₁ ", " a₂ ")" => ordered_pair_set a₁ a₂
@@ -196,6 +197,19 @@ macro_rules
 
 
 noncomputable def binary_relation (R : Set) : Prop := ∀ z ∈ R; ∃ a, ∃ b, z = (a, b)
+noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
+noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
+
+
+syntax "BinRel" term : term
+macro_rules
+|  `(BinRel $R:term) => `(binary_relation $R)
+syntax term "BinRelOn" term : term
+macro_rules
+| `($R:term BinRelOn $A:term) => `(binary_relation_on $A $R)
+syntax term "BinRelBtw" term "AND" term : term
+macro_rules
+| `($R:term BinRelBtw $A:term AND $B:term) => `(binary_relation_between $A $B $R)
 
 -- write (x . P . y) istead of (x, y) ∈ P
 macro_rules
@@ -206,10 +220,8 @@ noncomputable def dom (R : Set) := {x ∈ ⋃ (⋃ R) | ∃ y, (x . R . y)}
 noncomputable def rng (R : Set) := {y ∈ ⋃ (⋃ R) | ∃ x, (x . R . y)}
 
 
-axiom binary_relation_prop : ∀ R, binary_relation R → R ⊆ dom R × rng R
-axiom prop_then_binary_relation : ∀ A B R, R ⊆ A × B → binary_relation R ∧ dom R ⊆ A ∧ rng R ⊆ B
-noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
-noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
+axiom binary_relation_prop : ∀ R, (BinRel R) → R ⊆ dom R × rng R
+axiom prop_then_binary_relation : ∀ A B R, R ⊆ A × B → (BinRel R) ∧ dom R ⊆ A ∧ rng R ⊆ B
 noncomputable def comp (A B R : Set) : Set := (A × B) \ R
 
 
@@ -221,12 +233,14 @@ macro_rules
 noncomputable def composition (P Q : Set) : Set := {pr ∈ dom Q × rng P | ∃ x y, (pr = (x, y)) ∧ ∃ z, (x . Q . z) ∧ (z . P . y)}
 infix:60 (priority:=high) " ∘ " => composition
 
-axiom inv_is_rel : ∀ R, binary_relation R → binary_relation (R⁻¹)
-axiom inv_prop : ∀ R, binary_relation R → ((R⁻¹)⁻¹) = R
-axiom inv_pair_prop : ∀ R, binary_relation R → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x)
-axiom rel_subset : (∀ P Q, binary_relation P → binary_relation Q → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q)
-axiom relation_equality : (∀ P Q, binary_relation P → binary_relation Q → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q))
-axiom inv_between : ∀ A B R, binary_relation_between A B R → binary_relation_between B A (R⁻¹)
+axiom inv_is_rel : ∀ R, (BinRel R) → binary_relation (R⁻¹)
+axiom inv_prop : ∀ R, (BinRel R) → ((R⁻¹)⁻¹) = R
+axiom inv_pair_prop : ∀ R, (BinRel R) → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x)
+axiom rel_subset : (∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q)
+axiom relation_equality : (∀ P Q, (BinRel P) → (BinRel Q) → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q))
+axiom inv_between : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw B AND A)
+axiom inv_union_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∪ Q)⁻¹ = ((P⁻¹) ∪ Q⁻¹)
+axiom union2_rel_is_rel : ∀ P Q, (BinRel P) → (BinRel Q) → (BinRel (P ∪ Q))
 
 
 
@@ -244,13 +258,21 @@ syntax  term ".[" term "]" : term
 macro_rules
   | `($R:term .[ $X:term ])  => `(rel_image $X $R)
 
-axiom rel_pre_image_eq : ∀ Y R, binary_relation R → R⁻¹.[Y] = {a ∈ dom R | ∃ b ∈ Y; (a . R . b)}
+axiom rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | ∃ b ∈ Y; (a . R . b)}
 axiom dom_preimage : ∀ A B P, binary_relation_between A B P → dom P = P⁻¹.[B]
-axiom rel_preimage_composition : ∀ P Q X, binary_relation P → binary_relation Q → (P ∘ Q)⁻¹.[X] = Q⁻¹.[P⁻¹.[X]]
+axiom rel_preimage_composition : ∀ P Q X, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹.[X] = Q⁻¹.[P⁻¹.[X]]
 axiom id_is_rel : ∀ A, binary_relation (id_ A)
 axiom id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ (y ∈ A))
 axiom prop_then_id : ∀ A, ∀ x ∈ A; (x . (id_ A) . x)
 axiom composition_is_rel : ∀ P Q, binary_relation (P ∘ Q)
-axiom inv_dom: ∀ R, binary_relation R → dom (R⁻¹) = rng R
-axiom inv_between_mp : ∀ A B R, binary_relation_between A B R → binary_relation_between B A (R⁻¹)
+axiom inv_dom: ∀ R, (BinRel R) → dom (R⁻¹) = rng R
+axiom inv_between_mp : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw B AND A)
 axiom union_empty : ⋃ ∅ = ∅
+
+axiom image_prop : ∀ R X y, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y))
+axiom preimage_prop : ∀ R Y, (BinRel R) → ∀ x, (x ∈ R⁻¹.[Y] ↔ ∃ y ∈ Y; (x . R . y))
+
+axiom rel_image_inter : ∀ X Y R, (BinRel R) → R.[X ∩ Y] ⊆ (R.[X] ∩ R.[Y])
+axiom rel_preimage_inter : ∀ X Y R, (BinRel R) → R⁻¹.[X ∩ Y] ⊆ (R⁻¹.[X] ∩ R⁻¹.[Y])
+axiom rel_image_diff : ∀ X Y R, (R.[X] \ R.[Y]) ⊆ (R.[X \ Y])
+axiom rel_preimage_diff : ∀ X Y R, (R⁻¹.[X] \ R⁻¹.[Y]) ⊆ (R⁻¹.[X \ Y])

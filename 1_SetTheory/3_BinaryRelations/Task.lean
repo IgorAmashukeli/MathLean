@@ -42,41 +42,54 @@ macro_rules
 | `(⁅ $rest:pair_comprehension; $elem:term⁆) => `(ordered_pair_set ⁅$rest:pair_comprehension⁆ $elem:term)
 
 
--- 5) Binary relation construction and its property
+-- 5) BinRelary relation construction and its property
 noncomputable def binary_relation (R : Set) : Prop := ∀ z ∈ R; ∃ a, ∃ b, z = (a, b)
+
+-- 6) BinRelary relation, implemented as a cartesian product subset
+noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
+noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
+
+syntax "BinRel" term : term
+macro_rules
+|  `(BinRel $R:term) => `(binary_relation $R)
+syntax term "BinRelOn" term : term
+macro_rules
+| `($R:term BinRelOn $A:term) => `(binary_relation_on $A $R)
+syntax term "BinRelBtw" term "AND" term : term
+macro_rules
+| `($R:term BinRelBtw $A:term AND $B:term) => `(binary_relation_between $A $B $R)
+
+
 macro_rules
 | `(($x:term . $P:term . $y:term)) => `(($x, $y) ∈ $P)
 theorem binary_relation_elements_set: ∀ R x y, (x . R . y) → (x ∈ ⋃ (⋃ R) ∧ y ∈ ⋃ (⋃ R)) := sorry
 
 
--- 6)  Domain and range of binary relation and their properties
+-- 7)  Domain and range of binary relation and their properties
 noncomputable def dom (R : Set) := {x ∈ ⋃ (⋃ R) | ∃ y, (x . R . y)}
 noncomputable def rng (R : Set) := {y ∈ ⋃ (⋃ R) | ∃ x, (x . R . y)}
-theorem dom_rng_rel_prop: ∀ R, (binary_relation R) → (dom R ∪ rng R = ⋃ (⋃ R)) := sorry
+theorem dom_rng_rel_prop: ∀ R, (BinRel R) → (dom R ∪ rng R = ⋃ (⋃ R)) := sorry
 theorem dom_prop : ∀ R x, x ∈ dom R ↔ ∃ y, (x . R . y) := sorry
 theorem rng_prop : ∀ R y, y ∈ rng R ↔ ∃ x, (x . R . y) := sorry
-theorem binary_relation_prop : ∀ R, binary_relation R → R ⊆ dom R × rng R := sorry
-theorem prop_then_binary_relation : ∀ A B R, R ⊆ A × B → binary_relation R ∧ dom R ⊆ A ∧ rng R ⊆ B := sorry
-theorem rel_dom_rng_elem : ∀ R, binary_relation R → ∀ x y, (x . R . y) → x ∈ dom R ∧ y ∈ rng R := sorry
+theorem binary_relation_prop : ∀ R, (BinRel R) → (R BinRelBtw dom R AND rng R) := sorry
+theorem prop_then_binary_relation : ∀ A B R, (R BinRelBtw A AND B) → (BinRel R) ∧ dom R ⊆ A ∧ rng R ⊆ B := sorry
+theorem rel_dom_rng_elem : ∀ R, (BinRel R) → ∀ x y, (x . R . y) → x ∈ dom R ∧ y ∈ rng R := sorry
 
 
--- 7) Union and intersection of binary relation is binary relation
-theorem union2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q → binary_relation (P ∪ Q) := sorry
-theorem intersect2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q → binary_relation (P ∩ Q) := sorry
+-- 8) Union and intersection of binary relation is binary relation
+theorem union2_rel_is_rel : ∀ P Q, (BinRel P) → (BinRel Q) → (BinRel (P ∪ Q)) := sorry
+theorem intersect2_rel_is_rel : ∀ P Q, (BinRel P) → (BinRel Q) → (BinRel (P ∩ Q)) := sorry
 
 
--- 8) Binary relation, implemented as a cartesian product subset
-noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
-noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
 
 -- 9) Complement binary relation
 noncomputable def comp (A B R : Set) : Set := (A × B) \ R
-theorem comp_is_rel : ∀ A B R, binary_relation (comp A B R) := sorry
+theorem comp_is_rel : ∀ A B R, (BinRel (comp A B R)) := sorry
 
 
 -- 10) Properties, enough for subset and equality of binary relation
-theorem rel_subset : (∀ P Q, binary_relation P → binary_relation Q → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q) := sorry
-theorem relation_equality : (∀ P Q, binary_relation P → binary_relation Q → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q)) := sorry
+theorem rel_subset : (∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q) := sorry
+theorem relation_equality : (∀ P Q, (BinRel P) → (BinRel Q) → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q)) := sorry
 
 
 -- 11) R⁻¹ (inverse binary relation) construction and its properties
@@ -84,12 +97,12 @@ noncomputable def inv (R : Set) : Set := {z ∈ rng R × dom R | ∃ x, ∃ y, (
 syntax term"⁻¹" : term
 macro_rules
 | `($term1:term⁻¹) => `(inv $term1)
-theorem inv_is_rel : ∀ R, binary_relation R → (binary_relation (R⁻¹)) := sorry
-theorem inv_pair_prop: ∀ R, binary_relation R → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x):= sorry
-theorem inv_prop : ∀ R, binary_relation R → (R⁻¹)⁻¹ = R := sorry
-theorem inv_dom: ∀ R, binary_relation R → dom (R⁻¹) = rng R := sorry
-theorem inv_rng: ∀ R, binary_relation R → rng (R⁻¹) = dom R := sorry
-theorem inv_between_mp : ∀ A B R, binary_relation_between A B R → binary_relation_between B A (R⁻¹) := sorry
+theorem inv_is_rel : ∀ R, (BinRel R) → (BinRel (R⁻¹)) := sorry
+theorem inv_pair_prop: ∀ R, (BinRel R) → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x):= sorry
+theorem inv_prop : ∀ R, (BinRel R) → (R⁻¹)⁻¹ = R := sorry
+theorem inv_dom: ∀ R, (BinRel R) → dom (R⁻¹) = rng R := sorry
+theorem inv_rng: ∀ R, (BinRel R) → rng (R⁻¹) = dom R := sorry
+theorem inv_between_mp : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw B AND A) := sorry
 
 
 -- 12) P ∘ Q (composition of binary relations) construction and its properties
@@ -102,12 +115,12 @@ theorem composition_assoc : ∀ P Q R, ((P ∘ Q) ∘ R) = (P ∘ (Q ∘ R)) := 
 
 
 -- 13) Inverse and other operations
-theorem inv_composition_pair_prop : ∀ P Q, binary_relation P → binary_relation Q → (∀ x y, (x . ((P ∘ Q)⁻¹) . y) ↔ (x . ((Q⁻¹) ∘ P⁻¹) . y)) := sorry
-theorem inv_composition_prop : ∀ P Q, binary_relation P → binary_relation Q → (P ∘ Q)⁻¹ = ((Q⁻¹) ∘ (P⁻¹)) := sorry
-theorem inv_union_pair_prop : ∀ P Q, binary_relation P → binary_relation Q → ∀ x y, (x . ((P ∪ Q)⁻¹) . y) ↔ (x . (P⁻¹ ∪ Q⁻¹) . y) := sorry
-theorem inv_union_prop : ∀ P Q, binary_relation P → binary_relation Q → (P ∪ Q)⁻¹ = ((P⁻¹) ∪ Q⁻¹) := sorry
-theorem comp_inv_prop_pair : ∀ P A B, binary_relation_between A B P → ∀ x y, (x . (comp A B (P⁻¹)) . y) ↔ (x . ((comp B A P)⁻¹) . y) := sorry
-theorem comp_inv_prop : ∀ P A B, binary_relation_between A B P → comp A B (P⁻¹) = (comp B A P)⁻¹ := sorry
+theorem inv_composition_pair_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . ((P ∘ Q)⁻¹) . y) ↔ (x . ((Q⁻¹) ∘ P⁻¹) . y)) := sorry
+theorem inv_composition_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹ = ((Q⁻¹) ∘ (P⁻¹)) := sorry
+theorem inv_union_pair_prop : ∀ P Q, (BinRel P) → (BinRel Q) → ∀ x y, (x . ((P ∪ Q)⁻¹) . y) ↔ (x . (P⁻¹ ∪ Q⁻¹) . y) := sorry
+theorem inv_union_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∪ Q)⁻¹ = ((P⁻¹) ∪ Q⁻¹) := sorry
+theorem comp_inv_prop_pair : ∀ P A B, (P  BinRelBtw A AND B) → ∀ x y, (x . (comp A B (P⁻¹)) . y) ↔ (x . ((comp B A P)⁻¹) . y) := sorry
+theorem comp_inv_prop : ∀ P A B, (P  BinRelBtw A AND B) → comp A B (P⁻¹) = (comp B A P)⁻¹ := sorry
 
 
 -- 14) Composition and other operations
@@ -129,8 +142,8 @@ theorem id_is_rel : ∀ A, binary_relation (id_ A) := sorry
 theorem id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ (y ∈ A)) := sorry
 theorem prop_then_id : ∀ A, ∀ x ∈ A; (x . (id_ A) . x) := sorry
 theorem inv_id : ∀ A, ((id_ A)⁻¹) = (id_ A) := sorry
-theorem id_rel_composition_right : ∀ A B R, binary_relation_between A B R → (R ∘ (id_ A)) = R := sorry
-theorem id_rel_composition_left : ∀ A B R, binary_relation_between A B R → ((id_ B) ∘ R) = R := sorry
+theorem id_rel_composition_right : ∀ A B R, (R BinRelBtw A AND B) → (R ∘ (id_ A)) = R := sorry
+theorem id_rel_composition_left : ∀ A B R, (R BinRelBtw A AND B) → ((id_ B) ∘ R) = R := sorry
 
 
 -- 16) Image of a binary relation construction
@@ -142,20 +155,28 @@ macro_rules
 
 -- 17) Preimage is just image of inverse
 -- but it can be deined differently
-theorem rel_pre_image_eq : ∀ Y R, binary_relation R → R⁻¹.[Y] = {a ∈ dom R | ∃ b ∈ Y; (a . R . b)} := sorry
+theorem rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | ∃ b ∈ Y; (a . R . b)} := sorry
 
 
--- 18) Range and domain as image and preimage
-theorem rng_is_rel_image : ∀ R, binary_relation R → rng R = R.[dom R] := sorry
-theorem dom_preimage : ∀ A B P, binary_relation_between A B P → dom P = P⁻¹.[B] := sorry
+-- 18) Image and preimage main properties
+theorem image_prop : ∀ R y, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y)) := sorry
+theorem preimage_prop : ∀ R, (BinRel R) → ∀ x, (x ∈ R⁻¹.[Y] ↔ ∃ y ∈ Y; (x . R . y)) := sorry
 
 
--- 19) Image and preimage properties
-theorem rel_image_union : ∀ X Y R, binary_relation R → R.[X ∪ Y] = R.[X] ∪ R.[Y] := sorry
-theorem rel_preimage_union : ∀ X Y R , binary_relation R → R⁻¹.[X ∪ Y] = R⁻¹.[X] ∪ R⁻¹.[Y] := sorry
-theorem monotonic_rel_image : ∀ X Y R, binary_relation R → X ⊆ Y → R.[X] ⊆ R.[Y] := sorry
-theorem monotonic_rel_preimage : ∀ X Y R, binary_relation R → X ⊆ Y → R⁻¹.[X] ⊆ R⁻¹.[Y] := sorry
-theorem rel_image_inter : ∀ X Y R, binary_relation R → R.[X ∩ Y] ⊆ (R.[X] ∩ R.[Y]) := sorry
-theorem rel_preimage_inter : ∀ X Y R, binary_relation R → R⁻¹.[X ∩ Y] ⊆ (R⁻¹.[X] ∩ R⁻¹.[Y]) := sorry
+
+-- 19) Range and domain as image and preimage
+theorem rng_is_rel_image : ∀ R, (BinRel R) → rng R = R.[dom R] := sorry
+theorem dom_preimage : ∀ A B P, (P  BinRelBtw A AND B) → dom P = P⁻¹.[B] := sorry
+
+
+-- 20) Image and preimage other properties
+theorem rel_image_union : ∀ X Y R, (BinRel R) → R.[X ∪ Y] = R.[X] ∪ R.[Y] := sorry
+theorem rel_preimage_union : ∀ X Y R , (BinRel R) → R⁻¹.[X ∪ Y] = R⁻¹.[X] ∪ R⁻¹.[Y] := sorry
+theorem monotonic_rel_image : ∀ X Y R, (BinRel R) → X ⊆ Y → R.[X] ⊆ R.[Y] := sorry
+theorem monotonic_rel_preimage : ∀ X Y R, (BinRel R) → X ⊆ Y → R⁻¹.[X] ⊆ R⁻¹.[Y] := sorry
+theorem rel_image_inter : ∀ X Y R, (BinRel R) → R.[X ∩ Y] ⊆ (R.[X] ∩ R.[Y]) := sorry
+theorem rel_preimage_inter : ∀ X Y R, (BinRel R) → R⁻¹.[X ∩ Y] ⊆ (R⁻¹.[X] ∩ R⁻¹.[Y]) := sorry
 theorem rel_image_composition : ∀ P Q X, (P ∘ Q).[X] = P.[Q.[X]] := sorry
-theorem rel_preimage_composition : ∀ P Q X, binary_relation P → binary_relation Q → (P ∘ Q)⁻¹.[X] = Q⁻¹.[P⁻¹.[X]] := sorry
+theorem rel_preimage_composition : ∀ P Q X, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹.[X] = Q⁻¹.[P⁻¹.[X]] := sorry
+theorem rel_image_diff : ∀ X Y R, (R.[X] \ R.[Y]) ⊆ (R.[X \ Y]) := sorry
+theorem rel_preimage_diff : ∀ X Y R, (R⁻¹.[X] \ R⁻¹.[Y]) ⊆ (R⁻¹.[X \ Y]) := sorry

@@ -111,8 +111,10 @@ axiom right_unordered_pair : ∀ a₁ a₂, a₂ ∈ {a₁, a₂}
 axiom empty_subset_any : ∀ A B, empty A → A ⊆ B
 axiom empty_set_is_subset_any : ∀ A, ∅ ⊆ A
 axiom non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ x ∈ A; P x) → ∃ x ∈ A; P x
+axiom non_empty_then_exi : ∀ A, (A ≠ ∅) → ∃ x, x ∈ A
 axiom neg_mon_diff : ∀ A B C, (A ⊆ B) → (C \ B) ⊆ (C \ A)
 axiom double_compl (U : Set) (A : Set)  (h : A ⊆ U) : (U \ (U \ A)) = A
+axiom intersec2_idemp : (∀ A, A ∩ A = A)
 
 
 
@@ -295,6 +297,11 @@ infix:50 (priority := high) "⨡" => fun_restriction
 
 axiom fun_restriction_prop : ∀ A B X f, (f Fun A To B) → (f ⨡ X) Fun (A ∩ X) To B
 axiom inj_restriction_prop : ∀ X f, (is_injective f) → (is_injective (f ⨡ X))
+
+
+syntax term "BinOn" term : term
+macro_rules
+| `($R:term BinOn $A:term) => `(binary_relation_on $A $R)
 
 noncomputable def injection (f A B : Set) := (f Fun A To B) ∧ (is_injective f)
 noncomputable def surjection (f A B : Set) := (f Fun A To B) ∧ (is_surjective f B)
