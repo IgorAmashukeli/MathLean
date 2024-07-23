@@ -42,6 +42,10 @@ def non_empty (A : Set) : Prop := ∃ b, (b ∈ A)
 def subset (A B : Set) : Prop := ∀ x ∈ A; x ∈ B
 def is_successor (m n : Set) : Prop := ∀ x, (x ∈ n ↔ x ∈ m ∨ x = m)
 infix:50 (priority := high) " ⊆ " => subset
+def neq_subset (A B : Set) : Prop := (A ⊆ B) ∧ (A ≠ B)
+infix:50 (priority := high) " ⊊ " => neq_subset
+def no_subset (A B : Set) : Prop := ¬ (A ⊆ B)
+infix:50 (priority := high) " ⊈ " => no_subset
 
 def set_equality (A B : Set) := ∀ x, (x ∈ A ↔ x ∈ B)
 axiom extensionality : ∀ A B, set_equality A B → (A = B)
@@ -117,6 +121,8 @@ axiom double_compl (U : Set) (A : Set)  (h : A ⊆ U) : (U \ (U \ A)) = A
 axiom intersec2_idemp : (∀ A, A ∩ A = A)
 
 
+axiom inter_union_distribution : (∀ A B C, A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C))
+
 
 declare_syntax_cat set_comprehension
 syntax term "; " set_comprehension : set_comprehension
@@ -155,6 +161,7 @@ noncomputable def cartesian_product (A : Set) (B : Set) : Set := {z ∈ 𝒫 (�
 infix:60 (priority:=high) " × " => cartesian_product
 
 
+axiom union2sets_subset_prop : (∀ A B, (A ⊆ A ∪ B) ∧ (B ⊆ A ∪ B))
 axiom cartesian_product_is_cartesian: ∀ A B pr, pr ∈ (A × B) ↔ (∃ x ∈ A; ∃ y ∈ B; pr = (x, y))
 axiom cartesian_product_pair_prop : ∀ A B a b, (a, b) ∈ (A × B) ↔ (a ∈ A ∧ b ∈ B)
 axiom cartesian_product_subset : ∀ A B C D, A ⊆ C → B ⊆ D → (A × B) ⊆ C × D
@@ -163,6 +170,7 @@ axiom snd_coor_set : ∀ A B pr, pr ∈ A × B → snd_coor pr ∈ B
 axiom fst_snd_then_unique : ∀ A B pr, pr ∈ A × B → pr = (fst_coor pr, snd_coor pr)
 axiom equal_fst_snd : ∀ A B pr₁ pr₂, (pr₁ ∈ A × B) → (pr₂ ∈ A × B) →
   (fst_coor pr₁ = fst_coor pr₂) → (snd_coor pr₁ = snd_coor pr₂) → pr₁ = pr₂
+axiom boolean_set_not_empty : ∀ A, 𝒫 A ≠ ∅
 
 
 -- tuple syntax
@@ -194,6 +202,16 @@ noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
 noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
 noncomputable def comp (A B R : Set) : Set := (A × B) \ R
 
+syntax "BinRel" term : term
+macro_rules
+|  `(BinRel $R:term) => `(binary_relation $R)
+syntax term "BinRelOn" term : term
+macro_rules
+| `($R:term BinRelOn $A:term) => `(binary_relation_on $A $R)
+syntax term "BinRelBtw" term "AND" term : term
+macro_rules
+| `($R:term BinRelBtw $A:term AND $B:term) => `(binary_relation_between $A $B $R)
+
 
 
 noncomputable def inv (R : Set) : Set := {z ∈ rng R × dom R | ∃ x, ∃ y, (z = (y, x) ∧ (x . R . y))}
@@ -204,12 +222,18 @@ noncomputable def composition (P Q : Set) : Set := {pr ∈ dom Q × rng P | ∃ 
 infix:60 (priority:=high) " ∘ " => composition
 
 
-axiom inv_is_rel : ∀ R, binary_relation R → (binary_relation (R⁻¹))
-axiom inv_pair_prop: ∀ R, binary_relation R → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x)
 
+
+axiom inv_is_rel : ∀ R, binary_relation R → (binary_relation (R⁻¹))
+axiom inv_prop : ∀ R, (BinRel R) → (R⁻¹)⁻¹ = R
+axiom inv_pair_prop: ∀ R, binary_relation R → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x)
+theorem inv_composition_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹ = ((Q⁻¹) ∘ (P⁻¹)) := sorry
+axiom inv_union_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∪ Q)⁻¹ = ((P⁻¹) ∪ Q⁻¹)
 
 axiom composition_assoc : ∀ P Q R, ((P ∘ Q) ∘ R) = (P ∘ (Q ∘ R))
 axiom union2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q → binary_relation (P ∪ Q)
+
+axiom relation_equality : (∀ P Q, (BinRel P) → (BinRel Q) → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q))
 
 
 noncomputable def id_ (A : Set) : Set := {t ∈ (A × A) | ∃ x : Set, t = (x, x)}
@@ -223,6 +247,8 @@ macro_rules
 axiom id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ (y ∈ A))
 axiom rel_subset : (∀ P Q, binary_relation P → binary_relation Q → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q)
 axiom prop_then_id : ∀ A, ∀ x ∈ A; (x . (id_ A) . x)
+axiom inv_id : ∀ A, ((id_ A)⁻¹) = (id_ A)
+axiom inv_between_mp : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw B AND A)
 
 
 axiom intersect2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q → binary_relation (P ∩ Q)
@@ -299,9 +325,6 @@ axiom fun_restriction_prop : ∀ A B X f, (f Fun A To B) → (f ⨡ X) Fun (A �
 axiom inj_restriction_prop : ∀ X f, (is_injective f) → (is_injective (f ⨡ X))
 
 
-syntax term "BinOn" term : term
-macro_rules
-| `($R:term BinOn $A:term) => `(binary_relation_on $A $R)
 
 noncomputable def injection (f A B : Set) := (f Fun A To B) ∧ (is_injective f)
 noncomputable def surjection (f A B : Set) := (f Fun A To B) ∧ (is_surjective f B)
@@ -372,6 +395,9 @@ noncomputable def choice_function (A f : Set) : Prop := (f Fun A To (⋃ A)) ∧
 syntax term "Choice" term : term
 infix:60 (priority := high) " Choice " => fun (f) => fun (A) => choice_function A f
 
+axiom rev_criterion :
+ ∀ f A B, (f Rev A To B) ↔ (f Bij A To B)
+
 axiom leftrev_criterion:
   ∀ f A B, (f LeftRev A To B) ↔ ((f Inj A To B) ∧ (A ≠ ∅ ∨ B = ∅))
 
@@ -380,8 +406,12 @@ def choice_ax : Prop := ∀ A, ∅ ∉ A → ∃ f, f Choice A
 axiom axiom_of_choice : choice_ax
 
 
+axiom function_composition_A :
+∀ f g A B C, (f Fun A To B) → (g Fun B To C) → (((g ∘ f) Fun A To C) ∧ (∀ x ∈ A; (g ∘ f)⦅x⦆ = g⦅f⦅x⦆⦆))
 
--- 33) Right reversability criterion equivalent to axiom of choice
+
+
+
 def right_rev_criterion_prop : Prop := ∀ f A B, (f RightRev A To B) ↔ (f Surj A To B)
 
 axiom rightrev_criterion_AC_eq: choice_ax ↔ right_rev_criterion_prop
@@ -392,3 +422,11 @@ syntax term "⦅" pair_comprehension "⦆" : term
 macro_rules
 | `($f:term ⦅ $x:term ; $y:term ⦆) =>  `($f⦅($x, $y)⦆)
 | `($f:term ⦅ $x:pair_comprehension ; $y:term ⦆) => `($f⦅⁅ $x ; $y ⁆⦆)
+
+
+def equinumerous (A B : Set) : Prop := ∃ f, f Bij A To B
+syntax term "~" term : term
+syntax term "≁" term : term
+macro_rules
+  | `($A:term ~ $B:term) => `(equinumerous $A $B)
+  | `($A:term ≁ $B:term) => `(¬($A ~ $B))

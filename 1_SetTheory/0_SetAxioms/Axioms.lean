@@ -42,6 +42,10 @@ def non_empty (A : Set) : Prop := ∃ b, (b ∈ A)
 -- 5) Subset notation
 def subset (A B : Set) : Prop := ∀ x ∈ A; x ∈ B
 infix:50 (priority := high) " ⊆ " => subset
+def neq_subset (A B : Set) : Prop := (A ⊆ B) ∧ (A ≠ B)
+infix:50 (priority := high) " ⊊ " => neq_subset
+def no_subset (A B : Set) : Prop := ¬ (A ⊆ B)
+infix:50 (priority := high) " ⊈ " => no_subset
 
 
 -- 6) Some useful definitions before listing ZF axioms

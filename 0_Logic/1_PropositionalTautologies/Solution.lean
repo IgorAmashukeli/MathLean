@@ -464,3 +464,177 @@ theorem peirce (p q : Prop) : (((p → q) → p) → p) :=
       Or.elim (tnd p)
       (axiomatic_rule p)
       (fun (s : ¬p) => h (neg_to_impl p q s))
+
+
+
+-- 27) Xor definition
+def xor_pr (p q : Prop) : Prop := (p ∧ ¬q) ∨ (¬p ∧ q)
+syntax term "⨁" term : term
+macro_rules
+| `($p:term ⨁ $q:term) => `(xor_pr $p $q)
+
+-- 28) Xor properties
+theorem xor_equiv_def (p q : Prop) : (p ⨁ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))) :=
+   Iff.intro
+   (
+      fun (hpq : (p ⨁ q)) =>
+         Or.elim hpq
+         (
+            fun (hpnq : p ∧ ¬q) =>
+               And.intro (Or.inl (And.left hpnq)) (
+                  fun (hpandq : (p ∧ q)) =>
+                     And.right hpnq (And.right hpandq)
+               )
+         )
+         (
+            fun (hnpq : ¬p ∧ q) =>
+               And.intro (Or.inr (And.right hnpq)) (
+                  fun (hpandq : (p ∧ q)) =>
+                     And.left hnpq (And.left hpandq)
+               )
+         )
+   )
+   (
+      fun (hpq : (p ∨ q) ∧ (¬ (p ∧ q))) =>
+         Or.elim (And.left hpq)
+         (
+            fun (hp : p) =>
+               Or.inl (
+                  And.intro hp (
+                     fun (hq : q) =>
+                        And.right hpq (And.intro hp hq)
+                  )
+               )
+         )
+         (
+            fun (hq : q) =>
+               Or.inr (
+                  And.intro (
+                     fun (hp : p) =>
+                        And.right hpq (
+                           And.intro hp hq
+                        )
+                  ) (hq)
+               )
+         )
+
+   )
+
+
+theorem xor_equal  (p : Prop): ¬ (p ⨁ p) :=
+   fun (hpp : (p ⨁ p)) =>
+      Or.elim hpp
+      (
+         fun (hpnp : p ∧ ¬ p) =>
+            And.right hpnp (And.left hpnp)
+      )
+      (
+         fun (hnpp : ¬p ∧ p) =>
+            And.left hnpp (And.right hnpp)
+      )
+
+theorem xor_neg  (p : Prop) : (p ⨁ ¬ p) :=
+   Or.elim (tnd p)
+   (
+      fun (hp : p) =>
+         Or.inl (And.intro (hp) (double_negation_mp p hp))
+   )
+   (
+      fun (hnp : ¬p) =>
+         Or.inr (And.intro hnp hnp)
+   )
+
+theorem xor_comm  (p q : Prop) : (p ⨁ q) ↔ (q ⨁ p) :=
+   let first := fun (x) => fun (y) => fun (hxy : (x ⨁ y)) =>
+         Or.elim hxy
+         (
+            fun (hxny : x ∧ ¬y) =>
+               Or.inr (Iff.mp (conj_comm x (¬ y)) hxny)
+         )
+         (
+            fun (hnxy : ¬x ∧ y) =>
+               Or.inl (Iff.mp (conj_comm (¬x) y) hnxy)
+         )
+   Iff.intro
+   (
+      first p q
+   )
+   (
+      first q p
+   )
+
+theorem xor_assoc  (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) :=
+   let first : ∀ p q r, ((p ⨁ q) ⨁ r)  → (p ⨁ (q ⨁ r)) := fun (p) => fun (q) => fun (r) => (
+      fun (hpqr : ((p ⨁ q) ⨁ r)) =>
+         Or.elim hpqr
+         (
+            fun (hpqar : (p ⨁ q) ∧ ¬r) =>
+               Or.elim (And.left hpqar)
+               (
+                  fun (hpnq : p ∧ ¬q) =>
+                     Or.inl (And.intro (And.left hpnq) (
+                        fun (hqr : q ⨁ r) =>
+                           Or.elim (And.left (Iff.mp (xor_equiv_def q r) hqr))
+                           (
+                              fun (hq : q) =>
+                                 And.right hpnq hq
+                           )
+                           (
+                              fun (hr : r) =>
+                                 And.right hpqar hr
+                           )
+                     ))
+               )
+               (
+                  fun (hnpq : ¬p ∧ q) =>
+                     Or.inr (
+                        And.intro (And.left hnpq) (
+                           Or.inl (And.intro (And.right hnpq) (And.right hpqar))
+                        )
+                     )
+               )
+         )
+         (
+            fun (hnpqr : ¬(p ⨁ q) ∧ r) =>
+               Or.elim (tnd q)
+               (
+                  fun (hq : q) =>
+                     Or.inl (
+                        And.intro (
+                           byContradiction (
+                              fun (hnp : ¬ p) =>
+                                 And.left hnpqr (
+                                    Or.inr (And.intro hnp hq)
+                                 )
+                           )
+                        ) (
+                           fun (hqr : q ⨁ r) =>
+                              And.right (Iff.mp (xor_equiv_def q r) hqr) (And.intro (hq) (And.right hnpqr))
+                        )
+                     )
+               )
+               (
+                  fun (hnq : ¬ q) =>
+                     Or.inr (
+                        And.intro (
+                           fun (hp : p) =>
+                              (And.left hnpqr) (
+                                 Or.inl (And.intro hp hnq)
+                              )
+                        ) (
+                           Or.inr (And.intro hnq (And.right hnpqr))
+                        )
+                     )
+               )
+         )
+   )
+   Iff.intro
+   (first p q r)
+   (
+      fun (hpqr : (p ⨁ (q ⨁ r))) =>
+         let u := Iff.mp (xor_comm p (q ⨁ r)) hpqr
+         let v : (q ⨁ (r ⨁ p)) := first q r p u
+         let s := Iff.mp (xor_comm q (r ⨁ p)) v
+         let t := first r p q s
+         Iff.mp (xor_comm r (p ⨁ q)) t
+   )

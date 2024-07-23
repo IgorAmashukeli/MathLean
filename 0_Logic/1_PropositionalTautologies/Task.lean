@@ -125,3 +125,21 @@ theorem contraposition (p q : Prop) : (p → q) ↔ (¬q → ¬p) := sorry
 
 -- 26) Peirce law
 theorem peirce (p q : Prop) : (((p → q) → p) → p) := sorry
+
+
+-- 27) Xor definition
+def xor_pr (p q : Prop) : Prop := (p ∧ ¬q) ∨ (¬p ∧ q)
+syntax term "⨁" term : term
+macro_rules
+| `($p:term ⨁ $q:term) => `(xor_pr $p $q)
+
+-- 28) Xor properties
+theorem xor_equiv_def : (p ⨁ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))) := sorry
+
+theorem xor_equal : ¬ (p ⨁ p) := sorry
+
+theorem xor_neg : (p ⨁ ¬ p) := sorry
+
+theorem xor_comm : (p ⨁ q) ↔ (q ⨁ p) := sorry
+
+theorem xor_assoc : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) := sorry
