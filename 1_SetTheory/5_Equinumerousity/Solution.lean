@@ -44,7 +44,7 @@ theorem equinum_trans : ∀ A B C, (A ~ B) → (B ~ C) → (A ~ C) :=
 theorem equinum_image : ∀ A B X f, X ⊆ A → (f Inj A To B) → X ~ f.[X] :=
   fun (A B X f) => fun (h : X ⊆ A) => fun (h₁ : (f Inj A To B)) =>
 
-    let g₁ := specification_set_is_specification (fun (t) => ∃ a ∈ X; (a . f . t)) (rng f)
+    let g₁ := spec_is_spec (fun (t) => ∃ a ∈ X; (a . f . t)) (rng f)
 
     Exists.intro (f ⨡ X) (
       And.intro (
@@ -386,9 +386,9 @@ theorem equinum_power_congr_right : ∀ A B C, (A ~ B) → (A ℙow C) ~ (B ℙo
 
             let func_prop := lam_then_fun_prop (fun (f) => ϕ ∘ f) (A ℙow C) (B ℙow C) (
               fun (f) => fun (hf : f ∈ (A ℙow C)) =>
-                let h₂ := And.right (Iff.mp (specification_set_is_specification (fun (p) => p Fun C To A) (𝒫 (C × A)) f) hf)
+                let h₂ := And.right (Iff.mp (spec_is_spec (fun (p) => p Fun C To A) (𝒫 (C × A)) f) hf)
                 let h₃ := And.left (function_composition f ϕ C A B h₂ (And.left hϕ))
-                Iff.mpr (specification_set_is_specification (fun (p) => p Fun C To B) (𝒫 (C × B)) (ϕ ∘ f)) (And.intro (
+                Iff.mpr (spec_is_spec (fun (p) => p Fun C To B) (𝒫 (C × B)) (ϕ ∘ f)) (And.intro (
                   Iff.mpr (boolean_set_is_boolean (C × B) (ϕ ∘ f)) (And.left (And.left h₃))) (h₃))
             )
 
@@ -397,8 +397,8 @@ theorem equinum_power_congr_right : ∀ A B C, (A ~ B) → (A ℙow C) ~ (B ℙo
                 fun (f) => fun (h₃ : f ∈ A ℙow C) =>
                   fun (g) => fun (h₄ : g ∈ A ℙow C) =>
                     fun (h₅ : ψ⦅f⦆ = ψ⦅g⦆) =>
-                      let f_is_func := And.right (Iff.mp (specification_set_is_specification (fun (p) => p Fun C To A) (𝒫 (C × A)) f) h₃)
-                      let g_is_func := And.right (Iff.mp (specification_set_is_specification (fun (p) => p Fun C To A) (𝒫 (C × A)) g) h₄)
+                      let f_is_func := And.right (Iff.mp (spec_is_spec (fun (p) => p Fun C To A) (𝒫 (C × A)) f) h₃)
+                      let g_is_func := And.right (Iff.mp (spec_is_spec (fun (p) => p Fun C To A) (𝒫 (C × A)) g) h₄)
                       let h₆ : ψ⦅f⦆ = ϕ ∘ f := And.right func_prop f h₃
                       let h₇ : ψ⦅g⦆ = ϕ ∘ g := And.right func_prop g h₄
                       let h₈ := Eq.trans (Eq.symm h₆) (Eq.trans (h₅) (h₇))
@@ -420,9 +420,9 @@ theorem equinum_power_congr_right : ∀ A B C, (A ~ B) → (A ℙow C) ~ (B ℙo
               let h₂ := Iff.mpr (func_surj_prop (A ℙow C) (B ℙow C) ψ (And.left func_prop)) (
                 fun (g) => fun (h₃ : g ∈ B ℙow C) =>
                   let h₄ := And.left (bijection_inv_mp ϕ A B hϕ)
-                  let h₅ := And.right (Iff.mp (specification_set_is_specification (fun (p) => p Fun C To B) (𝒫 (C × B)) g) h₃)
+                  let h₅ := And.right (Iff.mp (spec_is_spec (fun (p) => p Fun C To B) (𝒫 (C × B)) g) h₃)
                   let h₆ := function_composition g (ϕ⁻¹) C B A (h₅) (h₄)
-                  let h₇ := Iff.mpr (specification_set_is_specification (fun (p) => p Fun C To A) (𝒫 (C × A)) (ϕ⁻¹ ∘ g)) (
+                  let h₇ := Iff.mpr (spec_is_spec (fun (p) => p Fun C To A) (𝒫 (C × A)) (ϕ⁻¹ ∘ g)) (
                       And.intro (Iff.mpr (boolean_set_is_boolean (C × A) (ϕ⁻¹ ∘ g)) (And.left (And.left (And.left h₆)))) (And.left h₆)
                     )
                   Exists.intro (ϕ⁻¹ ∘ g) (And.intro (
@@ -1125,13 +1125,13 @@ theorem equinum_boolean_congr : ∀ A B, (A ~ B) → (𝒫 A ~ 𝒫 B) :=
                                     let xA := Iff.mp (boolean_set_is_boolean A T) hT x hx
                                     let u := val_in_B f A B (And.left hf) x xA
                                     let Q := fun (M) => fun (s) => ∃ t ∈ M; s = f⦅t⦆
-                                    let v : f⦅x⦆ ∈ P T := Iff.mpr (specification_set_is_specification (Q T) B (f⦅x⦆)) (
+                                    let v : f⦅x⦆ ∈ P T := Iff.mpr (spec_is_spec (Q T) B (f⦅x⦆)) (
                                       And.intro (u) (Exists.intro x (And.intro (hx) (Eq.refl (f⦅x⦆))))
                                     )
 
                                     let v₂ : f⦅x⦆ ∈ P K := eq_subst (fun (t) => f⦅x⦆ ∈ t) (P T) (P K) (ptk) (v)
 
-                                    let v₃ := And.right (Iff.mp (specification_set_is_specification (Q K) B (f⦅x⦆)) v₂)
+                                    let v₃ := And.right (Iff.mp (spec_is_spec (Q K) B (f⦅x⦆)) v₂)
 
                                     Exists.elim v₃ (
                                       fun (y) =>
@@ -1176,7 +1176,7 @@ theorem equinum_boolean_congr : ∀ A B, (A ~ B) → (𝒫 A ~ 𝒫 B) :=
                                   fun (hx : x ∈ Y) =>
                                     let φx : φ⦅X⦆ = P X  := And.right func_prop X XA₂
                                     eq_subst (fun (t) => x ∈ t) (P X) (φ⦅X⦆) (Eq.symm φx) (
-                                      Iff.mpr (specification_set_is_specification (R X) B x) (
+                                      Iff.mpr (spec_is_spec (R X) B x) (
                                         And.intro (hYB x hx) (
                                           let surjf := And.right (And.right hf)
                                           let surjfcr := Iff.mp (func_surj_prop A B f (And.left hf)) (
@@ -1187,7 +1187,7 @@ theorem equinum_boolean_congr : ∀ A B, (A ~ B) → (𝒫 A ~ 𝒫 B) :=
                                               fun (hy : y ∈ A ∧ x = f⦅y⦆) =>
                                                 Exists.intro y (
                                                   And.intro (
-                                                    Iff.mpr (specification_set_is_specification Q A y) (
+                                                    Iff.mpr (spec_is_spec Q A y) (
                                                       And.intro (And.left hy) (Exists.intro x (And.intro (hx) (And.right hy)))
                                                     )
                                                   ) (And.right hy)
@@ -1202,12 +1202,12 @@ theorem equinum_boolean_congr : ∀ A B, (A ~ B) → (𝒫 A ~ 𝒫 B) :=
                                     let φx : φ⦅X⦆ = P X  := And.right func_prop X XA₂
                                     let eqs := eq_subst (fun (t) => x ∈ t) (φ⦅X⦆) (P X) (φx) (hx)
                                     let R := fun (s) => ∃ t ∈ X; s = f⦅t⦆
-                                    let xpx := Iff.mp (specification_set_is_specification R B x) (eqs)
+                                    let xpx := Iff.mp (spec_is_spec R B x) (eqs)
                                     Exists.elim (And.right xpx)
                                     (
                                       fun (y) =>
                                         fun (hy : y ∈ X ∧ x = f⦅y⦆) =>
-                                          let ypx := Iff.mp (specification_set_is_specification Q A y) (And.left hy)
+                                          let ypx := Iff.mp (spec_is_spec Q A y) (And.left hy)
                                           Exists.elim (And.right ypx) (
                                             fun (t) =>
                                               fun (ht : t ∈ Y ∧ t = f⦅y⦆) =>
@@ -1279,11 +1279,11 @@ theorem equinum_power_boolean : ∀ A, ({∅, {∅}} ℙow A) ~ 𝒫 A :=
                             fun (hf₁ : f₁⦅x⦆ = Y) =>
                               fun (ψf₁f₂ : P f₁ = P f₂) =>
                                 let Q := fun (k) => fun (r) => k⦅r⦆ = Y
-                                let spec_pr : x ∈ P f₁ := Iff.mpr (specification_set_is_specification (Q f₁) A x) (
+                                let spec_pr : x ∈ P f₁ := Iff.mpr (spec_is_spec (Q f₁) A x) (
                                   And.intro (hx) (hf₁)
                                 )
                                 let spec_pr₂ : x ∈ P f₂ := eq_subst (fun (t) => x ∈ t) (P f₁) (P f₂) (ψf₁f₂) (spec_pr)
-                                let spec_pr₃ := And.right (Iff.mp (specification_set_is_specification (Q f₂) A x) spec_pr₂)
+                                let spec_pr₃ := And.right (Iff.mp (spec_is_spec (Q f₂) A x) spec_pr₂)
                                 Eq.trans (hf₁) (Eq.symm (spec_pr₃))
 
                           Or.elim (v)
@@ -1361,14 +1361,14 @@ theorem equinum_power_boolean : ∀ A, ({∅, {∅}} ℙow A) ~ 𝒫 A :=
 
                           let R := fun (r) => f⦅r⦆ = Y
 
-                          Iff.mpr (specification_set_is_specification R A s) (
+                          Iff.mpr (spec_is_spec R A s) (
                             And.intro (MA s hs) (f_pr)
                           )
                       )
                       (
                         fun (hs : s ∈ P f) =>
                           let R := fun (r) => f⦅r⦆ = Y
-                          let pf_pr := Iff.mp (specification_set_is_specification R A s) hs
+                          let pf_pr := Iff.mp (spec_is_spec R A s) hs
                           Or.elim (em (s ∈ M))
                           (
                             fun (hs : s ∈ M) =>
@@ -1788,7 +1788,7 @@ theorem cantor_theorem : ∀ A, 𝒫 A ⋠ A :=
             Or.elim (em (f⦅Y⦆ ∈ Y))
             (
               fun (hfy : f⦅Y⦆ ∈ Y) =>
-                let u := And.right (Iff.mp (specification_set_is_specification P (A) (f⦅Y⦆)) hfy)
+                let u := And.right (Iff.mp (spec_is_spec P (A) (f⦅Y⦆)) hfy)
                 Exists.elim u (
                   fun (S) =>
                     fun (hs : S ∈ (𝒫 A) ∧ f⦅Y⦆ = f⦅S⦆ ∧ f⦅S⦆ ∉ S) =>
@@ -1799,7 +1799,7 @@ theorem cantor_theorem : ∀ A, 𝒫 A ⋠ A :=
             (
               fun (hfy : f⦅Y⦆ ∉ Y) =>
                 let u : P (f⦅Y⦆)  := Exists.intro (Y) (And.intro yPA (And.intro (Eq.refl (f⦅Y⦆)) (hfy)))
-                let v := Iff.mpr (specification_set_is_specification P A (f⦅Y⦆)) (
+                let v := Iff.mpr (spec_is_spec P A (f⦅Y⦆)) (
                   And.intro (
                     val_in_B f (𝒫 A) A (And.left hf) Y (yPA)
                   ) (u)

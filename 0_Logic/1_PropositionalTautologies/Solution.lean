@@ -638,3 +638,35 @@ theorem xor_assoc  (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) :=
          let t := first r p q s
          Iff.mp (xor_comm r (p ⨁ q)) t
    )
+
+
+
+
+theorem xor_introl (p q : Prop) : (p ∧ ¬q) → (p ⨁ q) :=
+   Or.inl
+
+
+theorem xor_intror (p q : Prop) : (¬p ∧ q) → (p ⨁ q) :=
+   Or.inr
+
+theorem xor_intro (p q : Prop) : (p ∨ q) → (¬ (p ∧ q)) → (p ⨁ q) :=
+   fun (hpq : p ∨ q) =>
+      fun (hnpq : (¬ (p ∧ q))) =>
+         Iff.mpr (xor_equiv_def p q) (And.intro hpq hnpq)
+
+
+theorem xor_left (p q : Prop) : (p ⨁ q) → (p ∨ q) :=
+   fun (hpq : p ⨁ q) =>
+      And.left (Iff.mp (xor_equiv_def p q) hpq)
+
+theorem xor_right (p q : Prop) : (p ⨁ q) → (¬ (p ∧ q)) :=
+   fun (hpq : p ⨁ q) =>
+      And.right (Iff.mp (xor_equiv_def p q) hpq)
+
+theorem xor_elim (p q r : Prop) : (p ⨁ q) → ((p ∧ ¬q) → r) → ((¬p ∧ q) → r) → r :=
+   fun (hpq : p ⨁ q) =>
+      fun (hpnqr : ((p ∧ ¬q) → r)) =>
+         fun (hnpqr : ((¬p ∧ q) → r)) =>
+            Or.elim hpq
+            (hpnqr)
+            (hnpqr)

@@ -145,14 +145,55 @@ theorem non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ 
         )
 
 
-theorem non_empty_then_exi : ∀ A, (A ≠ ∅) → ∃ x, x ∈ A :=
+theorem set_empty_iff_empty : ∀ A, (A = ∅) ↔ (∀ x, x ∉ A) :=
   fun (A) =>
-    fun (h : A ≠ ∅) =>
-      Exists.elim (non_empty_uni_then_exi (fun (t) => True) A h (fun (x) => fun (hx : x ∈ A) => True.intro)) (
+    Iff.intro
+    (
+      fun (hA : (A = ∅)) =>
+        fun (x) =>
+          fun (hx : (x ∈ A)) =>
+            empty_set_is_empty x (
+              eq_subst Set (fun (t) => x ∈ t) (A) (∅) hA hx
+            )
+    )
+    (
+      fun (hA : (∀ x, x ∉ A)) =>
+        Iff.mp (subs_subs_eq A ∅) (
+          And.intro (
+            fun (y) =>
+              fun (hy : y ∈ A) =>
+                False.elim (
+                  hA y hy
+                )
+          ) (empty_set_subset_any A)
+        )
+    )
+
+
+theorem set_non_empty_iff_non_empty : ∀ A, (A ≠ ∅) ↔ ∃ x, x ∈ A :=
+  fun (A) =>
+    Iff.intro
+    (
+      fun (h : A ≠ ∅) =>
+      Exists.elim (non_empty_uni_then_exi (fun (_) => True) A h (fun (x) => fun (_ : x ∈ A) => True.intro)) (
         fun (s) =>
           fun (hs : s ∈ A ∧ True) =>
             Exists.intro s (And.left hs)
       )
+    )
+    (
+      fun (hA : (∃ x, x ∈ A)) =>
+        fun (hAemp : (A = ∅)) =>
+          Exists.elim hA (
+            fun (x) =>
+              fun (hx : x ∈ A) =>
+                empty_set_is_empty x (
+                  eq_subst Set (fun (t) => x ∈ t) (A) (∅) (hAemp) (hx)
+                )
+          )
+    )
+
+
 
 
 
@@ -619,7 +660,20 @@ theorem boolean_union : (∀ A, A ⊆ 𝒫 (⋃ A)) :=
 
 
 
-
+theorem sub_bool_un_mem_bool : ∀ A B, (A ⊆ 𝒫 B → ((⋃ A) ∈ 𝒫 B)) :=
+  fun (A B) =>
+    fun (hAB : A ⊆ 𝒫 B) =>
+      Iff.mpr (boolean_set_is_boolean B (⋃ A)) (
+        fun (m) =>
+          fun (hm : m ∈ ⋃ A) =>
+            let u := Iff.mp (union_set_is_union A m) hm
+            Exists.elim u (
+              fun (x) =>
+                fun (hx : x ∈ A ∧ m ∈ x) =>
+                  let v := hAB x (And.left hx)
+                  Iff.mp (boolean_set_is_boolean B x) v m (And.right hx)
+            )
+      )
 
 
 
@@ -771,14 +825,14 @@ macro_rules
   | `({ $x:ident ∈ $A:term | $property:term })  => `(specification_set (fun ($x) => $property) $A)
 
 
-theorem specification_set_is_specification (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x ∈ A ∧ P x) :=
+theorem spec_is_spec (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x ∈ A ∧ P x) :=
   fun (A) =>
     And.left (set_intro_prop (fun (B) => ∀ x, x ∈ B ↔ x ∈ A ∧ P x) (unique_specification P A))
 
 
 theorem specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} ⊆ A) :=
   fun (A) => fun(t) => fun (g : (t ∈ {x ∈ A | P x})) =>
-    And.left ((Iff.mp (specification_set_is_specification P A t)) g)
+    And.left ((Iff.mp (spec_is_spec P A t)) g)
 
 
 noncomputable def intersection_set : Set → Set := fun (A) => {x ∈ ⋃ A | ∀ y ∈ A; x ∈ y}
@@ -787,7 +841,7 @@ notation (priority := high) "⋂" => intersection_set
 
 theorem intersection_set_is_intersection : ∀ A x, x ∈ ⋂ A ↔ (x ∈ ⋃ A ∧ ∀ y ∈ A; x ∈ y) :=
   fun (A) =>
-    specification_set_is_specification (fun (x) => ∀ y ∈ A; x ∈ y) (⋃ A)
+    spec_is_spec (fun (x) => ∀ y ∈ A; x ∈ y) (⋃ A)
 
 
 

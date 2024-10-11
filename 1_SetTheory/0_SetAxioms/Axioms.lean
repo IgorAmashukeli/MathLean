@@ -11,6 +11,7 @@ infix:50 (priority := high) " ∉ " => (fun (x : Set) => (fun (y : Set) => ¬ me
 -- that is characterized by property P,
 -- prove that there exists unique x with property P x
 axiom set_intro (P : Set → Prop) (h : ∃! x, P x) : Set
+
 -- created set will have the property P and only it will have it property P
 axiom set_intro_prop (P : Set → Prop) (h : ∃! x, P x) : P (set_intro P h) ∧ ∀ x, P x → (x = set_intro P h)
 

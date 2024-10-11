@@ -341,22 +341,28 @@ theorem fun_indexed_is_indexed :
 ∀ A I, (A IndxFun I) → (A Indx I) := sorry
 
 
--- 42) Indexed_union and its property
+-- 42) Indexed_union and its properties
 noncomputable def indexed_union (A I : Set) := ⋃ (A.[I])
 syntax "⋃[" term "in" term "]" term "at" term : term
 macro_rules
 | `(⋃[ $i:term in $I:term ] $A:term at $i:term ) => `(indexed_union $A $I)
 theorem indexed_union_is_union :
 ∀ A I, (A Indx I) → ∀ x, (x ∈ (⋃[ i in I ] A at i)) ↔ (∃ i ∈ I; x ∈ (A _ i)) := sorry
+theorem indexed_sub_indexed_union :
+∀ A I, (A Indx I) → (∀ i ∈ I; (A _ i) ⊆ (⋃[ i in I ] A at i)) := sorry
 
 
--- 43) Indexed_intersection and its property
+-- 43) Indexed_intersection and its properties
 noncomputable def indexed_intersection (A I : Set) := ⋂ (A.[I])
 syntax "⋂[" term "in" term "]" term "at" term : term
 macro_rules
 | `(⋂[ $i:term in $I:term ] $A:term at $i:term ) => `(indexed_intersection $A $I)
 theorem indexed_intersection_is_intersection :
 ∀ A I, (I ≠ ∅) → (A IndxFun I) → ∀ x, (x ∈ (⋂[ i in I ] A at i)) ↔ (∀ i ∈ I; x ∈ (A _ i)) := sorry
+theorem indexed_intersection_empty :
+∀ A I, (I = ∅) → ((⋂[ i in I ] A at i) = ∅) := sorry
+theorem indexed_intersection_sub_indexed :
+∀ A I, (A IndxFun I) → (∀ i ∈ I; (⋂[ i in I ] A at i) ⊆ (A _ i)) := sorry
 
 
 

@@ -75,12 +75,12 @@ theorem union2_sets_prop : (∀ A B x, x ∈ A ∪ B ↔ x ∈ A ∨ x ∈ B) :=
 
 theorem intersect_2sets_prop : (∀ A B x, x ∈ A ∩ B ↔ x ∈ A ∧ x ∈ B) :=
   fun (A) => fun (B) =>
-    specification_set_is_specification (fun (x) => x ∈ B) A
+    spec_is_spec (fun (x) => x ∈ B) A
 
 
 theorem difference_prop : (∀ A B x, x ∈ A \ B ↔ x ∈ A ∧ x ∉ B) :=
   fun (A) => fun (B) =>
-    specification_set_is_specification (fun (x) => x ∉ B) A
+    spec_is_spec (fun (x) => x ∉ B) A
 
 
 theorem symmetric_difference_prop : (∀ A B x, x ∈ A △ B ↔ (x ∈ A ∧ x ∉ B) ∨ (x ∈ B ∧ x ∉ A)) :=
@@ -158,6 +158,36 @@ theorem interset2sets_subset_prop : (∀ A B, (A ∩ B ⊆ A) ∧ (A ∩ B ⊆ B
 theorem difference_subset_prop : (∀ A B, A \ B ⊆ A) :=
   fun (A) => fun (B) =>
     specification_set_subset (fun (x) => x ∉ B) A
+
+
+
+theorem sub_sub_inter_sub : ∀ A B X, (X ⊆ A) → (X ⊆ B) → (X ⊆ (A ∩ B))  :=
+  fun (A B X) =>
+    fun (hXA : (X ⊆ A)) =>
+      fun (hXB : (X ⊆ B)) =>
+        fun (x) =>
+          fun (hx : x ∈ X) =>
+            Iff.mpr (intersect_2sets_prop A B x) (
+              And.intro (hXA x hx) (hXB x hx)
+            )
+
+
+theorem sub_sub_union_sub : ∀ A B X, (A ⊆ X) → (B ⊆ X) → ((A ∪ B) ⊆ X) :=
+  fun (A B X) =>
+    fun (hAX : (A ⊆ X)) =>
+      fun (hBX : (B ⊆ X)) =>
+        fun (x) =>
+          fun (hx : x ∈ (A ∪ B)) =>
+            let u := Iff.mp (union2_sets_prop A B x) hx
+            Or.elim u
+            (
+              fun (hxA : x ∈ A) =>
+                hAX x hxA
+            )
+            (
+              fun (hxB : x ∈ B) =>
+                hBX x hxB
+            )
 
 
 

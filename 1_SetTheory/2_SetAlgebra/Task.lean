@@ -34,11 +34,12 @@ theorem difference_prop : (∀ A B x, x ∈ A \ B ↔ x ∈ A ∧ x ∉ B) := so
 theorem symmetric_difference_prop : (∀ A B x, x ∈ A △ B ↔ (x ∈ A ∧ x ∉ B) ∨ (x ∈ B ∧ x ∉ A)) := sorry
 
 
--- 4) A ∪ B subsets and A ∩ B, A \ B as subsets
+-- 4) A ∪ B subsets and A ∩ B, A \ B as subsets and their property
 theorem union2sets_subset_prop : (∀ A B, (A ⊆ A ∪ B) ∧ (B ⊆ A ∪ B)) := sorry
 theorem interset2sets_subset_prop : (∀ A B, (A ∩ B ⊆ A) ∧ (A ∩ B ⊆ B)) := sorry
 theorem difference_subset_prop : (∀ A B, A \ B ⊆ A) := sorry
-
+theorem sub_sub_inter_sub : ∀ A B X, (X ⊆ A) → (X ⊆ B) → (X ⊆ (A ∩ B)) := sorry
+theorem sub_sub_union_sub : ∀ A B X, (A ⊆ X) → (B ⊆ X) → ((A ∪ B) ⊆ X) := sorry
 
 
 -- 5) Three equivalent statements about subsets

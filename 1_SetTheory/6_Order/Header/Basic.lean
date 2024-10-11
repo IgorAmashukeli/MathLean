@@ -1,3 +1,27 @@
+def xor_pr (p q : Prop) : Prop := (p ∧ ¬q) ∨ (¬p ∧ q)
+syntax term "⨁" term : term
+macro_rules
+| `($p:term ⨁ $q:term) => `(xor_pr $p $q)
+
+-- 28) Xor properties
+axiom xor_equiv_def (p q : Prop) : (p ⨁ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q)))
+
+axiom xor_equal (p : Prop) : ¬ (p ⨁ p)
+
+axiom xor_neg (p : Prop) : (p ⨁ ¬ p)
+
+axiom xor_comm (p q : Prop) : (p ⨁ q) ↔ (q ⨁ p)
+
+axiom xor_assoc (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r))
+
+
+axiom xor_introl (p q : Prop) : (p ∧ ¬q) → (p ⨁ q)
+axiom xor_intror (p q : Prop) : (¬p ∧ q) → (p ⨁ q)
+axiom xor_intro (p q : Prop) : (p ∨ q) → (¬ (p ∧ q)) → (p ⨁ q)
+axiom xor_left (p q : Prop) : (p ⨁ q) → (p ∨ q)
+axiom xor_right (p q : Prop) : (p ⨁ q) → (¬ (p ∧ q))
+axiom xor_elim (p q r : Prop) : (p ⨁ q) → ((p ∧ ¬q) → r) → ((¬p ∧ q) → r) → r
+
 axiom morgan_conj (p q : Prop) :  ¬(p ∧ q) ↔ ¬p ∨ ¬q
 
 def exists_unique (P : α → Prop) : Prop := (∃ (x : α), P x ∧ (∀ y : α, (P y → x = y)))
@@ -81,7 +105,7 @@ macro_rules
 
 
 
-axiom specification_set_is_specification (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x ∈ A ∧ P x)
+axiom spec_is_spec (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x ∈ A ∧ P x)
 
 noncomputable def union_2sets (A B : Set) := ⋃ {A, B}
 infix:60 (priority:=high) " ∪ " => union_2sets
@@ -98,6 +122,7 @@ infix:60 (priority:=high) " △ " => symmetric_difference
 noncomputable def intersection_set : Set → Set := fun (A) => {x ∈ ⋃ A | ∀ y ∈ A; x ∈ y}
 notation (priority := high) "⋂" => intersection_set
 
+axiom sub_sub_then_eq : ∀ A B, (A ⊆ B) → (B ⊆ A) → (A = B)
 axiom empty_set_is_empty : empty ∅
 axiom elem_in_singl : ∀ x, x ∈ {x}
 axiom in_singl_elem : ∀ a x, x ∈ {a} → x = a
@@ -115,10 +140,20 @@ axiom right_unordered_pair : ∀ a₁ a₂, a₂ ∈ {a₁, a₂}
 axiom empty_subset_any : ∀ A B, empty A → A ⊆ B
 axiom empty_set_is_subset_any : ∀ A, ∅ ⊆ A
 axiom non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ x ∈ A; P x) → ∃ x ∈ A; P x
-axiom non_empty_then_exi : ∀ A, (A ≠ ∅) → ∃ x, x ∈ A
+axiom set_empty_iff_empty : ∀ A, (A = ∅) ↔ (∀ x, x ∉ A)
+axiom set_non_empty_iff_non_empty : ∀ A, (A ≠ ∅) ↔ ∃ x, x ∈ A
 axiom neg_mon_diff : ∀ A B C, (A ⊆ B) → (C \ B) ⊆ (C \ A)
 axiom double_compl (U : Set) (A : Set)  (h : A ⊆ U) : (U \ (U \ A)) = A
 axiom intersec2_idemp : (∀ A, A ∩ A = A)
+axiom intersection_set_is_intersection : ∀ A x, x ∈ ⋂ A ↔ (x ∈ ⋃ A ∧ ∀ y ∈ A; x ∈ y)
+axiom union_set_is_union : (∀ A x, (x ∈ ⋃ A ↔ ∃ y ∈ A; x ∈ y))
+axiom intersection_non_empty : ∀ A, (A ≠ ∅ → ∀ x, (x ∈ ⋂ A) ↔ ∀ y ∈ A; x ∈ y)
+axiom union_singleton : ∀ A, ⋃ {A} = A
+axiom sub_sub_inter_sub : ∀ A B X, (X ⊆ A) → (X ⊆ B) → (X ⊆ (A ∩ B))
+axiom sub_sub_union_sub : ∀ A B X, (A ⊆ X) → (B ⊆ X) → ((A ∪ B) ⊆ X)
+axiom subset_trans : ∀ A B C, A ⊆ B → B ⊆ C → A ⊆ C
+axiom elem_subset_union : (∀ A, ∀ x ∈ A; x ⊆ ⋃ A)
+axiom all_ss_then_union_ss : ∀ A B, (∀ X ∈ A; X ⊆ B) → (⋃ A ⊆ B)
 
 
 axiom inter_union_distribution : (∀ A B C, A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C))
@@ -144,6 +179,7 @@ noncomputable def boolean_func_sym : Set → Set :=
 notation (priority := high) "𝒫" => boolean_func_sym
 
 axiom boolean_set_is_boolean : ∀ A, (∀ x, x ∈ 𝒫 A ↔ x ⊆ A)
+axiom sub_bool_un_mem_bool : ∀ A B, (A ⊆ 𝒫 B → ((⋃ A) ∈ 𝒫 B))
 
 noncomputable def ordered_pair_set (a b : Set) := {{a}, {a, b}}
 notation (priority := high) "(" a₁ ", " a₂ ")" => ordered_pair_set a₁ a₂
@@ -171,6 +207,7 @@ axiom fst_snd_then_unique : ∀ A B pr, pr ∈ A × B → pr = (fst_coor pr, snd
 axiom equal_fst_snd : ∀ A B pr₁ pr₂, (pr₁ ∈ A × B) → (pr₂ ∈ A × B) →
   (fst_coor pr₁ = fst_coor pr₂) → (snd_coor pr₁ = snd_coor pr₂) → pr₁ = pr₂
 axiom boolean_set_not_empty : ∀ A, 𝒫 A ≠ ∅
+
 
 
 -- tuple syntax
@@ -227,7 +264,7 @@ infix:60 (priority:=high) " ∘ " => composition
 axiom inv_is_rel : ∀ R, binary_relation R → (binary_relation (R⁻¹))
 axiom inv_prop : ∀ R, (BinRel R) → (R⁻¹)⁻¹ = R
 axiom inv_pair_prop: ∀ R, binary_relation R → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x)
-theorem inv_composition_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹ = ((Q⁻¹) ∘ (P⁻¹)) := sorry
+axiom inv_composition_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹ = ((Q⁻¹) ∘ (P⁻¹))
 axiom inv_union_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∪ Q)⁻¹ = ((P⁻¹) ∪ Q⁻¹)
 
 axiom composition_assoc : ∀ P Q R, ((P ∘ Q) ∘ R) = (P ∘ (Q ∘ R))
@@ -430,3 +467,53 @@ syntax term "≁" term : term
 macro_rules
   | `($A:term ~ $B:term) => `(equinumerous $A $B)
   | `($A:term ≁ $B:term) => `(¬($A ~ $B))
+
+
+-- 38) Indexation with function· defintion
+def fun_indexation (A I : Set) : Prop := ∃ X, A Fun I To X
+syntax term "IndxFun" term : term
+macro_rules
+| `($A:term IndxFun $I:term) => `(fun_indexation  $A $I)
+
+-- 39) Indexed family
+noncomputable def indexed_family (A I : Set) := A.[I]
+syntax "{" term "of" term "where" term "in" term "}" : term
+macro_rules
+| `({ $A:term of $i:term where $i:term in $I:term }) => `(indexed_family $A $I)
+
+
+-- 40) Element of indexation
+noncomputable def indexed_set (A i : Set) := A⦅i⦆
+infix:60 (priority := high) " _ " => indexed_set
+
+
+-- 41) Indexation defintion and its condition
+def indexation (A I : Set) : Prop := (∀ x, (x ∈ ({A of i where i in I})) ↔ (∃ i ∈ I; x = (A _ i)))
+syntax term "Indx" term : term
+macro_rules
+| `($A:term Indx $I:term) => `(indexation $A $I)
+axiom fun_indexed_is_indexed :
+∀ A I, (A IndxFun I) → (A Indx I)
+
+
+-- 42) Indexed_union and its property
+noncomputable def indexed_union (A I : Set) := ⋃ (A.[I])
+syntax "⋃[" term "in" term "]" term "at" term : term
+macro_rules
+| `(⋃[ $i:term in $I:term ] $A:term at $i:term ) => `(indexed_union $A $I)
+axiom indexed_union_is_union :
+∀ A I, (A Indx I) → ∀ x, (x ∈ (⋃[ i in I ] A at i)) ↔ (∃ i ∈ I; x ∈ (A _ i))
+axiom indexed_sub_indexed_union : ∀ A I, (A Indx I) → (∀ i ∈ I; (A _ i) ⊆ (⋃[ i in I ] A at i))
+
+
+-- 43) Indexed_intersection and its property
+noncomputable def indexed_intersection (A I : Set) := ⋂ (A.[I])
+syntax "⋂[" term "in" term "]" term "at" term : term
+macro_rules
+| `(⋂[ $i:term in $I:term ] $A:term at $i:term ) => `(indexed_intersection $A $I)
+axiom indexed_intersection_is_intersection :
+∀ A I, (I ≠ ∅) → (A IndxFun I) → ∀ x, (x ∈ (⋂[ i in I ] A at i)) ↔ (∀ i ∈ I; x ∈ (A _ i))
+axiom indexed_intersection_sub_indexed :
+∀ A I, (A IndxFun I) → (∀ i ∈ I; (⋂[ i in I ] A at i) ⊆ (A _ i))
+axiom indexed_intersection_empty :
+∀ A I, (I = ∅) → ((⋂[ i in I ] A at i) = ∅)

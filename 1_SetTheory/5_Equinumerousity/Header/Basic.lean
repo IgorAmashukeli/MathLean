@@ -77,7 +77,7 @@ macro_rules
 
 
 
-axiom specification_set_is_specification (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x ∈ A ∧ P x)
+axiom spec_is_spec (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x ∈ A ∧ P x)
 
 noncomputable def union_2sets (A B : Set) := ⋃ {A, B}
 infix:60 (priority:=high) " ∪ " => union_2sets

@@ -134,12 +134,20 @@ macro_rules
 | `($p:term ⨁ $q:term) => `(xor_pr $p $q)
 
 -- 28) Xor properties
-theorem xor_equiv_def : (p ⨁ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))) := sorry
+theorem xor_equiv_def (p q : Prop) : (p ⨁ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))) := sorry
 
-theorem xor_equal : ¬ (p ⨁ p) := sorry
+theorem xor_equal (p : Prop) : ¬ (p ⨁ p) := sorry
 
-theorem xor_neg : (p ⨁ ¬ p) := sorry
+theorem xor_neg (p : Prop) : (p ⨁ ¬ p) := sorry
 
-theorem xor_comm : (p ⨁ q) ↔ (q ⨁ p) := sorry
+theorem xor_comm (p q : Prop) : (p ⨁ q) ↔ (q ⨁ p) := sorry
 
-theorem xor_assoc : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) := sorry
+theorem xor_assoc (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) := sorry
+
+
+theorem xor_introl (p q : Prop) : (p ∧ ¬q) → (p ⨁ q) := sorry
+theorem xor_intror (p q : Prop) : (¬p ∧ q) → (p ⨁ q) := sorry
+theorem xor_intro (p q : Prop) : (p ∨ q) → (¬ (p ∧ q)) → (p ⨁ q) := sorry
+theorem xor_left (p q : Prop) : (p ⨁ q) → (p ∨ q) := sorry
+theorem xor_right (p q : Prop) : (p ⨁ q) → (¬ (p ∧ q)) := sorry
+theorem xor_elim (p q r : Prop) : (p ⨁ q) → ((p ∧ ¬q) → r) → ((¬p ∧ q) → r) → r := sorry

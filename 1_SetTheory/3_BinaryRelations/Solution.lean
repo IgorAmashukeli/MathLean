@@ -232,7 +232,7 @@ theorem coordinates_snd_corr_lemma : ∀ a b, {x ∈ ⋃ (a, b) | ⋃ (a, b) ≠
       Iff.intro
       (
         fun (h : x ∈ {x ∈ ⋃ (a, b) | ⋃ (a, b) ≠ ⋂ (a, b) → x ∉ ⋂ (a, b)}) =>
-          let first := Iff.mp (specification_set_is_specification (fun (p) => ⋃ (a, b) ≠ ⋂ (a, b) → p ∉ ⋂ (a, b)) (⋃ (a, b)) x) h
+          let first := Iff.mp (spec_is_spec (fun (p) => ⋃ (a, b) ≠ ⋂ (a, b) → p ∉ ⋂ (a, b)) (⋃ (a, b)) x) h
           let second := And.left first
           let third := And.right first
           let fourth := eq_subst (fun (u) => x ∈ u) (⋃ (a, b)) {a, b} (union_pair_is_all_coords a b) (second)
@@ -301,7 +301,7 @@ theorem coordinates_snd_corr_lemma : ∀ a b, {x ∈ ⋃ (a, b) | ⋃ (a, b) ≠
           )
           let fourth : b ∈ ⋃ (a, b) ∧ (⋃ (a, b) ≠ ⋂ (a, b) → b ∉ ⋂ (a, b)) := And.intro (second) (third)
           let fifth: x ∈ ⋃ (a, b) ∧ (⋃ (a, b) ≠ ⋂ (a, b) → x ∉ ⋂ (a, b)) := eq_subst (fun (u) => u ∈ ⋃ (a, b) ∧ (⋃ (a, b) ≠ ⋂ (a, b) → u ∉ ⋂ (a, b))) b x (Eq.symm first) (fourth)
-          Iff.mpr (specification_set_is_specification (fun (u) => (⋃ (a, b) ≠ ⋂ (a, b) → u ∉ ⋂ (a, b))) (⋃ (a, b)) x) (fifth)
+          Iff.mpr (spec_is_spec (fun (u) => (⋃ (a, b) ≠ ⋂ (a, b) → u ∉ ⋂ (a, b))) (⋃ (a, b)) x) (fifth)
       )
     )
 
@@ -335,7 +335,7 @@ theorem cartesian_product_is_cartesian: ∀ A B pr, pr ∈ (A × B) ↔ (∃ x �
       (
         fun (h : pr ∈ A × B) =>
           let second := 𝒫 (𝒫 (A ∪ B))
-          And.right (Iff.mp (specification_set_is_specification (fun (pr) => (∃ x ∈ A; ∃ y ∈ B; pr = (x, y))) second pr) h)
+          And.right (Iff.mp (spec_is_spec (fun (pr) => (∃ x ∈ A; ∃ y ∈ B; pr = (x, y))) second pr) h)
 
       )
       (
@@ -351,7 +351,7 @@ theorem cartesian_product_is_cartesian: ∀ A B pr, pr ∈ (A × B) ↔ (∃ x �
                     let first : (w, u) ∈ 𝒫 (𝒫 (A ∪ B)) := ordered_pair_set_belonging A B w (And.left hw) u (And.left hu)
                     let second : pr ∈ 𝒫 (𝒫 (A ∪ B)):= eq_subst (fun (st) => st ∈ 𝒫 (𝒫 (A ∪ B))) ((w, u)) (pr) (Eq.symm (And.right hu)) (first)
                     let third := And.intro second h
-                    Iff.mpr (specification_set_is_specification (fun (pr) => (∃ x ∈ A; ∃ y ∈ B; pr = (x, y))) (𝒫 (𝒫 (A ∪ B))) pr) third
+                    Iff.mpr (spec_is_spec (fun (pr) => (∃ x ∈ A; ∃ y ∈ B; pr = (x, y))) (𝒫 (𝒫 (A ∪ B))) pr) third
                 )
           )
       )
@@ -567,11 +567,11 @@ theorem dom_rng_rel_prop: ∀ R, (BinRel R) → (dom R ∪ rng R = ⋃ (⋃ R)) 
                 Or.elim first
                 (
                   fun (f : x ∈ dom R) =>
-                    And.left (Iff.mp (specification_set_is_specification (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) x) f)
+                    And.left (Iff.mp (spec_is_spec (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) x) f)
                 )
                 (
                   fun (f : x ∈ rng R) =>
-                    And.left (Iff.mp (specification_set_is_specification (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) x) f)
+                    And.left (Iff.mp (spec_is_spec (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) x) f)
                 )
 
           )
@@ -608,7 +608,7 @@ theorem dom_rng_rel_prop: ∀ R, (BinRel R) → (dom R ∪ rng R = ⋃ (⋃ R)) 
                                             let eight := eq_subst (fun (t) => (t . R . b)) a coor (Eq.symm sixth) (seventh)
                                             let nineth: ∃ y, (coor . R . y) := Exists.intro b eight
                                             let tenth: coor ∈ dom R
-                                            := Iff.mpr (specification_set_is_specification (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) coor) (And.intro (g) (nineth))
+                                            := Iff.mpr (spec_is_spec (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) coor) (And.intro (g) (nineth))
                                             let eleventh := (Or.inl : coor ∈ dom R → coor ∈ dom R ∨ coor ∈ rng R) tenth
                                             Iff.mpr (union2_sets_prop (dom R) (rng R) coor) eleventh
 
@@ -625,7 +625,7 @@ theorem dom_rng_rel_prop: ∀ R, (BinRel R) → (dom R ∪ rng R = ⋃ (⋃ R)) 
                                                 let eight := eq_subst (fun (t) => (t . R . b)) a coor (Eq.symm sixth) (seventh)
                                                 let nineth: ∃ y, (coor . R . y) := Exists.intro b eight
                                                 let tenth: coor ∈ dom R
-                                                := Iff.mpr (specification_set_is_specification (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) coor) (And.intro (g) (nineth))
+                                                := Iff.mpr (spec_is_spec (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) coor) (And.intro (g) (nineth))
                                                 let eleventh := (Or.inl : coor ∈ dom R → coor ∈ dom R ∨ coor ∈ rng R) tenth
                                                 Iff.mpr (union2_sets_prop (dom R) (rng R) coor) eleventh
                                             )
@@ -635,7 +635,7 @@ theorem dom_rng_rel_prop: ∀ R, (BinRel R) → (dom R ∪ rng R = ⋃ (⋃ R)) 
                                                 let eight := eq_subst (fun (t) => (a . R . t)) b coor (Eq.symm sixth) (seventh)
                                                 let nineth: ∃ x, (x . R . coor) := Exists.intro a eight
                                                 let tenth: coor ∈ rng R
-                                                := Iff.mpr (specification_set_is_specification (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) coor) (And.intro (g) (nineth))
+                                                := Iff.mpr (spec_is_spec (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) coor) (And.intro (g) (nineth))
                                                 let eleventh := (Or.inr : coor ∈ rng R → coor ∈ dom R ∨ coor ∈ rng R) tenth
                                                 Iff.mpr (union2_sets_prop (dom R) (rng R) coor) eleventh
 
@@ -656,7 +656,7 @@ theorem dom_prop : ∀ R x, x ∈ dom R ↔ ∃ y, (x . R . y) :=
       Iff.intro
       (
         fun (s : x ∈ dom R) =>
-          And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) x) s)
+          And.right (Iff.mp (spec_is_spec (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) x) s)
 
       )
       (
@@ -666,7 +666,7 @@ theorem dom_prop : ∀ R x, x ∈ dom R ↔ ∃ y, (x . R . y) :=
             fun (w) =>
               fun (hw : (x . R . w)) =>
               let first := And.left (binary_relation_elements_set R x w hw)
-              Iff.mpr (specification_set_is_specification (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) x) (And.intro (first) (s))
+              Iff.mpr (spec_is_spec (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) x) (And.intro (first) (s))
 
           )
       )
@@ -678,7 +678,7 @@ theorem rng_prop : ∀ R y, y ∈ rng R ↔ ∃ x, (x . R . y) :=
       Iff.intro
       (
         fun (s : y ∈ rng R) =>
-          And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) y) s)
+          And.right (Iff.mp (spec_is_spec (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) y) s)
 
       )
       (
@@ -688,7 +688,7 @@ theorem rng_prop : ∀ R y, y ∈ rng R ↔ ∃ x, (x . R . y) :=
             fun (w) =>
               fun (hw : (w . R . y)) =>
               let first := And.right (binary_relation_elements_set R w y hw)
-              Iff.mpr (specification_set_is_specification (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) y) (And.intro (first) (s))
+              Iff.mpr (spec_is_spec (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) y) (And.intro (first) (s))
           )
       )
 
@@ -710,9 +710,9 @@ theorem binary_relation_prop : ∀ R, (BinRel R) → (R BinRelBtw (dom R) AND (r
                     let second := And.left (binary_relation_elements_set R a b first)
                     let third := And.right (binary_relation_elements_set R a b first)
                     let h₁ : ∃ b, (a . R . b) := Exists.intro b (eq_subst (fun (t) => t ∈ R) pr (a, b) (hb) (g))
-                    let fourth: a ∈ dom R := Iff.mpr (specification_set_is_specification (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) a) (And.intro second h₁)
+                    let fourth: a ∈ dom R := Iff.mpr (spec_is_spec (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) a) (And.intro second h₁)
                     let h₂ : ∃ a, (a . R . b) := Exists.intro a (eq_subst (fun (t) => t ∈ R) pr (a, b) (hb) (g))
-                    let fifth: b ∈ rng R := Iff.mpr (specification_set_is_specification (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) b) (And.intro third h₂)
+                    let fifth: b ∈ rng R := Iff.mpr (spec_is_spec (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) b) (And.intro third h₂)
                     let sixth := Iff.mpr (cartesian_product_pair_prop (dom R) (rng R) a b)
                     let seventh := And.intro fourth fifth
                     let eighth := sixth seventh
@@ -745,7 +745,7 @@ theorem prop_then_binary_relation : ∀ A B R, (R BinRelBtw A AND B) → (BinRel
       (
         fun (a) => fun (g : a ∈ dom R) =>
 
-        let second := And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) a) g)
+        let second := And.right (Iff.mp (spec_is_spec (fun (t) => ∃ y, (t . R . y)) (⋃ (⋃ R)) a) g)
         Exists.elim second
         (
           fun (b) =>
@@ -756,7 +756,7 @@ theorem prop_then_binary_relation : ∀ A B R, (R BinRelBtw A AND B) → (BinRel
       (
         fun (b) => fun (g : b ∈ rng R) =>
 
-        let second := And.right (Iff.mp ((specification_set_is_specification (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) b)) g)
+        let second := And.right (Iff.mp ((spec_is_spec (fun (t) => ∃ x, (x . R . t)) (⋃ (⋃ R)) b)) g)
         Exists.elim second
         (
           fun (a) =>
@@ -834,7 +834,7 @@ macro_rules
 theorem inv_is_rel : ∀ R, (BinRel R) → (BinRel (R⁻¹)) :=
   fun (R) => fun (_ : (BinRel R)) =>
     fun (z) => fun (h : z ∈ R⁻¹) =>
-      let first := And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ x, ∃ y, (t = (y, x) ∧ (x . R . y)))
+      let first := And.right (Iff.mp (spec_is_spec (fun (t) => ∃ x, ∃ y, (t = (y, x) ∧ (x . R . y)))
         (rng R × dom R) z) h)
       Exists.elim first (
         fun (a) =>
@@ -851,7 +851,7 @@ theorem inv_is_rel : ∀ R, (BinRel R) → (BinRel (R⁻¹)) :=
 theorem inv_pair_prop_mp : ∀ R, ∀ x y, (x . R . y) → (y . (R⁻¹) . x) :=
   fun (R) => fun (x y) => fun (h₁ : (x . R . y)) =>
     let first: ((y . (rng R × dom R) . x) ∧ ∃ x_1 y_1, (y, x) = (y_1, x_1) ∧ (x_1 . R . y_1)) → (y . (R⁻¹) . x)
-          := Iff.mpr (specification_set_is_specification (fun (t) => ∃ x, ∃ y, (t = (y, x) ∧ (x . R . y))) (rng R × dom R) (y, x))
+          := Iff.mpr (spec_is_spec (fun (t) => ∃ x, ∃ y, (t = (y, x) ∧ (x . R . y))) (rng R × dom R) (y, x))
     let second := Iff.mpr (rng_prop R y) (Exists.intro x (h₁))
     let third := Iff.mpr (dom_prop R x) (Exists.intro y (h₁))
     let fourth := Iff.mpr (cartesian_product_pair_prop (rng R) (dom R) y x) (And.intro second third)
@@ -868,7 +868,7 @@ theorem inv_pair_prop: ∀ R, (BinRel R) → ∀ x y, (x . R . y) ↔ (y . (R⁻
       )
       (
         fun (h₂ : (y . (R⁻¹) . x)) =>
-          Exists.elim (And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ x, ∃ y, (t = (y, x) ∧ (x . R . y))) (rng R × dom R) (y, x)) h₂))
+          Exists.elim (And.right (Iff.mp (spec_is_spec (fun (t) => ∃ x, ∃ y, (t = (y, x) ∧ (x . R . y))) (rng R × dom R) (y, x)) h₂))
           (
             fun (x_1) =>
               fun (hx_1 : ∃ y_1, (y, x) = (y_1, x_1) ∧ (x_1 . R . y_1)) =>
@@ -936,7 +936,7 @@ theorem inv_between_mp : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw 
       (
         fun (h : (R BinRelBtw A AND B)) =>
           fun (s) => fun (h₁ : s ∈ (R⁻¹)) =>
-            let h₂ := And.right (Iff.mp (specification_set_is_specification (fun (u) => ∃ x, ∃ y, (u = (y, x) ∧ (x . R . y))) (rng R × dom R) s) (h₁))
+            let h₂ := And.right (Iff.mp (spec_is_spec (fun (u) => ∃ x, ∃ y, (u = (y, x) ∧ (x . R . y))) (rng R × dom R) s) (h₁))
             Exists.elim h₂
             (
               fun (w) =>
@@ -1030,7 +1030,7 @@ theorem composition_pair_prop : ∀ P Q, ∀ x y, (x . (P ∘ Q) . y) ↔ ∃ z,
     Iff.intro
     (
       fun (h : (x . (P ∘ Q) . y)) =>
-        let first := And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ x y, (t = (x, y) ∧ ∃ z, (x . Q . z) ∧ (z . P . y) )) (dom Q × rng P) (x, y)) h)
+        let first := And.right (Iff.mp (spec_is_spec (fun (t) => ∃ x y, (t = (x, y) ∧ ∃ z, (x . Q . z) ∧ (z . P . y) )) (dom Q × rng P) (x, y)) h)
         Exists.elim first
         (
           fun (w) =>
@@ -1056,7 +1056,7 @@ theorem composition_pair_prop : ∀ P Q, ∀ x y, (x . (P ∘ Q) . y) ↔ ∃ z,
         (
           fun (w) =>
             fun (hw : (x . Q . w) ∧ (w . P . y)) =>
-              let first := Iff.mpr (specification_set_is_specification (fun (t) => ∃ x y, (t = (x, y) ∧ ∃ z, (x . Q . z) ∧ (z . P . y) )) (dom Q × rng P) (x, y))
+              let first := Iff.mpr (spec_is_spec (fun (t) => ∃ x y, (t = (x, y) ∧ ∃ z, (x . Q . z) ∧ (z . P . y) )) (dom Q × rng P) (x, y))
 
               let second := Iff.mpr (dom_prop Q x) (Exists.intro w (And.left hw))
               let third := Iff.mpr (rng_prop P y) (Exists.intro w (And.right hw))
@@ -1396,8 +1396,8 @@ theorem id_is_rel : ∀ A, binary_relation (id_ A) :=
 
 theorem id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ (y ∈ A)) :=
   fun (A) => fun (x) => fun (y) => fun (h : (x . (id_ A) . y)) =>
-    let first := And.right (Iff.mp (specification_set_is_specification (fun (u) => ∃ x : Set, u = (x, x)) (A × A) (x, y)) h)
-    let second := And.left (Iff.mp (specification_set_is_specification (fun (u) => ∃ x : Set, u = (x, x)) (A × A) (x, y)) h)
+    let first := And.right (Iff.mp (spec_is_spec (fun (u) => ∃ x : Set, u = (x, x)) (A × A) (x, y)) h)
+    let second := And.left (Iff.mp (spec_is_spec (fun (u) => ∃ x : Set, u = (x, x)) (A × A) (x, y)) h)
     let third := Iff.mp (cartesian_product_pair_prop A A x y) second
     Exists.elim first
     (
@@ -1412,7 +1412,7 @@ theorem id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ 
 
 theorem prop_then_id : ∀ A, ∀ x ∈ A; (x . (id_ A) . x) :=
   fun (A) => fun (x) => fun (h : x ∈ A) =>
-    Iff.mpr (specification_set_is_specification (fun (u) => ∃ x : Set, u = (x, x)) (A × A) (x, x))
+    Iff.mpr (spec_is_spec (fun (u) => ∃ x : Set, u = (x, x)) (A × A) (x, x))
      (And.intro (Iff.mpr (cartesian_product_pair_prop A A x x) (And.intro h h)) (Exists.intro x (Eq.refl (x, x))))
 
 
@@ -1510,7 +1510,7 @@ theorem rng_is_rel_image : ∀ R, (BinRel R) → rng R = R.[dom R] :=
               fun (hw : (w . R . x)) =>
                 let second := Iff.mpr (dom_prop R w) (Exists.intro x (hw))
                 let third: ∃ m ∈ dom R; (m . R . x) := Exists.intro w (And.intro (second) (hw))
-                (Iff.mpr (specification_set_is_specification (fun (u) => ∃ a ∈ (dom R) ; (a . R . u)) (rng R) x)) (And.intro (h) (third))
+                (Iff.mpr (spec_is_spec (fun (u) => ∃ a ∈ (dom R) ; (a . R . u)) (rng R) x)) (And.intro (h) (third))
           )
       )
       (
@@ -1529,8 +1529,8 @@ theorem rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | �
       (
         fun (h : x ∈ R⁻¹.[Y]) =>
           let first := inv_rng R g
-          let second := And.left (Iff.mp (specification_set_is_specification (fun (u) => ∃ a ∈ Y; (a . (R⁻¹) . u)) (rng (R⁻¹)) x) h)
-          let third := And.right (Iff.mp (specification_set_is_specification (fun (u) => ∃ a ∈ Y; (a . (R⁻¹) . u)) (rng (R⁻¹)) x) h)
+          let second := And.left (Iff.mp (spec_is_spec (fun (u) => ∃ a ∈ Y; (a . (R⁻¹) . u)) (rng (R⁻¹)) x) h)
+          let third := And.right (Iff.mp (spec_is_spec (fun (u) => ∃ a ∈ Y; (a . (R⁻¹) . u)) (rng (R⁻¹)) x) h)
           let fourth := eq_subst (fun (u) => x ∈ u) (rng (R⁻¹)) (dom R) (first) (second)
           Exists.elim third
           (
@@ -1538,7 +1538,7 @@ theorem rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | �
               fun (hw: w ∈ Y ∧ (w . (R⁻¹) . x)) =>
                 let fifth := Iff.mpr (inv_pair_prop R g x w) (And.right hw)
                 let sixth: ∃ b ∈ Y; (x . R . b) := Exists.intro w (And.intro (And.left hw) (fifth))
-                (Iff.mpr (specification_set_is_specification (fun (u) => ∃ b ∈ Y; (u . R . b)) (dom R) x)) (And.intro (fourth) (sixth))
+                (Iff.mpr (spec_is_spec (fun (u) => ∃ b ∈ Y; (u . R . b)) (dom R) x)) (And.intro (fourth) (sixth))
 
           )
 
@@ -1546,8 +1546,8 @@ theorem rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | �
       (
         fun (h : x ∈ {a ∈ dom R | ∃ b ∈ Y; (a . R . b)}) =>
           let first := inv_rng R g
-          let second := And.left (Iff.mp (specification_set_is_specification (fun (u) => ∃ b ∈ Y; (u . R . b)) (dom R) x) h)
-          let third := And.right (Iff.mp (specification_set_is_specification (fun (u) => ∃ b ∈ Y; (u . R . b)) (dom R) x) h)
+          let second := And.left (Iff.mp (spec_is_spec (fun (u) => ∃ b ∈ Y; (u . R . b)) (dom R) x) h)
+          let third := And.right (Iff.mp (spec_is_spec (fun (u) => ∃ b ∈ Y; (u . R . b)) (dom R) x) h)
           let fourth := eq_subst (fun (u) => x ∈ u) (dom R) (rng (R⁻¹)) (Eq.symm first) (second)
           Exists.elim third
           (
@@ -1555,7 +1555,7 @@ theorem rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | �
               fun (hw : w ∈ Y ∧ (x . R . w)) =>
                 let fifth := Iff.mp (inv_pair_prop R g x w) (And.right hw)
                 let sixth : ∃ a ∈ Y; (a . (R⁻¹) . x) := Exists.intro w (And.intro (And.left hw) (fifth))
-                (Iff.mpr (specification_set_is_specification (fun (u) => ∃ a ∈ Y; (a . (R⁻¹) . u)) (rng (R⁻¹)) x)) (And.intro (fourth) (sixth))
+                (Iff.mpr (spec_is_spec (fun (u) => ∃ a ∈ Y; (a . (R⁻¹) . u)) (rng (R⁻¹)) x)) (And.intro (fourth) (sixth))
           )
       )
     )
@@ -1568,7 +1568,7 @@ theorem image_prop : ∀ R X y, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y)) :=
         Iff.intro
         (
           fun (hy : y ∈ R.[X]) =>
-            And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ x ∈ X; (x . R . t)) (rng R) y) hy)
+            And.right (Iff.mp (spec_is_spec (fun (t) => ∃ x ∈ X; (x . R . t)) (rng R) y) hy)
 
         )
         (
@@ -1579,7 +1579,7 @@ theorem image_prop : ∀ R X y, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y)) :=
                 fun (hx : x ∈ X ∧ (x . R . y)) =>
                   let t := Iff.mpr (rng_prop R y) (Exists.intro x (And.right hx))
 
-                  Iff.mpr (specification_set_is_specification (fun (t) => ∃ x ∈ X; (x . R . t)) (rng R) y) (
+                  Iff.mpr (spec_is_spec (fun (t) => ∃ x ∈ X; (x . R . t)) (rng R) y) (
                     And.intro t (Exists.intro x (And.intro (And.left hx) (And.right hx)))
                   )
             )
@@ -1596,12 +1596,12 @@ theorem preimage_prop : ∀ R Y, (BinRel R) → ∀ x, (x ∈ R⁻¹.[Y] ↔ ∃
         (
           fun (hx : (x ∈ R⁻¹.[Y])) =>
             let v := eq_subst (fun (t) => x ∈ t) (R⁻¹.[Y]) S (u) (hx)
-            And.right (Iff.mp (specification_set_is_specification (fun (t) => ∃ b ∈ Y; (t . R . b)) (dom R) x) (v))
+            And.right (Iff.mp (spec_is_spec (fun (t) => ∃ b ∈ Y; (t . R . b)) (dom R) x) (v))
         )
         (
           fun (hx : ∃ y ∈ Y; (x . R . y)) =>
             eq_subst (fun (t) => x ∈ t) S (R⁻¹.[Y]) (Eq.symm (u)) (
-              Iff.mpr (specification_set_is_specification (fun (t) => ∃ b ∈ Y; (t . R . b)) (dom R) x) (
+              Iff.mpr (spec_is_spec (fun (t) => ∃ b ∈ Y; (t . R . b)) (dom R) x) (
                 And.intro (
                   Iff.mpr (dom_prop R x) (
                     Exists.elim hx (
@@ -1631,7 +1631,7 @@ theorem dom_preimage : ∀ A B P, (P BinRelBtw A AND B) → dom P = P⁻¹.[B] :
                 fun (hw : (x, w) ∈ P) =>
                   let second := rel_pre_image_eq B P (And.left (prop_then_binary_relation A B P h₁))
                   eq_subst (fun (u) => x ∈ u) (({a ∈ dom P | ∃ b ∈ B; (a . P . b)})) (P⁻¹.[B])  (Eq.symm second) (
-                    Iff.mpr (specification_set_is_specification (fun (u) => ∃ b ∈ B; (u . P . b)) (dom P) x) (And.intro (s) (Exists.intro w (And.intro (And.right (Iff.mp (cartesian_product_pair_prop A B x w) (h₁ (x, w) hw))) (hw))))
+                    Iff.mpr (spec_is_spec (fun (u) => ∃ b ∈ B; (u . P . b)) (dom P) x) (And.intro (s) (Exists.intro w (And.intro (And.right (Iff.mp (cartesian_product_pair_prop A B x w) (h₁ (x, w) hw))) (hw))))
 
                   )
 
@@ -1655,7 +1655,7 @@ theorem rel_image_union : ∀ X Y R, (BinRel R) → R.[X ∪ Y] = R.[X] ∪ R.[Y
     (
       fun (b) =>
         let first : b ∈ R.[X ∪ Y] ↔ b ∈ rng R ∧ (∃ s, (s ∈ X ∪ Y) ∧ (s . R . b)) :=
-          specification_set_is_specification (fun (u) => ∃ a ∈ (X ∪ Y); (a . R . u)) (rng R) (b)
+          spec_is_spec (fun (u) => ∃ a ∈ (X ∪ Y); (a . R . u)) (rng R) (b)
 
         let second : b ∈ R.[X ∪ Y] ↔ b ∈ rng R ∧ (∃ s, (s ∈ X ∨ s ∈ Y) ∧ (s . R . b)) :=
           iff_subst_pred_arg (fun (u) => b ∈ R.[X ∪ Y] ↔ b ∈ rng R ∧ u) (∃ s, (s ∈ X ∪ Y) ∧ (s . R . b)) (∃ s, (s ∈ X ∨ s ∈ Y) ∧ (s . R . b))
@@ -1677,8 +1677,8 @@ theorem rel_image_union : ∀ X Y R, (BinRel R) → R.[X ∪ Y] = R.[X] ∪ R.[Y
         let sixth : b ∈ R.[X ∪ Y] ↔ (b ∈ R.[X]) ∨ (b ∈ R.[Y]) :=
           iff_subst_pred_arg (fun (u) => b ∈ R.[X ∪ Y] ↔ u) ((b ∈ rng R ∧ (∃ s, (s ∈ X) ∧ (s . R . b))) ∨ (b ∈ rng R ∧ (∃ s, (s ∈ Y) ∧ (s . R . b)))) ((b ∈ R.[X]) ∨ (b ∈ R.[Y]))
           (disj_congr ((b ∈ rng R ∧ (∃ s, (s ∈ X) ∧ (s . R . b)))) ((b ∈ R.[X])) (b ∈ rng R ∧ (∃ s, (s ∈ Y) ∧ (s . R . b))) (b ∈ R.[Y])
-          (iff_comm.mp (specification_set_is_specification (fun (u) => ∃ s ∈ X; (s . R . u)) (rng R) b)) (iff_comm.mp
-          (specification_set_is_specification (fun (u) => ∃ s ∈ Y; (s . R . u)) (rng R) b))
+          (iff_comm.mp (spec_is_spec (fun (u) => ∃ s ∈ X; (s . R . u)) (rng R) b)) (iff_comm.mp
+          (spec_is_spec (fun (u) => ∃ s ∈ Y; (s . R . u)) (rng R) b))
           ) (fifth)
 
         iff_subst_pred_arg (fun (u) => b ∈ R.[X ∪ Y] ↔ u) ((b ∈ R.[X]) ∨ (b ∈ R.[Y])) (b ∈ R.[X] ∪ R.[Y])
@@ -1695,13 +1695,13 @@ theorem rel_preimage_union : ∀ X Y R , (BinRel R) → R⁻¹.[X ∪ Y] = R⁻�
 theorem monotonic_rel_image : ∀ X Y R, (BinRel R) → X ⊆ Y → R.[X] ⊆ R.[Y] :=
   fun (X Y R) => fun (_ : (BinRel R)) => fun (g : X ⊆ Y) =>
     fun (x) => fun (s : x ∈ R.[X]) =>
-      let first := Iff.mp (specification_set_is_specification (fun (u) => ∃ a ∈ X; (a . R . u)) (rng R) x) s
+      let first := Iff.mp (spec_is_spec (fun (u) => ∃ a ∈ X; (a . R . u)) (rng R) x) s
       Exists.elim (And.right (first))
       (
         fun (w) =>
           fun (hw : w ∈ X ∧ (w . R . x)) =>
             let second := g w (And.left hw)
-            (Iff.mpr (specification_set_is_specification (fun (u) => ∃ a ∈ Y; (a . R . u)) (rng R) x)) (And.intro (And.left first) (Exists.intro w (And.intro (second) (And.right hw))))
+            (Iff.mpr (spec_is_spec (fun (u) => ∃ a ∈ Y; (a . R . u)) (rng R) x)) (And.intro (And.left first) (Exists.intro w (And.intro (second) (And.right hw))))
       )
 
 
@@ -1740,7 +1740,7 @@ theorem rel_image_composition : ∀ P Q X, (P ∘ Q).[X] = P.[Q.[X]] :=
       fun (c) =>
 
         let first: c ∈ (P ∘ Q).[X] ↔ c ∈ rng (P ∘ Q) ∧ (∃ a ∈ X; (a . (P ∘ Q) . c))
-          := specification_set_is_specification (fun (u) => ∃ a ∈ X; (a . (P ∘ Q) . u)) (rng (P ∘ Q)) c
+          := spec_is_spec (fun (u) => ∃ a ∈ X; (a . (P ∘ Q) . u)) (rng (P ∘ Q)) c
 
         let second : c ∈ (P ∘ Q).[X] ↔ c ∈ rng (P ∘ Q) ∧ (∃ a ∈ X; (∃ b, (a . Q . b) ∧ (b . P . c))) :=
           iff_subst_pred_arg (fun (u) => c ∈ (P ∘ Q).[X] ↔ c ∈ rng (P ∘ Q) ∧ u) (∃ a ∈ X; (a . (P ∘ Q) . c))  (∃ a ∈ X; (∃ b, (a . Q . b) ∧ (b . P . c)))
@@ -1777,9 +1777,9 @@ theorem rel_image_composition : ∀ P Q X, (P ∘ Q).[X] = P.[Q.[X]] :=
                     fun (u) =>
                       fun (hu : u ∈ X ∧ (u . Q . w)) =>
                         let h₄ := Iff.mpr (rng_prop Q w)  (Exists.intro u (And.right hu))
-                        let h₅ : w ∈ Q.[X] := Iff.mpr (specification_set_is_specification (fun (u) => ∃ a ∈ X; (a . Q . u)) (rng Q) w) (And.intro (h₄) (Exists.intro u (And.intro (And.left hu) (And.right (hu)))))
+                        let h₅ : w ∈ Q.[X] := Iff.mpr (spec_is_spec (fun (u) => ∃ a ∈ X; (a . Q . u)) (rng Q) w) (And.intro (h₄) (Exists.intro u (And.intro (And.left hu) (And.right (hu)))))
                         let h₆ := Iff.mpr (rng_prop P c) (Exists.intro w (And.right hw))
-                        let h₇ : c ∈ P.[Q.[X]] := (Iff.mpr (specification_set_is_specification (fun (u) => ∃ a ∈ Q.[X]; (a . P . u)) (rng P) c)) (And.intro (h₆) (Exists.intro w (And.intro (h₅)  (And.right hw))))
+                        let h₇ : c ∈ P.[Q.[X]] := (Iff.mpr (spec_is_spec (fun (u) => ∃ a ∈ Q.[X]; (a . P . u)) (rng P) c)) (And.intro (h₆) (Exists.intro w (And.intro (h₅)  (And.right hw))))
                         h₇
                   )
 
@@ -1789,14 +1789,14 @@ theorem rel_image_composition : ∀ P Q X, (P ∘ Q).[X] = P.[Q.[X]] :=
         )
         (
           fun (h : c ∈ P.[Q.[X]]) =>
-            let h₁ := Iff.mp (specification_set_is_specification (fun (u) => ∃ a ∈ Q.[X]; (a . P . u)) (rng P) c) h
+            let h₁ := Iff.mp (spec_is_spec (fun (u) => ∃ a ∈ Q.[X]; (a . P . u)) (rng P) c) h
             let _ := And.left h₁
             let h₃ := And.right h₁
             Exists.elim h₃
             (
               fun (w) =>
                 fun (hw : w ∈ Q.[X] ∧ (w . P . c)) =>
-                  let h₄ := Iff.mp (specification_set_is_specification (fun (u) => ∃ a ∈ X; (a . Q . u)) (rng Q) w) (And.left hw)
+                  let h₄ := Iff.mp (spec_is_spec (fun (u) => ∃ a ∈ X; (a . Q . u)) (rng Q) w) (And.left hw)
                   Exists.elim (And.right h₄)
                   (
                     fun (u) =>

@@ -26,7 +26,8 @@ notation (priority := high) "∅" => empty_set
 theorem empty_set_is_empty : empty ∅ := sorry
 theorem empty_set_subset_any : ∀ A, ∅ ⊆ A := sorry
 theorem non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ x ∈ A; P x) → ∃ x ∈ A; P x := sorry
-theorem non_empty_then_exi : ∀ A, (A ≠ ∅) → ∃ x, x ∈ A := sorry
+theorem set_empty_iff_empty : ∀ A, (A = ∅) ↔ (∀ x, x ∉ A) := sorry
+theorem set_non_empty_iff_non_empty : ∀ A, (A ≠ ∅) ↔ ∃ x, x ∈ A := sorry
 
 
 -- 5) construction of 𝒫 A from A (boolean set)
@@ -86,6 +87,7 @@ theorem union_singleton : ∀ A, ⋃ {A} = A := sorry
 theorem union_boolean : (∀ A, ⋃ (𝒫 A) = A) := sorry
 theorem elem_subset_union : (∀ A, ∀ x ∈ A; x ⊆ ⋃ A) := sorry
 theorem boolean_union : (∀ A, A ⊆ 𝒫 (⋃ A)) := sorry
+theorem sub_bool_un_mem_bool : ∀ A B, (A ⊆ 𝒫 B → ((⋃ A) ∈ 𝒫 B)) := sorry
 theorem all_ss_then_union_ss : ∀ A B, (∀ X ∈ A; X ⊆ B) → (⋃ A ⊆ B) :=sorry
 theorem union_subset_monotonic : ∀ A B, A ⊆ B → ⋃ A ⊆ ⋃ B := sorry
 
@@ -100,7 +102,7 @@ noncomputable def specification_set (P : Set → Prop) : (Set → Set) :=
 syntax "{" ident "∈" term "|" term "}" : term
 macro_rules
   | `({ $x:ident ∈ $A:term | $property:term })  => `(specification_set (fun ($x) => $property) $A)
-theorem specification_set_is_specification (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x ∈ A ∧ P x) := sorry
+theorem spec_is_spec (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x ∈ A ∧ P x) := sorry
 theorem specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} ⊆ A) := sorry
 
 
