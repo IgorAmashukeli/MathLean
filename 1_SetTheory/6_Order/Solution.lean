@@ -1,6 +1,10 @@
 import «Header»
 open Classical
 
+noncomputable def rel_specification (R B) := R ∩ (B × B)
+syntax term "spec" term : term
+macro_rules
+| `($R spec $B) => `(rel_specification $R $B)
 
 def refl (R A : Set) : Prop := ∀ x ∈ A; (x . R . x)
 def irrefl (R : Set) : Prop := ∀ x, ¬ (x . R . x)
@@ -1228,6 +1232,11 @@ macro_rules
 | `(≻($𝓐:term )) => `((≺($𝓐))⁻¹)
 | `(≽($𝓐:term )) => `((≼($𝓐))⁻¹)
 
+noncomputable def subs_part_ord (𝓐 X) := ⁅X; ≺(𝓐) spec X; ≼(𝓐) spec X⁆
+syntax term "SubsPO" term : term
+macro_rules
+| `($𝓐 SubsPO $X) => `(subs_part_ord $𝓐 $X)
+
 
 theorem spo_antisymm : ∀ A R, (R SPO A) → antisymm R :=
   fun (A R) =>
@@ -1693,18 +1702,22 @@ theorem setPO_is_setPO : ∀ A R₁ R₂, (setPO(⁅A; R₁; R₂⁆) = A) :=
     let u₂ := coordinates_fst_coor (A, R₁) R₂
     let u₃ := coordinates_fst_coor A R₁
     eq_subst (fun (t) => fst_coor (t) = A) (A, R₁) (fst_coor ((A, R₁), R₂)) (Eq.symm (u₂)) (u₃)
+
 theorem lessPO_is_lessPO :  ∀ A R₁ R₂, (≺(⁅A; R₁; R₂⁆) = R₁) :=
   fun (A R₁ R₂) =>
     let u₂ := coordinates_fst_coor (A, R₁) R₂
     let u₈ := coordinates_snd_coor A R₁
     eq_subst (fun (t) => snd_coor (t) = R₁) (A, R₁) (fst_coor ((A, R₁), R₂)) (Eq.symm (u₂)) (u₈)
+
 theorem lesseqPO_is_lesseqPO : ∀ A R₁ R₂, (≼(⁅A; R₁; R₂⁆) = R₂) :=
   fun (A R₁ R₂) =>
     coordinates_snd_coor (A, R₁) R₂
+
 theorem po_is_triple_po : ∀ A R₁ R₂, (R₁ with R₂ PO A) → (PartOrd (⁅A; R₁; R₂⁆)) :=
   fun (A R₁ R₂) =>
     fun (hR : (R₁ with R₂ PO A)) =>
       Exists.intro A (Exists.intro R₁ (Exists.intro R₂ (And.intro (Eq.refl (⁅A; R₁; R₂⁆)) (hR))))
+
 theorem po_less_more : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≺(𝓐)) . y) ↔ (y . ≻(𝓐) . x) :=
   fun (𝓐) =>
     fun (h𝓐 : PartOrd 𝓐) =>
@@ -1713,6 +1726,7 @@ theorem po_less_more : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≺(𝓐)) . 
           let u := And.left (And.left (And.right (triple_po_is_po 𝓐 h𝓐)))
           let u₁ := bin_on_is_bin (setPO(𝓐)) (≺(𝓐)) u
           inv_pair_prop (≺(𝓐)) u₁ x y
+
 theorem po_lesseq_moreeq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(𝓐)) . y) ↔ (y . ≽(𝓐) . x) :=
   fun (𝓐) =>
     fun (h𝓐 : PartOrd 𝓐) =>
@@ -1851,6 +1865,7 @@ theorem part_ord_pair_prop_eqR₂ : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y ∈ (se
             Iff.mpr (And.right (part_ord_pair_prop 𝓐 h𝓐 x hx y hy)) (
               Or.inr hxy
             )
+
 theorem part_ord_pair_prop_neqR₂R₁ : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, ((x . (≼(𝓐)) . y) ∧ (x ≠ y)) → (x . (≺(𝓐)) . y) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -1869,17 +1884,20 @@ theorem binA_R₁ : ∀ 𝓐, (PartOrd 𝓐) → (≺(𝓐)) BinRelOn (setPO(�
     fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
       And.left (And.left (And.right (triple_po_is_po 𝓐 h𝓐)))
+
 theorem bin_R₁ : ∀ 𝓐, (PartOrd 𝓐) → BinRel (≺(𝓐)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
       bin_on_is_bin (setPO(𝓐)) (≺(𝓐)) (
         binA_R₁ 𝓐 h𝓐
       )
+
 theorem irrefl_R₁ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x, ¬ (x . (≺(𝓐)) . x)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
       let hR := triple_po_is_po 𝓐 h𝓐
       And.left (And.right (And.left (And.right hR)))
+
 theorem asymm_R₁ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y, (x . (≺(𝓐)) . y) → ¬ (y . (≺(𝓐)) . x)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -1888,6 +1906,7 @@ theorem asymm_R₁ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y, (x . (≺(𝓐)) . y
       let hR := triple_po_is_po 𝓐 h𝓐
       let u := And.left (And.right hR)
       spo_asymm A R₁ u
+
 theorem trans_R₁ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≺(𝓐)) . y) → (y . (≺(𝓐)) . z) → (x . (≺(𝓐)) . z)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -1908,12 +1927,16 @@ theorem binA_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (≼(𝓐)) BinRelOn (setPO(�
         triple_po_is_po 𝓐 h𝓐
       )
       And.left (And.left (And.right u))
+
+
 theorem bin_R₂ : ∀ 𝓐, (PartOrd 𝓐) → BinRel (≼(𝓐)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
       bin_on_is_bin (setPO(𝓐)) (≼(𝓐)) (
         binA_R₂ 𝓐 h𝓐
       )
+
+
 theorem refl_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x ∈ (setPO(𝓐)); (x . (≼(𝓐)) . x)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -1922,6 +1945,8 @@ theorem refl_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x ∈ (setPO(𝓐)); (x . 
       let R₂ := (≼(𝓐))
       let hR := triple_po_is_po 𝓐 h𝓐
       And.left (And.right (And.left (And.right (Iff.mp (part_ord_nspo_crit A R₁ R₂) hR))))
+
+
 theorem antisymm_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y, (x . (≼(𝓐)) . y) → (y . (≼(𝓐)) . x) → (x = y)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -1935,6 +1960,8 @@ theorem antisymm_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y, (x . (≼(𝓐)) 
         fun (hxyR₂ : (x . R₂ . y)) =>
           fun (hyxR₂ : (y . R₂ . x)) =>
             v x y (And.intro (hxyR₂) (hyxR₂))
+
+
 theorem trans_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≼(𝓐)) . y) → (y . (≼(𝓐)) . z) → (x . (≼(𝓐)) . z)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -1948,6 +1975,8 @@ theorem trans_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≼(𝓐)) .
         fun (hxyR₂ : (x . R₂ . y)) =>
           fun (hyzR₂ : (y . R₂ . z)) =>
             v x y z (And.intro hxyR₂ hyzR₂)
+
+
 theorem stabil_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≼(𝓐)) . y) → (y . (≼(𝓐)) . z) → (x = z) → ((x = y) ∧ (y = z))) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -2027,6 +2056,7 @@ theorem trans_R₁_R₂_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (�
           fun (hyz : (y . (≼(𝓐)) . z)) =>
             let u := part_ord_pair_prop_R₁R₂ 𝓐 h𝓐 x y hxy
             trans_R₂ 𝓐 h𝓐 x y z u hyz
+
 theorem trans_R₁_R₂_R₁ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≺(𝓐)) . y) → (y . (≼(𝓐)) . z) → (x . (≺(𝓐)) . z)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -2039,6 +2069,7 @@ theorem trans_R₁_R₂_R₁ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (�
                 let v := eq_subst (fun (t) => (t . (≺(𝓐)) . y)) x z hxz hxy
                 no_symm_R₁_R₂ 𝓐 h𝓐 z y (And.intro (v) (hyz))
             ))
+
 theorem trans_R₂_R₁_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≼(𝓐)) . y) → (y . (≺(𝓐)) . z) → (x . (≼(𝓐)) . z)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -2047,6 +2078,8 @@ theorem trans_R₂_R₁_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (�
           fun (hyz : (y . (≺(𝓐)) . z)) =>
             let u := part_ord_pair_prop_R₁R₂ 𝓐 h𝓐 y z hyz
             trans_R₂ 𝓐 h𝓐 x y z (hxy) (u)
+
+
 theorem trans_R₂_R₁_R₁ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≼(𝓐)) . y) → (y . (≺(𝓐)) . z) → (x . (≺(𝓐)) . z)) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -2054,11 +2087,21 @@ theorem trans_R₂_R₁_R₁ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (�
         fun (hxy : (x . (≼(𝓐)) . y)) =>
           fun (hyz : (y . (≺(𝓐)) . z)) =>
             let u := trans_R₂_R₁_R₂ 𝓐 h𝓐 x y z hxy hyz
-            part_ord_pair_prop_neqR₂R₁ 𝓐 h𝓐 x z (And.intro (u) (
-              fun (hxz : (x = z)) =>
-                let v := eq_subst (fun (t) => (y . (≺(𝓐)) . t)) z x (Eq.symm hxz) hxy
-                no_symm_R₁_R₂ 𝓐 h𝓐 z y (And.intro (v) (hyz))
-            ))
+            let m := par_ord_pair_prop_R₂_A 𝓐 h𝓐 x z u
+            Iff.mpr (And.left (part_ord_pair_prop 𝓐 h𝓐 x (And.left m) z (And.right m))) (
+              And.intro u (
+                fun (hxz : (x = z)) =>
+                  no_symm_R₁_R₂ 𝓐 h𝓐 y z (
+                    And.intro (hyz) (
+                      eq_subst (fun (t) => (t . (≼(𝓐)) . y)) x z hxz (hxy)
+                    )
+                  )
+              )
+            )
+
+
+
+
 
 noncomputable def sub_binrel (A) := {z ∈ (𝒫 A) × (𝒫 A) | ∃ B C, B ⊆ C ∧ z = (B, C) }
 noncomputable def subneq_binrel (A) := {z ∈ (𝒫 A) × (𝒫 A) | ∃ B C, B ⊊ C ∧ z = (B, C) }
@@ -2345,7 +2388,11 @@ theorem inv_PO_lesseq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(invPO �
           let s := inv_pair_prop (≼(𝓐)) (bin_on_is_bin (setPO(𝓐)) (≼(𝓐)) t) y x
           Iff.intro (Iff.mpr s) (Iff.mp s)
         )
-theorem sub_is_PO : ∀ 𝓐 B, (B ≠ ∅) → (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (PartOrd ⁅B; ≺(𝓐) ∩ (B × B); ≼(𝓐) ∩ (B × B)⁆) :=
+
+
+
+
+theorem sub_is_PO : ∀ 𝓐 B, (B ≠ ∅) → (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (PartOrd (𝓐 SubsPO B)) :=
   fun (𝓐 B) =>
     fun (hBemp : (B ≠ ∅)) =>
       fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -2918,26 +2965,24 @@ theorem min_um_inter_prop : ∀ 𝓐 B I x, (B IndxFun I) → (x ∈ (⋂[ i in 
                       )
                 )
           )
+
+
 theorem max_um_is_al : ∀ 𝓐 B x, (PartOrd 𝓐) → (is_maximum 𝓐 B x) → (is_maximal 𝓐 B x) :=
   fun (𝓐 B x) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
-      let first := triple_po_is_po 𝓐 h𝓐
-      let v := bin_on_is_bin (setPO(𝓐)) (≼(𝓐)) (
-        And.left (And.left (And.right (Iff.mp (part_ord_nspo_crit (setPO(𝓐)) (≺(𝓐)) (≼(𝓐))) first)))
-      )
       fun (hm_um : (is_maximum 𝓐 B x)) =>
-
         And.intro (And.left hm_um) (
           fun (y) =>
-              fun (hyB : y ∈ B) =>
-                fun (hxy : (x . (≺(𝓐)) . y)) =>
-                  no_symm_R₁_R₂ 𝓐 h𝓐 x y (
-                    And.intro (hxy) (
-                      let u := And.right hm_um y hyB
-                      Iff.mpr (inv_pair_prop (≼(𝓐)) (v) y x) u
-                    )
-                  )
+            fun (hyB : y ∈ B) =>
+              fun (hxyless : (x . (≺(𝓐)) . y)) =>
+                let u := And.right hm_um y hyB
+                no_symm_R₁_R₂ 𝓐 h𝓐 x y (
+                  And.intro (hxyless) (u)
+                )
         )
+
+
+
 theorem min_um_is_al : ∀ 𝓐 B x, (PartOrd 𝓐) → (is_minimum 𝓐 B x) → (is_minimal 𝓐 B x) :=
   fun (𝓐 B x) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -2958,6 +3003,8 @@ theorem min_um_is_al : ∀ 𝓐 B x, (PartOrd 𝓐) → (is_minimum 𝓐 B x) �
                     )
                   )
         )
+
+
 theorem max_um_unique : ∀ 𝓐 B x y, (PartOrd 𝓐) → (is_maximum 𝓐 B x) → (is_maximum 𝓐 B y) → (x = y) :=
   fun (𝓐 B x y) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -2970,6 +3017,8 @@ theorem max_um_unique : ∀ 𝓐 B x y, (PartOrd 𝓐) → (is_maximum 𝓐 B x)
           let v₀₂ := Iff.mp (inv_pair_prop (≼(𝓐)) (bin_R₂ 𝓐 h𝓐) x y) (v)
           let v₂ := Iff.mpr (po_lesseq_moreeq 𝓐 h𝓐 x y) (v₀₂)
           antisymm_R₂ 𝓐 h𝓐 x y (v₂) (u₂)
+
+
 theorem min_um_unique : ∀ 𝓐 B x y, (PartOrd 𝓐) → (is_minimum 𝓐 B x) → (is_minimum 𝓐 B y) → (x = y) :=
   fun (𝓐 B x y) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -2978,6 +3027,8 @@ theorem min_um_unique : ∀ 𝓐 B x y, (PartOrd 𝓐) → (is_minimum 𝓐 B x)
           let u := And.right hminx y (And.left hminy)
           let v := And.right hminy x (And.left hminx)
           antisymm_R₂ 𝓐 h𝓐 x y (u) (v)
+
+
 theorem max_um_maxset_singl : ∀ 𝓐 B x, (PartOrd 𝓐) → (is_maximum 𝓐 B x) → (max_set 𝓐 B = {x}) :=
   fun (𝓐 B x) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -3465,10 +3516,9 @@ theorem sub_upp_low : ∀ 𝓐 B, (B ⊆ (setPO(𝓐))) → (B ⊆ (𝓐 ▴ (�
                   And.right (Iff.mp (low_bou_set_is_low_bou 𝓐 B y) hy) x hx
             )
           )
-theorem sub_low_upp :∀ 𝓐 B, (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (B ⊆ (𝓐 ▾ (𝓐 ▴ B))) :=
+theorem sub_low_upp :∀ 𝓐 B, (B ⊆ (setPO(𝓐))) → (B ⊆ (𝓐 ▾ (𝓐 ▴ B))) :=
   fun (𝓐 B) =>
-    fun (h𝓐 : (PartOrd 𝓐)) =>
-      fun (hBA : B ⊆ setPO(𝓐)) =>
+    fun (hBA : B ⊆ setPO(𝓐)) =>
       fun (x) =>
         fun (hx : x ∈ B) =>
           Iff.mpr (low_bou_set_is_low_bou 𝓐 (𝓐 ▴ B) x) (
@@ -3478,25 +3528,25 @@ theorem sub_low_upp :∀ 𝓐 B, (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (B
                   And.right (Iff.mp (upp_bou_set_is_upp_bou 𝓐 B y) hy) x hx
             )
           )
-theorem upp_low_upp_is_low : ∀ 𝓐 B, (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (𝓐 ▴ (𝓐 ▾ (𝓐 ▴ B))) = (𝓐 ▴ B) :=
+theorem upp_low_upp_is_low : ∀ 𝓐 B, (B ⊆ (setPO(𝓐))) → (𝓐 ▴ (𝓐 ▾ (𝓐 ▴ B))) = (𝓐 ▴ B) :=
   fun (𝓐 B) =>
-    fun (h𝓐 : (PartOrd 𝓐)) =>
       fun (hBA : (B ⊆ (setPO(𝓐)))) =>
         sub_sub_then_eq (𝓐 ▴ (𝓐 ▾ (𝓐 ▴ B))) (𝓐 ▴ B) (
-          upp_bou_set_subset 𝓐 B (𝓐 ▾ (𝓐 ▴ B)) (sub_low_upp 𝓐 B h𝓐 hBA)
+          upp_bou_set_subset 𝓐 B (𝓐 ▾ (𝓐 ▴ B)) (sub_low_upp 𝓐 B hBA)
         ) (
           let P := fun (t) => is_upper_bound 𝓐 B t
           sub_upp_low 𝓐 (𝓐 ▴ B) (specification_set_subset P (setPO(𝓐)))
         )
-theorem low_upp_low_is_upp : ∀ 𝓐 B, (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (𝓐 ▾ (𝓐 ▴ (𝓐 ▾ B))) = (𝓐 ▾ B) :=
+
+
+theorem low_upp_low_is_upp : ∀ 𝓐 B, (B ⊆ (setPO(𝓐))) → (𝓐 ▾ (𝓐 ▴ (𝓐 ▾ B))) = (𝓐 ▾ B) :=
   fun (𝓐 B) =>
-    fun (h𝓐 : (PartOrd 𝓐)) =>
       fun (hBA : (B ⊆ (setPO(𝓐)))) =>
         sub_sub_then_eq (𝓐 ▾ (𝓐 ▴ (𝓐 ▾ B))) (𝓐 ▾ B) (
           low_bou_set_subset 𝓐 B (𝓐 ▴ (𝓐 ▾ B)) (sub_upp_low 𝓐 B hBA)
         ) (
           let P := fun (t) => is_lower_bound 𝓐 B t
-          sub_low_upp 𝓐 (𝓐 ▾ B) h𝓐 (specification_set_subset P (setPO(𝓐)))
+          sub_low_upp 𝓐 (𝓐 ▾ B) (specification_set_subset P (setPO(𝓐)))
         )
 
 
@@ -3634,6 +3684,7 @@ theorem inf_uni : ∀ 𝓐 B x y, (PartOrd 𝓐) → (is_infimum 𝓐 B x) → (
       fun (hinfx : (is_infimum 𝓐 B x)) =>
         fun (hinfy : (is_infimum 𝓐 B y)) =>
           max_um_unique 𝓐 (𝓐 ▾ B) x y h𝓐 hinfx hinfy
+
 theorem inv_is_sup_inf : ∀ 𝓐 B, (PartOrd 𝓐) → (∀ x, (is_supremum 𝓐 B x) ↔ (is_infimum (invPO 𝓐) B x)) :=
   fun (𝓐 B) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -3642,13 +3693,13 @@ theorem inv_is_sup_inf : ∀ 𝓐 B, (PartOrd 𝓐) → (∀ x, (is_supremum �
         (
           fun (hsupx : (is_supremum 𝓐 B x)) =>
             let u := And.left hsupx
-            let res₁ := upp_bou_set_inv 𝓐 B
+            let res₁ := upp_bou_set_inv 𝓐 B h𝓐
             let res₂ := eq_subst (fun (t) => x ∈ t) (upper_bounds 𝓐 B) (lower_bounds (inv_PO 𝓐) B) res₁ u
             And.intro (res₂) (
 
               fun (y) =>
                 fun (hy : y ∈ ((inv_PO 𝓐) ▾ B)) =>
-                  let v := upp_bou_set_inv 𝓐 B
+                  let v := upp_bou_set_inv 𝓐 B h𝓐
                   let v₂ := eq_subst (fun (t) => y ∈ t) ((inv_PO 𝓐) ▾ B) (𝓐 ▴ B) (Eq.symm v) hy
                   let v₃ := And.right hsupx y v₂
                   Iff.mpr (inv_PO_lesseq 𝓐 h𝓐 y x) v₃
@@ -3658,17 +3709,18 @@ theorem inv_is_sup_inf : ∀ 𝓐 B, (PartOrd 𝓐) → (∀ x, (is_supremum �
         (
           fun (hinfinvx : (is_infimum (invPO 𝓐) B x)) =>
             let u := And.left hinfinvx
-            let res₁ := upp_bou_set_inv 𝓐 B
+            let res₁ := upp_bou_set_inv 𝓐 B h𝓐
             let res₂ := eq_subst (fun (t) => x ∈ t) (lower_bounds (inv_PO 𝓐) B) (upper_bounds 𝓐 B) (Eq.symm res₁) u
             And.intro (res₂) (
               fun (y) =>
                 fun (hy : y ∈ (𝓐 ▴ B)) =>
-                  let v := upp_bou_set_inv 𝓐 B
+                  let v := upp_bou_set_inv 𝓐 B h𝓐
                   let v₂ := eq_subst (fun (t) => y ∈ t)  (𝓐 ▴ B) ((inv_PO 𝓐) ▾ B) v hy
                   let v₃ := And.right hinfinvx y v₂
                   Iff.mp (inv_PO_lesseq 𝓐 h𝓐 y x) v₃
             )
         )
+
 theorem inv_is_inf_sup : ∀ 𝓐 B, (PartOrd 𝓐) → (∀ x, (is_infimum 𝓐 B x) ↔ (is_supremum (invPO 𝓐) B x)) :=
   fun (𝓐 B) =>
     fun (h𝓐 : (PartOrd 𝓐) ) =>
@@ -4282,6 +4334,8 @@ theorem supr_subset : ∀ 𝓐 B C, (PartOrd 𝓐) → (B ⊆ C) → (𝓐 SuprE
             sup_subset 𝓐 B C (𝓐 Supr C) (𝓐 Supr B) h𝓐 hBC (
               supr_po_prop 𝓐 C h𝓐 hsuprc₂
             ) (supr_po_prop 𝓐 B h𝓐 hsuprb₂)
+
+
 theorem infm_subset : ∀ 𝓐 B C, (PartOrd 𝓐) → (B ⊆ C) → (𝓐 InfmExi C) → (𝓐 InfmExi B) → (¬ ((𝓐 Infm B) . (≺(𝓐)) . (𝓐 Infm C))) :=
     fun (𝓐 B C) =>
       fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -4291,6 +4345,8 @@ theorem infm_subset : ∀ 𝓐 B C, (PartOrd 𝓐) → (B ⊆ C) → (𝓐 InfmE
               inf_subset 𝓐 B C (𝓐 Infm C) (𝓐 Infm B) h𝓐 hBC (
                 inf_po_prop 𝓐 C h𝓐 hinfc₂
               ) (inf_po_prop 𝓐 B h𝓐 hinfb₂)
+
+
 theorem supr_union : ∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 SuprExi (B _ i)) → (∀ i j ∈ I; (𝓐 Supr (B _ i)) = (𝓐 Supr (B _ j))) → ((𝓐 SuprExi (⋃[i in I] B at i)) ∧(∀ s ∈ I; (𝓐 Supr (⋃[i in I] B at i)) = (𝓐 Supr (B _ s)))) :=
   fun (𝓐 B) =>
     fun (hI : (I ≠ ∅)) =>
@@ -4321,6 +4377,8 @@ theorem supr_union : ∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) �
 
                     )
               )
+
+
 theorem infm_union : ∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 InfmExi (B _ i)) → (∀ i j ∈ I; (𝓐 Infm (B _ i)) = (𝓐 Infm (B _ j))) → ((𝓐 InfmExi (⋃[i in I] B at i)) ∧ (∀ s ∈ I; (𝓐 Infm (⋃[i in I] B at i)) = (𝓐 Infm (B _ s)))) :=
   fun (𝓐 B) =>
     fun (hI : (I ≠ ∅)) =>
@@ -4432,6 +4490,8 @@ theorem f_sub_all :  ∀ 𝓐, (⦗ -∞ ; +∞ ⦘ of 𝓐) ⊆ setPO(𝓐) :=
 theorem f_eq_all : ∀ 𝓐, (⦗ -∞ ; +∞  ⦘ of 𝓐) = setPO(𝓐) :=
   fun (𝓐) =>
     Eq.refl (setPO(𝓐))
+
+
 theorem lro_is_lro : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; b ⦘ of 𝓐) ↔ ((a . (≺(𝓐)) . x) ∧ (x . (≺(𝓐)) . b)) :=
   fun (𝓐 a b) =>
     fun (x) =>
@@ -4448,6 +4508,8 @@ theorem lro_is_lro : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; b ⦘ o
           fun (hxpr : (a . (≺(𝓐)) . x) ∧ (x . (≺(𝓐)) . b)) =>
             Iff.mpr u (And.intro (hx) (hxpr))
         )
+
+
 theorem lcro_is_lcro : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⟦ a ; b ⦘ of 𝓐) ↔ ((a . (≼(𝓐)) . x) ∧ (x . (≺(𝓐)) . b)) :=
   fun (𝓐 a b) =>
     fun (x) =>
@@ -4464,6 +4526,8 @@ theorem lcro_is_lcro : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⟦ a ; b ⦘
           fun (hxpr : (a . (≼(𝓐)) . x) ∧ (x . (≺(𝓐)) . b)) =>
             Iff.mpr u (And.intro (hx) (hxpr))
         )
+
+
 theorem locr_is_locr : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; b ⟧ of 𝓐) ↔ ((a . (≺(𝓐)) . x) ∧ (x . (≼(𝓐)) . b)) :=
   fun (𝓐 a b) =>
     fun (x) =>
@@ -4480,6 +4544,8 @@ theorem locr_is_locr : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; b ⟧
           fun (hxpr : (a . (≺(𝓐)) . x) ∧ (x . (≼(𝓐)) . b)) =>
             Iff.mpr u (And.intro (hx) (hxpr))
         )
+
+
 theorem lrc_is_lrc : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⟦ a ; b ⟧ of 𝓐) ↔ ((a . (≼(𝓐)) . x) ∧ (x . (≼(𝓐)) . b)) :=
   fun (𝓐 a b) =>
     fun (x) =>
@@ -4496,6 +4562,8 @@ theorem lrc_is_lrc : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⟦ a ; b ⟧ o
           fun (hxpr : (a . (≼(𝓐)) . x) ∧ (x . (≼(𝓐)) . b)) =>
             Iff.mpr u (And.intro (hx) (hxpr))
         )
+
+
 theorem lc_is_lc : ∀ 𝓐 a, ∀ x ∈ setPO(𝓐); (x ∈ ⟦ a ; +∞ ⦘ of 𝓐) ↔ (a . (≼(𝓐)) . x) :=
   fun (𝓐 a) =>
     fun (x) =>
@@ -4512,6 +4580,8 @@ theorem lc_is_lc : ∀ 𝓐 a, ∀ x ∈ setPO(𝓐); (x ∈ ⟦ a ; +∞ ⦘ of
           fun (hxpr : (a . (≼(𝓐)) . x)) =>
             Iff.mpr u (And.intro (hx) (hxpr))
         )
+
+
 theorem rc_is_rc : ∀ 𝓐 b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; b ⟧ of 𝓐) ↔ (x . (≼(𝓐)) . b) :=
   fun (𝓐 b) =>
     fun (x) =>
@@ -4528,6 +4598,8 @@ theorem rc_is_rc : ∀ 𝓐 b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; b ⟧ of
           fun (hxpr : (x . (≼(𝓐)) . b)) =>
             Iff.mpr u (And.intro (hx) (hxpr))
         )
+
+
 theorem lo_is_lo : ∀ 𝓐 a, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; +∞ ⦘ of 𝓐) ↔ (a . (≺(𝓐)) . x) :=
   fun (𝓐 a) =>
     fun (x) =>
@@ -4544,6 +4616,8 @@ theorem lo_is_lo : ∀ 𝓐 a, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; +∞ ⦘ of
           fun (hxpr : (a . (≺(𝓐)) . x)) =>
             Iff.mpr u (And.intro (hx) (hxpr))
         )
+
+
 theorem ro_is_ro : ∀ 𝓐 b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; b ⦘ of 𝓐) ↔ (x . (≺(𝓐)) . b) :=
   fun (𝓐 b) =>
     fun (x) =>
@@ -4560,31 +4634,14 @@ theorem ro_is_ro : ∀ 𝓐 b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; b ⦘ of
           fun (hxpr : (x . (≺(𝓐)) . b)) =>
             Iff.mpr u (And.intro (hx) (hxpr))
         )
+
+
 theorem full_is_full : ∀ 𝓐, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; +∞ ⦘ of 𝓐) :=
   fun (𝓐) =>
     fun (x) =>
       fun (hx : (x ∈ setPO(𝓐))) =>
         hx
 
-
-theorem lro_two_sub :
-∀ 𝓐 a b c d, (PartOrd 𝓐) → ( ⦗ a ; b ⦘ of 𝓐 ) ⊆ ( ⦗ c ; d ⦘ of 𝓐 ) ↔ ((c . (≼(𝓐)) . a) ∧ (d . (≼(𝓐)) . b)) :=
-  fun (𝓐 a b c d) =>
-    fun (h𝓐 : (PartOrd 𝓐)) =>
-      Iff.intro
-      ()
-      (
-        fun (hacbd : (c . (≼(𝓐)) . a) ∧ (d . (≼(𝓐)) . b)) =>
-          fun (x) =>
-            fun (hx : x ∈ ⦗ a ; b ⦘ of 𝓐) =>
-              let u := lro_sub_all 𝓐 a b x hx
-              let u₂ := Iff.mp (lro_is_lro 𝓐 a b x u) hx
-              Iff.mpr (lro_is_lro 𝓐 c d x u) (
-                And.intro (
-                  let u₃ := trans_R₂ 𝓐 h𝓐 c a x (sorry) (sorry)
-                ) (sorry)
-              )
-      )
 
 
 def is_lattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
@@ -4596,346 +4653,61 @@ macro_rules
 
 theorem boolean_Latt : ∀ A, (Latt (BoolPO A)) :=
   fun (A) =>
-
     And.intro (boolean_PO A) (
-      fun (X) => fun (hX : X ∈ (𝒫 A)) =>
-        fun (Y) => fun (hY : Y ∈ (𝒫 A)) =>
-          let u := Iff.mp (boolean_set_is_boolean A X) hX
-          let v := Iff.mp (boolean_set_is_boolean A Y) hY
-          let v₂ := Iff.mpr (boolean_set_is_boolean A (X ∪ Y)) (
-                  sub_sub_union_sub X Y A u v
-                )
-
-          let v₂₂ := setPO_is_setPO (𝒫 A) (subneq_binrel A) (sub_binrel A)
-
-          let BR := less_eq_PO (BoolPO A)
-
-          let v₂₁ := lesseqPO_is_lesseqPO (𝒫 A) (subneq_binrel A) (sub_binrel A)
-
-          let AA := setPO( (BoolPO A))
-
-          let v₂₃ := eq_subst (fun (t) => (X ∪ Y) ∈ t) (𝒫 A) (setPO( (BoolPO A) )) (Eq.symm v₂₂) v₂
-
-          let v₃ := Iff.mpr (boolean_set_is_boolean A (X ∩ Y)) (
-            subset_trans (X ∩ Y) X A (And.left (interset2sets_subset_prop X Y)) (
-            Iff.mp (boolean_set_is_boolean A X) hX))
-
-          let v₄ := union2sets_subset_prop X Y
-
+      fun (X) => fun (hx : X ∈ setPO(BoolPO A)) =>
+        fun (Y) => fun (hy : Y ∈ setPO(BoolPO A)) =>
           And.intro (
-            Exists.intro (X ∪ Y) (
-              upp_and_sm_upp_sup (BoolPO A) {X, Y} (X ∪ Y) (
-                let u := fun (t) =>
-                    fun (ht : t ∈ {X, Y}) =>
-                      let a₁ := Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair X Y t) ht) (
-                        fun (htx : t = X) =>
-                          eq_subst (fun (m) => (m, X ∪ Y) ∈ (sub_binrel A)) X t (Eq.symm htx) (
-                            Iff.mpr (NSPO_bool_pair_prop_pa A X (X ∪ Y)) (
-                              And.intro (And.left v₄) (And.intro (hX) (v₂))
-                            )
-                          )
-
-
-                      ) (
-                        fun (hty : t = Y) =>
-                          eq_subst (fun (m) => (m, X ∪ Y) ∈ (sub_binrel A)) Y t (Eq.symm hty) (
-                            Iff.mpr (NSPO_bool_pair_prop_pa A Y (X ∪ Y)) (
-                              And.intro (And.right v₄) (And.intro (hY) (v₂))
-                            )
-                          )
-
-
-                      )
-
-                      let a₂ := eq_subst (fun (m) => (t, X ∪ Y) ∈ m) (sub_binrel A) (BR) (Eq.symm v₂₁) (a₁)
-                      Iff.mp (po_lesseq_moreeq (BoolPO(A)) (boolean_PO A) t (X ∪ Y)) a₂
-
-
-                And.intro (v₂₃) (u)
-              ) (
-                fun (s) =>
-                  fun (hS : is_upper_bound (BoolPO(A)) {X, Y} s) =>
-
-                    sorry
-              )
-            )
+            Exists.intro (X ∪ Y) (sorry)
           ) (
-            Exists.intro (X ∩ Y) (
-              low_and_big_low_inf (𝒫 A) {X, Y} (sub_binrel A) (X ∩ Y) (
-                And.intro (v₃) (
-                  fun (t) =>
-                    fun (ht : t ∈ {X, Y}) =>
-                      Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair X Y t) ht)
-                      (
-                        fun (htx : t = X) =>
-                          eq_subst (fun (m) => (X ∩ Y, m) ∈ (sub_binrel A)) X t (Eq.symm htx) (
-                            Iff.mpr (NSPO_bool_pair_prop_pa A (X ∩ Y) X) (
-                              And.intro (
-                                And.left (interset2sets_subset_prop X Y)
-                              ) (And.intro (v₃) (hX))
-                            )
-                          )
-                      )
-                      (
-                        fun (hty : t = Y) =>
-                          eq_subst (fun (m) => (X ∩ Y, m) ∈ (sub_binrel A)) Y t (Eq.symm hty) (
-                            Iff.mpr (NSPO_bool_pair_prop_pa A (X ∩ Y) Y) (
-                              And.intro (
-                                And.right (interset2sets_subset_prop X Y)
-                              ) (And.intro (v₃) (hY))
-                            )
-                          )
-                      )
-                )
-              ) (
-                fun (s) =>
-                  fun (hs : is_lower_bound (𝒫 A) {X, Y} (sub_binrel A) s) =>
-                    Iff.mpr (NSPO_bool_pair_prop_pa A s (X ∩ Y)) (
-                      And.intro (
-                        let m₁ := And.right hs X (left_unordered_pair X Y)
-                        let m₂ := And.right hs Y (right_unordered_pair X Y)
-                        let m₃ := And.left (Iff.mp (NSPO_bool_pair_prop_pa A s X) m₁)
-                        let m₄ := And.left (Iff.mp (NSPO_bool_pair_prop_pa A s Y) m₂)
-
-                        sub_sub_inter_sub X Y s (m₃) (m₄)
-                      ) (And.intro (
-                        And.left hs
-                      ) (v₃))
-                    )
-              )
-            )
+            Exists.intro (X ∩ Y) (sorry)
           )
     )
 
 
-def is_complete_lattice (A R₁ R₂ : Set) : Prop := (R₁ with R₂ PO A) ∧ (∀ X, (X ⊆ A) → (R₂ SuprExi X In A))
-syntax term "with" term "CompLatt" term : term
+def is_complete_lattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
+(∀ X, (X ⊆ setPO(𝓐)) → (𝓐 SuprExi X))
+syntax "CompLatt" term : term
 macro_rules
-| `($R₁:term with $R₂:term CompLatt $A:term) => `(is_complete_lattice $A $R₁ $R₂)
-
-
-theorem compl_latt_inf_crit : ∀ A R₁ R₂, ((R₁ with R₂ CompLatt A) ↔ ((R₁ with R₂ PO A) ∧ (∀ X, (X ⊆ A) → (R₂ InfmExi X In A)))) :=
-  fun (A R₁ R₂) =>
-    Iff.intro
-    (
-      fun (hR : (R₁ with R₂ CompLatt A)) =>
-        let RPO := And.left hR
-        And.intro (RPO) (
-          fun (X) =>
-            fun (hX : X ⊆ A) =>
-              let suplowX := (R₂ Supr (R₂ LowBou X in A) In A)
-              Exists.intro (suplowX) (
-
-                let P := fun (z) => is_lower_bound A X R₂ z
-                let v := And.right hR (R₂ LowBou X in A) (specification_set_subset P A)
-                let v₂ := supr_po_prop A (R₂ LowBou X in A) R₁ R₂ RPO v
-                let v₃ := And.left (Iff.mp (upp_bou_set_is_upp_bou A (R₂ LowBou X in A) R₂ suplowX) (And.left v₂))
-
-                low_and_big_low_inf A X R₂ suplowX (
-
-                  And.intro (v₃) (
-                    fun (s) =>
-                      fun (hs : s ∈ X) =>
-                        let v₄ := sub_upp_low A X R₂ hX s hs
-                        And.right v₂ s v₄
-                  )
-
-                ) (
-                  fun (y) =>
-                    fun (hy : is_lower_bound A X R₂ y) =>
-                      let u := And.right hR (R₂ LowBou X in A) (specification_set_subset P A)
-                      let r₁ := supr_po_prop A (R₂ LowBou X in A) R₁ R₂ RPO u
-                      And.right (sup_is_upp A (R₂ LowBou X in A) R₂ (suplowX) r₁) y (Iff.mpr (low_bou_set_is_low_bou A X R₂ y)
-                      hy)
-
-
-                )
-              )
-        )
-    )
-    (
-      fun (hR : (R₁ with R₂ PO A) ∧ (∀ X, X ⊆ A → (R₂ InfmExi X In A)) ) =>
-        let RPO := And.left hR
-        And.intro (RPO) (
-            fun (X) =>
-              fun (hX : X ⊆ A) =>
-              let suplowX := (R₂ Infm (R₂ UppBou X in A) In A)
-              Exists.intro (suplowX) (
-
-                let P := fun (z) => is_upper_bound A X R₂ z
-                let v := And.right hR (R₂ UppBou X in A) (specification_set_subset P A)
-                let v₂ := inf_po_prop A (R₂ UppBou X in A) R₁ R₂ RPO v
-                let v₃ := And.left (Iff.mp (low_bou_set_is_low_bou A (R₂ UppBou X in A) R₂ suplowX) (And.left v₂))
-
-                upp_and_sm_upp_sup A X R₂ suplowX (
-
-                  And.intro (v₃) (
-                    fun (s) =>
-                      fun (hs : s ∈ X) =>
-                        let v₄ := sub_low_upp A X R₂ hX s hs
-                        And.right v₂ s v₄
-                  )
-
-                ) (
-                  fun (y) =>
-                    fun (hy : is_upper_bound A X R₂ y) =>
-                      let u := And.right hR (R₂ UppBou X in A) (specification_set_subset P A)
-                      let r₁ := inf_po_prop A (R₂ UppBou X in A) R₁ R₂ RPO u
-                      And.right (inf_is_low A (R₂ UppBou X in A) R₂ (suplowX) r₁) y (Iff.mpr (upp_bou_set_is_upp_bou A X R₂ y)
-                      hy)
-
-
-                )
-              )
-        )
-    )
+| `(CompLatt $𝓐) => `(is_complete_lattice $𝓐)
 
 
 
-theorem compl_latt_is_latt : ∀ A R₁ R₂, ((R₁ with R₂ CompLatt A) → (R₁ with R₂ Latt A)) :=
-  fun (A R₁ R₂) =>
-    fun (hR : (R₁ with R₂ CompLatt A)) =>
-      And.intro (And.left hR) (
-        fun (x) => fun (hx : x ∈ A) =>
-          fun (y) => fun (hy : y ∈ A) =>
-            let v := fun (s) =>
-              fun (hs : s ∈ {x, y}) =>
-                Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair x y s) hs)
-                (
-                  fun (hsx : s = x) =>
-                    eq_subst (fun (m) => m ∈ A) x s (Eq.symm hsx) (hx)
-                )
-                (
-                  fun (hsy : s = y) =>
-                    eq_subst (fun (m) => m ∈ A) y s (Eq.symm hsy) (hy)
-                )
-            And.intro (
-              And.right hR {x, y} (v)
-            ) (
-              And.right (Iff.mp (compl_latt_inf_crit A R₁ R₂) hR) {x, y} (v)
-            )
-      )
+theorem compl_latt_inf_crit : ∀ 𝓐, (CompLatt 𝓐) ↔ (∀ X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X)) := sorry
+theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) := sorry
+theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) := sorry
 
 
-theorem boolean_CompLatt : ∀ A, ((subneq_binrel A) with ((sub_binrel A)) CompLatt (𝒫 A)) :=
-  fun (A) =>
-    And.intro (boolean_PO A) (
-      fun (X) =>
-        fun (hX : X ⊆ 𝒫 A) =>
-          Exists.intro (⋃ X) (
-            let u := sub_bool_un_mem_bool X A hX
-            upp_and_sm_upp_sup (𝒫 A) X (sub_binrel A) (⋃ X) (
-              And.intro (u) (
-                fun (Y) =>
-                  fun (hY : Y ∈ X) =>
-                    let v := hX Y hY
-                    Iff.mpr (NSPO_bool_pair_prop_pa A Y (⋃ X)) (
-                      And.intro (elem_subset_union X Y hY) (And.intro (v) (u))
-                    )
-              )
-            ) (
-              fun (S) =>
-                fun (hS : is_upper_bound (𝒫 A) X (sub_binrel A) S) =>
-                  let v := And.left hS
-                  Iff.mpr (NSPO_bool_pair_prop_pa A (⋃ X) S) (
-                    And.intro (
-                      let m := fun (t) => fun (ht : t ∈ X) =>
-                        And.left (Iff.mp (NSPO_bool_pair_prop_pa A t S) (And.right hS t ht))
+def monotonic_func_rel (𝓐 f : Set) : Prop := (f Fun setPO(𝓐) To setPO(𝓐)) ∧ (
+  ∀ x y ∈ setPO(𝓐); (x . (≼(𝓐)) . y) → ((f⦅x⦆) . (≼(𝓐)) . (f⦅y⦆))
+)
+syntax term "MotFunRelOn" term : term
+macro_rules
+| `($f MotFunRelOn $𝓐) => `(monotonic_func_rel $𝓐 $f)
 
-
-                      all_ss_then_union_ss X S (m)
-                    ) (And.intro (u) (v))
-                  )
-            )
-          )
-    )
-
-def monotonic_func_rel (A R f : Set) : Prop := (f Fun A To A) ∧ (∀ x y ∈ A; (x . R . y) → ((f⦅x⦆) . R . (f⦅y⦆)))
-noncomputable def fix_point_set (A f) := {x ∈ A | f⦅x⦆ = x}
+noncomputable def fix_point_set (𝓐 f) := {x ∈ setPO(𝓐) | f⦅x⦆ = x}
 syntax term "FixOn" term : term
 macro_rules
-| `($f:term FixOn $A) => `(fix_point_set $A $f)
+| `($f:term FixOn $𝓐) => `(fix_point_set $𝓐 $f)
 
 
-theorem Knaster_Tarski_lemma₁ : ∀ A R₁ R₂ f, (R₁ with R₂ CompLatt A) → (monotonic_func_rel A R₂ f) → (R₂ MaxExi (f FixOn A)) :=
-  fun (A R₁ R₂ f) =>
-    fun (hR : (R₁ with R₂ CompLatt A)) =>
-      fun (hmon : (monotonic_func_rel A R₂ f)) =>
-          let P := fun (z) => (f⦅z⦆ = z)
-          let P₂ := fun (x) => (x . R₂ . (f⦅x⦆))
-          let S := {x ∈ A | (x . R₂ . (f⦅x⦆) )}
-          let Z := R₂ Supr S In A
-          let first := specification_set_subset P₂ A
-          let u := And.right hR (S) first
-          let v := supr_po_prop A (S) R₁ R₂ (And.left hR) u
-          let RPO := And.left hR
-
-          Exists.intro Z (
-
-            let v₁ := And.left v
-            let Q := fun (z) => is_upper_bound A (S) R₂ z
-            let ZinA := specification_set_subset Q A Z v₁
-
-            let m₁ := And.right (And.right (And.left (And.right (Iff.mp (part_ord_nspo_crit A R₁ R₂) RPO))))
-            let second := fun (x) =>
-              fun (hx : x ∈ S) =>
-                let h₀ := first x hx
-                let h₁ := And.right (sup_is_upp A S R₂ Z v) x hx
-                let h₂ := And.right (hmon) x h₀ Z ZinA h₁
-                let h₃ := And.right m₁
-                let h₄ := And.right (Iff.mp (spec_is_spec P₂ A x) hx)
-                h₃ x (f⦅x⦆) (f⦅Z⦆) (And.intro (h₄) (h₂))
 
 
-            let zinfix : Z ∈ (f FixOn A) := Iff.mpr (spec_is_spec P A Z) (
-              And.intro (
-                ZinA
 
-              ) (
+theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 SuprExi (f FixOn 𝓐)) := sorry
 
 
-                  let third := val_in_B f A A (And.left hmon) Z ZinA
-                  let fourth := And.intro third second
-                  let fifth := sup_is_sm_upp A S R₂ Z v (f⦅Z⦆) fourth
-
-                  let sixth := And.right hmon Z ZinA (f⦅Z⦆) third fifth
-                  let seventh := Iff.mpr (spec_is_spec P₂ A (f⦅Z⦆)) (
-                    And.intro third (sixth)
-                  )
-
-                  let eighth := And.right (sup_is_upp A S R₂ Z v) (f⦅Z⦆) seventh
-
-                  And.left m₁ (f⦅Z⦆) Z (And.intro (eighth) (fifth))
-                )
-            )
-
-            And.intro (zinfix) (
-              fun (y) =>
-                fun (hy : y ∈ (f FixOn A)) =>
-                  And.right (sup_is_upp A S R₂ Z v) y (
-
-                    let yinA := specification_set_subset P A y hy
-                    let fyinA := val_in_B f A A (And.left hmon) y yinA
-                    Iff.mpr (spec_is_spec P₂ A y) (
-                      And.intro (yinA) (part_ord_pair_prop_eqR₂ A R₁ R₂ RPO y yinA (f⦅y⦆) fyinA (
-                        Eq.symm (And.right (Iff.mp (spec_is_spec P A y) hy))
-                      ))
-                    )
-                  )
-
-            )
-          )
+theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → ((f FixOn 𝓐) ≠ ∅) := sorry
 
 
-theorem Knaster_Tarski_lemma₂ : ∀ A R₁ R₂ f, (R₁ with R₂ CompLatt A) → (monotonic_func_rel A R₂ f) → ((f FixOn A) ≠ ∅) :=
-  fun (A R₁ R₂ f) =>
-    fun (hR : (R₁ with R₂ CompLatt A)) =>
-      fun (hmon : (monotonic_func_rel A R₂ f)) =>
-        Iff.mpr (set_non_empty_iff_non_empty ((f FixOn A))) (
+theorem Knaster_Tarski_theorem : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (CompLatt (𝓐 SubsPO (f FixOn 𝓐))) := sorry
 
-          Exists.elim (Knaster_Tarski_lemma₁ A R₁ R₂ f hR hmon) (
-            fun (x) =>
-              fun (hx : is_maximum R₂ (f FixOn A) x) =>
-                Exists.intro x (And.left hx)
-          )
-        )
+
+
+def is_linear_order (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧ (str_conn setPO(𝓐) ≼(𝓐))
+syntax "LinOrd" term : term
+macro_rules
+| `(LinOrd $𝓐) => `(is_linear_order $𝓐)
+
+theorem lin_or_wk_conn_crit : ∀ 𝓐, (LinOrd 𝓐) ↔ (wkl_conn setPO(𝓐) ≺(𝓐)) := sorry
+
+theorem lin_lat : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) := sorry

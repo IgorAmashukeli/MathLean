@@ -5,9 +5,13 @@ import «Header»
 -- (We consider binary relations on one set A)
 
 
--- 1) Some information about binary relations on one set
+-- 1) Some information about binary relations on one set and specification on binary relation
 theorem bin_on_is_bin : ∀ A R, binary_relation_on A R → binary_relation R := sorry
 theorem id_is_binon : ∀ A, ((id_ A) BinRelOn A) := sorry
+noncomputable def rel_specification (R B) := R ∩ (B × B)
+syntax term "spec" term : term
+macro_rules
+| `($R spec $B) => `(rel_specification $R $B)
 
 
 -- 2) properties of binary relations on one set
@@ -170,6 +174,11 @@ noncomputable def inv_PO (𝓐) := ⁅setPO(𝓐); ≻(𝓐); ≽(𝓐)⁆
 syntax "invPO" term : term
 macro_rules
 | `(invPO $𝓐:term) => `(inv_PO $𝓐)
+
+noncomputable def subs_part_ord (𝓐 X) := ⁅X; ≺(𝓐) spec X; ≼(𝓐) spec X⁆
+syntax term "SubsPO" term : term
+macro_rules
+| `($𝓐 SubsPO $X) => `(subs_part_ord $𝓐 $X)
 
 
 theorem setPO_is_setPO : ∀ A R₁ R₂, (setPO(⁅A; R₁; R₂⁆) = A) := sorry
@@ -447,50 +456,112 @@ theorem infm_union :
 (∀ s ∈ I; (𝓐 Infm (⋃[i in I] B at i)) = (𝓐 Infm (B _ s)))) := sorry
 
 
--- 31) Intervals and their properties
+-- 31) Intervals and some of their obvious properties
 
-noncomputable def left_bounded_open_interval (𝓐 a) := {x ∈ setPO(𝓐) | (a . (≺(𝓐)) . x) }
-noncomputable def right_bounded_open_interval (𝓐 b) := {x ∈ setPO(𝓐) | (x . (≺(𝓐)) . b) }
-noncomputable def bounded_open_interval (𝓐 a b) := {x ∈ setPO(𝓐) | (a . (≼(𝓐)) . x) ∧ (x . (≼(𝓐)) . b) }
-noncomputable def left_bounded_closed_interval (𝓐 a) := {x ∈ setPO(𝓐) | (a . (≼(𝓐)) . x) }
-noncomputable def right_bounded_closed_interval (𝓐 b) := {x ∈ setPO(𝓐) | (x . (≼(𝓐)) . b) }
-noncomputable def bounded_closed_interval (𝓐 a b) := {x ∈ setPO(𝓐) | (a . (≼(𝓐)) . x) ∧ (x . (≼(𝓐)) . b) }
+noncomputable def lro_intl (𝓐 a b) := {x ∈ setPO(𝓐) | (a . (≺(𝓐)) . x) ∧ (x . (≺(𝓐)) . b) }
+noncomputable def lcro_intl (𝓐 a b) := {x ∈ setPO(𝓐) | (a . (≼(𝓐)) . x) ∧ (x . (≺(𝓐)) . b) }
+noncomputable def lorc_intl (𝓐 a b) := {x ∈ setPO(𝓐) | (a . (≺(𝓐)) . x) ∧ (x . (≼(𝓐)) . b) }
+noncomputable def lrc_intl (𝓐 a b) := {x ∈ setPO(𝓐) | (a . (≼(𝓐)) . x) ∧ (x . (≼(𝓐)) . b) }
+noncomputable def lc_intl (𝓐 a) := {x ∈ setPO(𝓐) | (a . (≼(𝓐)) . x) }
+noncomputable def rc_intl (𝓐 b) := {x ∈ setPO(𝓐) | (x . (≼(𝓐)) . b) }
+noncomputable def lo_intl (𝓐 a) := {x ∈ setPO(𝓐) | (a . (≺(𝓐)) . x) }
+noncomputable def ro_intl (𝓐 b) := {x ∈ setPO(𝓐) | (x . (≺(𝓐)) . b) }
+noncomputable def f_intl (𝓐) := setPO(𝓐)
 syntax "⦗" term ";" term "⦘" "of" term : term
-syntax "⦗" "-" "∞" ";" term "⦘" "of" term : term
-syntax "⦗" term ";" "+" "∞" "⦘" "of" term : term
+syntax "⟦" term ";" term "⦘" "of" term : term
+syntax "⦗" term ";" term "⟧" "of" term : term
 syntax "⟦" term ";" term "⟧" "of" term : term
-syntax "⦗" "-" "∞" ";" term "⟧" "of" term : term
 syntax "⟦" term ";" "+" "∞" "⦘" "of" term : term
+syntax "⦗" "-" "∞" ";" term "⟧" "of" term : term
+syntax "⦗" term ";" "+" "∞" "⦘" "of" term : term
+syntax "⦗" "-" "∞" ";" term "⦘" "of" term : term
+syntax "⦗" "-" "∞" ";"  "+" "∞" "⦘" "of" term : term
 macro_rules
-| `( ⦗ $a:term ; $b:term ⦘ of $𝓐:term) =>  `(bounded_open_interval $𝓐 $a $b)
-| `(⦗-∞; $b:term ⦘ of $𝓐:term) => `(left_bounded_open_interval $𝓐 $b)
-| `(⦗ $a:term ; +∞⦘ of $𝓐:term) => `(right_bounded_open_interval $𝓐 $a)
-| `( ⟦ $a:term ; $b:term ⟧ of $𝓐:term) =>  `(bounded_closed_interval $𝓐 $a $b)
-| `( ⦗ -∞; $b:term ⟧ of $𝓐:term) => `(left_bounded_closed_interval $𝓐 $b)
-| `(⟦ $a:term ; +∞ ⦘  of $𝓐:term) => `(right_bounded_closed_interval $𝓐 $a)
+| `( ⦗ $a:term ; $b:term ⦘ of $𝓐:term) => `(lro_intl $𝓐 $a $b)
+| `( ⟦ $a:term ; $b:term ⦘ of $𝓐:term) => `(lcro_intl $𝓐 $a $b)
+| `( ⦗ $a:term ; $b:term ⟧ of $𝓐:term) => `(lorc_intl $𝓐 $a $b)
+| `( ⟦ $a:term ; $b:term ⟧ of $𝓐:term) => `(lrc_intl $𝓐 $a $b)
+| `(⟦ $a:term ; +∞ ⦘  of $𝓐:term) => `(lc_intl $𝓐 $a)
+| `( ⦗ -∞; $b:term ⟧ of $𝓐:term) => `(rc_intl $𝓐 $b)
+| `(⦗ $a:term ; +∞⦘ of $𝓐:term) => `(lo_intl $𝓐 $a)
+| `(⦗-∞; $b:term ⦘ of $𝓐:term) => `(ro_intl $𝓐 $b)
+| `(⦗ -∞; +∞ ⦘ of $𝓐:term) => `(f_intl $𝓐)
+
+theorem lro_sub_all : ∀ 𝓐 a b, ( ⦗ a ; b ⦘ of 𝓐 ) ⊆ setPO(𝓐) := sorry
+theorem lcro_sub_all : ∀ 𝓐 a b, ( ⟦ a ; b ⦘ of 𝓐) ⊆ setPO(𝓐) := sorry
+theorem lorc_sub_all : ∀ 𝓐 a b, ( ⦗ a ; b ⟧ of 𝓐) ⊆ setPO(𝓐) := sorry
+theorem lrc_sub_all : ∀ 𝓐 a b, ( ⟦ a ; b ⟧ of 𝓐) ⊆ setPO(𝓐) := sorry
+theorem lc_sub_all : ∀ 𝓐 a, ( ⟦ a ; +∞ ⦘ of 𝓐) ⊆ setPO(𝓐) := sorry
+theorem rc_sub_all : ∀ 𝓐 b, ( ⦗ -∞ ; b ⟧ of 𝓐) ⊆ setPO(𝓐) := sorry
+theorem lo_sub_all : ∀ 𝓐 a, ( ⦗ a ; +∞ ⦘ of 𝓐) ⊆ setPO(𝓐) := sorry
+theorem ro_sub_all : ∀ 𝓐 b, ( ⦗ -∞ ; b ⦘ of 𝓐) ⊆ setPO(𝓐) := sorry
+theorem f_sub_all :  ∀ 𝓐, (⦗ -∞ ; +∞ ⦘ of 𝓐) ⊆ setPO(𝓐) := sorry
+theorem f_eq_all : ∀ 𝓐, (⦗ -∞ ; +∞  ⦘ of 𝓐) = setPO(𝓐) := sorry
+
+theorem lro_is_lro : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; b ⦘ of 𝓐) ↔ ((a . (≺(𝓐)) . x) ∧ (x . (≺(𝓐)) . b)) := sorry
+theorem lcro_is_lcro : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⟦ a ; b ⦘ of 𝓐) ↔ ((a . (≼(𝓐)) . x) ∧ (x . (≺(𝓐)) . b)) := sorry
+theorem locr_is_locr : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; b ⟧ of 𝓐) ↔ ((a . (≺(𝓐)) . x) ∧ (x . (≼(𝓐)) . b)) := sorry
+theorem lrc_is_lrc : ∀ 𝓐 a b, ∀ x ∈ setPO(𝓐); (x ∈ ⟦ a ; b ⟧ of 𝓐) ↔ ((a . (≼(𝓐)) . x) ∧ (x . (≼(𝓐)) . b)) := sorry
+theorem lc_is_lc : ∀ 𝓐 a, ∀ x ∈ setPO(𝓐); (x ∈ ⟦ a ; +∞ ⦘ of 𝓐) ↔ (a . (≼(𝓐)) . x) := sorry
+theorem rc_is_rc : ∀ 𝓐 b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; b ⟧ of 𝓐) ↔ (x . (≼(𝓐)) . b) := sorry
+theorem lo_is_lo : ∀ 𝓐 a, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; +∞ ⦘ of 𝓐) ↔ (a . (≺(𝓐)) . x) := sorry
+theorem ro_is_ro : ∀ 𝓐 b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; b ⦘ of 𝓐) ↔ (x . (≺(𝓐)) . b) := sorry
+theorem full_is_full : ∀ 𝓐, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; +∞ ⦘ of 𝓐) := sorry
 
 
-
--- 32) lattice, complete lattice  and their properties
+-- 32) lattice, complete lattice, monotonic functions on relation, fix point sets and their properties
 def is_lattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
 (∀ x y ∈ (setPO(𝓐)); (𝓐 SuprExi ({x, y})) ∧ (𝓐 InfmExi ({x, y})))
 syntax "Latt" term : term
 macro_rules
 | `(Latt $𝓐:term) => `(is_lattice $𝓐)
-
-theorem boolean_Latt : ∀ A, (Latt (BoolPO A)) := sorry
-def is_complete_lattice (A R₁ R₂ : Set) : Prop := (R₁ with R₂ PO A) ∧ (∀ X, (X ⊆ A) → (R₂ SuprExi X In A))
-syntax term "with" term "CompLatt" term : term
+def is_complete_lattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
+(∀ X, (X ⊆ setPO(𝓐)) → (𝓐 SuprExi X))
+syntax "CompLatt" term : term
 macro_rules
-| `($R₁:term with $R₂:term CompLatt $A:term) => `(is_complete_lattice $A $R₁ $R₂)
-theorem compl_latt_inf_crit : ∀ A R₁ R₂, ((R₁ with R₂ CompLatt A) ↔ ((R₁ with R₂ PO A) ∧ (∀ X, (X ⊆ A) → (R₂ InfmExi X In A)))) := sorry
-theorem compl_latt_is_latt : ∀ A R₁ R₂, ((R₁ with R₂ CompLatt A) → (R₁ with R₂ Latt A)) := sorry
-theorem boolean_CompLatt : ∀ A, ((subneq_binrel A) with ((sub_binrel A)) CompLatt (𝒫 A)) := sorry
-def monotonic_func_rel (A R f : Set) : Prop := (f Fun A To A) ∧ (∀ x y ∈ A; (x . R . y) → ((f⦅x⦆) . R . (f⦅y⦆)))
-noncomputable def fix_point_set (A f) := {x ∈ A | f⦅x⦆ = x}
+| `(CompLatt $𝓐) => `(is_complete_lattice $𝓐)
+def monotonic_func_rel (𝓐 f : Set) : Prop := (f Fun setPO(𝓐) To setPO(𝓐)) ∧ (
+  ∀ x y ∈ setPO(𝓐); (x . (≼(𝓐)) . y) → ((f⦅x⦆) . (≼(𝓐)) . (f⦅y⦆))
+)
+syntax term "MotFunRelOn" term : term
+macro_rules
+| `($f MotFunRelOn $𝓐) => `(monotonic_func_rel $𝓐 $f)
+
+noncomputable def fix_point_set (𝓐 f) := {x ∈ setPO(𝓐) | f⦅x⦆ = x}
 syntax term "FixOn" term : term
 macro_rules
-| `($f:term FixOn $A) => `(fix_point_set $A $f)
-theorem Knaster_Tarski : ∀ A R₁ R₂ f, (R₁ with R₂ CompLatt A) →
-(monotonic_func_rel A R₂ f) →
-(((R₁ ∩ ((f FixOn A) × (f FixOn A))) with (R₂ ∩ ((f FixOn A) × (f FixOn A))) CompLatt (f FixOn A))) := sorry
+| `($f:term FixOn $𝓐) => `(fix_point_set $𝓐 $f)
+
+theorem boolean_Latt : ∀ A, (Latt (BoolPO A)) := sorry
+theorem compl_latt_inf_crit : ∀ 𝓐, (CompLatt 𝓐) ↔ (∀ X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X)) := sorry
+theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) := sorry
+theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) := sorry
+theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 SuprExi (f FixOn 𝓐)) := sorry
+theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → ((f FixOn 𝓐) ≠ ∅) := sorry
+theorem Knaster_Tarski_theorem : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (CompLatt (𝓐 SubsPO (f FixOn 𝓐))) := sorry
+
+
+-- 33) linear order and it's main properties
+def is_linear_order (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧ (str_conn setPO(𝓐) ≼(𝓐))
+syntax "LinOrd" term : term
+macro_rules
+| `(LinOrd $𝓐) => `(is_linear_order $𝓐)
+
+
+noncomputable def func_orderR₁ (𝓐 X f : Set) := {pr ∈ X × X | ((f⦅fst_coor pr⦆) . (≺(𝓐)) . (f⦅fst_coor pr⦆))}
+noncomputable def func_orderR₂ (𝓐 X f : Set) := {pr ∈ X × X | ((f⦅fst_coor pr⦆) . (≺(𝓐)) . (f⦅fst_coor pr⦆))}
+noncomputable def func_order (𝓐 X f : Set) := ⁅X; func_orderR₁ 𝓐 X f; func_orderR₂ 𝓐 X f⁆
+syntax term "FuncOrdOn" term "To" term : term
+macro_rules
+| `($f FuncOrdOn $X To $𝓐) => `(func_order $𝓐 $X $f)
+
+theorem lin_or_wk_conn_crit : ∀ 𝓐, (LinOrd 𝓐) ↔ (wkl_conn setPO(𝓐) ≺(𝓐)) := sorry
+theorem lin_lat : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) := sorry
+theorem lin_inj_ord : ∀ 𝓐, (LinOrd 𝓐) → (f Inj X To setPO(𝓐)) → (LinOrd (f FuncOrdOn X To 𝓐)) := sorry
+
+
+-- 34) well ordered and it's properties
+def is_well_order (𝓐 : Set) : Prop := (LinOrd 𝓐) ∧ (∀ X, (X ⊆ setPO(𝓐)) ∧ (X ≠ ∅) → (𝓐 MinExi X))
+syntax "WellOrd" term : term
+macro_rules
+| `(WellOrd $𝓐) => `(is_well_order $𝓐)
