@@ -4656,10 +4656,111 @@ theorem boolean_Latt : ∀ A, (Latt (BoolPO A)) :=
     And.intro (boolean_PO A) (
       fun (X) => fun (hx : X ∈ setPO(BoolPO A)) =>
         fun (Y) => fun (hy : Y ∈ setPO(BoolPO A)) =>
+          let u₁ := setPO_is_setPO (𝒫 A) (subneq_binrel A) (sub_binrel A)
+          let u₂ := eq_subst (fun (t) => X ∈ t) setPO(BoolPO A) (𝒫 A) u₁ hx
+          let u₃ := eq_subst (fun (t) => Y ∈ t) setPO(BoolPO A) (𝒫 A) u₁ hy
+          let u₄ := Iff.mp (boolean_set_is_boolean A X) u₂
+          let u₅ := Iff.mp (boolean_set_is_boolean A Y) u₃
+          let u₆ := sub_sub_union_sub X Y A u₄ u₅
+          let u₇ := subset_trans (X ∩ Y) X A (And.left (interset2sets_subset_prop X Y)) (u₄)
+          let u₈ := Iff.mpr (boolean_set_is_boolean A (X ∪ Y)) u₆
+          let u₉ := Iff.mpr (boolean_set_is_boolean A (X ∩ Y)) u₇
+          let u₁₀ := eq_subst (fun (t) => X ∪ Y ∈ t) (𝒫 A) setPO(BoolPO A) (Eq.symm u₁) u₈
+          let u₁₁ := eq_subst (fun (t) => X ∩ Y ∈ t) (𝒫 A) setPO(BoolPO A) (Eq.symm u₁) u₉
+          let u₁₂ := And.left (union2sets_subset_prop X Y)
+          let u₁₃ := Iff.mpr (NSPO_bool_pair_prop A X u₂ (X ∪ Y) u₈) u₁₂
+          let u₁₄ := And.right (union2sets_subset_prop X Y)
+          let u₁₅ := Iff.mpr (NSPO_bool_pair_prop A Y u₃ (X ∪ Y) u₈) u₁₄
+          let u₁₆ := lesseqPO_is_lesseqPO (𝒫 A) (subneq_binrel A) (sub_binrel A)
+          let u₁₇ := eq_subst (fun (t) => (X, X ∪ Y) ∈ t) (sub_binrel A) (≼(BoolPO A)) (Eq.symm u₁₆) (u₁₃)
+          let u₁₈ := eq_subst (fun (t) => (Y, X ∪ Y) ∈ t) (sub_binrel A) (≼(BoolPO A)) (Eq.symm u₁₆) (u₁₅)
+          let u₁₉ := And.left (interset2sets_subset_prop X Y)
+          let u₂₀ := And.right (interset2sets_subset_prop X Y)
+          let u₂₁ := Iff.mpr (NSPO_bool_pair_prop A (X ∩ Y) u₉ X u₂) u₁₉
+          let u₂₂ := Iff.mpr (NSPO_bool_pair_prop A (X ∩ Y) u₉ Y u₃) u₂₀
+          let u₂₃ := eq_subst (fun (t) => (X ∩ Y, X) ∈ t) (sub_binrel A) (≼(BoolPO A)) (Eq.symm u₁₆) (u₂₁)
+          let u₂₄ := eq_subst (fun (t) => (X ∩ Y, Y) ∈ t) (sub_binrel A) (≼(BoolPO A)) (Eq.symm u₁₆) (u₂₂)
+
           And.intro (
-            Exists.intro (X ∪ Y) (sorry)
+            Exists.intro (X ∪ Y) (
+              And.intro (
+                Iff.mpr (upp_bou_set_is_upp_bou (BoolPO A) {X, Y} (X ∪ Y)) (
+                  And.intro (u₁₀) (
+                    fun (a) =>
+                      fun (ha : a ∈ {X, Y}) =>
+                        let v₁ := Iff.mp (unordered_pair_set_is_unordered_pair X Y a) ha
+                        Or.elim (v₁)
+                        (
+                          fun (v₂ : a = X) =>
+                            eq_subst (fun (t) => (t, X ∪ Y) ∈ ≼(BoolPO A)) X a (Eq.symm v₂) (
+                              u₁₇
+                            )
+                        )
+                        (
+                          fun (v₂ : a = Y) =>
+                            eq_subst (fun (t) => (t, X ∪ Y) ∈ ≼(BoolPO A)) Y a (Eq.symm v₂) (u₁₈)
+                        )
+                  )
+                )
+              ) (
+                fun (a) =>
+                  fun (ha : a ∈ (BoolPO A) ▴ {X, Y}) =>
+                    let v₁ := Iff.mp (upp_bou_set_is_upp_bou (BoolPO A) {X, Y} a) ha
+                    let v₂ := And.right v₁ X (left_unordered_pair X Y)
+                    let v₂₀ := And.left v₁
+                    let v₂₁ := eq_subst (fun (t) => a ∈ t) (setPO(BoolPO A)) (𝒫 A) u₁ v₂₀
+                    let v₂₃ := And.right v₁ Y (right_unordered_pair X Y)
+                    let v₃ := eq_subst (fun (t) => (X, a) ∈ t) ≼(BoolPO A) (sub_binrel A) (u₁₆) (v₂)
+                    let v₄ := Iff.mp (NSPO_bool_pair_prop A X u₂ a (v₂₁)) v₃
+                    let v₅ := eq_subst (fun (t) => (Y, a) ∈ t) ≼(BoolPO A) (sub_binrel A) (u₁₆) (v₂₃)
+                    let v₆ := Iff.mp (NSPO_bool_pair_prop A Y u₃ a (v₂₁)) v₅
+                    let v₇ := sub_sub_union_sub X Y a v₄ v₆
+                    let v₈ := Iff.mpr (NSPO_bool_pair_prop A (X ∪ Y) u₈ a (v₂₁)) v₇
+
+                    eq_subst (fun (t) => (X ∪ Y, a) ∈ t) (sub_binrel A) ≼(BoolPO A) (Eq.symm u₁₆) (v₈)
+              )
+            )
           ) (
-            Exists.intro (X ∩ Y) (sorry)
+            Exists.intro (X ∩ Y) (
+              And.intro (
+                Iff.mpr (low_bou_set_is_low_bou (BoolPO A) {X, Y} (X ∩ Y)) (
+                  And.intro (u₁₁) (
+                    fun (a) =>
+                      fun (ha : a ∈ {X, Y}) =>
+                        let v₁ := Iff.mp (unordered_pair_set_is_unordered_pair X Y a) ha
+                        Or.elim (v₁)
+                        (
+                          fun (v₂ : a = X) =>
+                            eq_subst (fun (t) => (X ∩ Y, t) ∈ ≼(BoolPO A)) X a (Eq.symm v₂) (
+                              u₂₃
+                            )
+                        )
+                        (
+                          fun (v₂ : a = Y) =>
+                            eq_subst (fun (t) => (X ∩ Y, t) ∈ ≼(BoolPO A)) Y a (Eq.symm v₂) (
+                              u₂₄
+                            )
+                        )
+                  )
+                )
+              ) (
+                fun (a) =>
+                  fun (ha : a ∈ (BoolPO A) ▾ {X, Y}) =>
+                    let v₁ := Iff.mp (low_bou_set_is_low_bou (BoolPO A) {X, Y} a) ha
+                    let v₂ := And.right v₁ X (left_unordered_pair X Y)
+                    let v₃ := And.right v₁ Y (right_unordered_pair X Y)
+                    let v₄ := And.left v₁
+                    let v₅ := eq_subst (fun (t) => a ∈ t) (setPO(BoolPO A)) (𝒫 A) u₁ (v₄)
+                    let v₆ := eq_subst (fun (t) => (a, X) ∈ t) ≼(BoolPO A) (sub_binrel A) (u₁₆) (v₂)
+                    let v₇ := eq_subst (fun (t) => (a, Y) ∈ t) ≼(BoolPO A) (sub_binrel A) (u₁₆) (v₃)
+                    let v₈ := Iff.mp (NSPO_bool_pair_prop A a v₅ X u₂) (v₆)
+                    let v₉ := Iff.mp (NSPO_bool_pair_prop A a v₅ Y u₃) (v₇)
+                    let v₁₀ := sub_sub_inter_sub X Y a v₈ v₉
+                    let v₁₁ := Iff.mpr (NSPO_bool_pair_prop A a v₅ (X ∩ Y) u₉) v₁₀
+                    eq_subst (fun (t) => (a, X ∩ Y) ∈ t) (sub_binrel A) ≼(BoolPO A) (Eq.symm u₁₆) (v₁₁)
+
+              )
+            )
           )
     )
 
@@ -4672,9 +4773,169 @@ macro_rules
 
 
 
-theorem compl_latt_inf_crit : ∀ 𝓐, (CompLatt 𝓐) ↔ (∀ X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X)) := sorry
-theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) := sorry
-theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) := sorry
+theorem compl_latt_inf_crit : ∀ 𝓐, (PartOrd 𝓐) → ((CompLatt 𝓐) ↔ (∀ X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X))) :=
+  fun (𝓐) =>
+    fun (hPart : (PartOrd 𝓐)) =>
+    Iff.intro
+    (
+      fun (h𝓐 : (CompLatt 𝓐)) =>
+        fun (X) =>
+          fun (hX : (X ⊆ setPO(𝓐))) =>
+            let Xlow := 𝓐 ▾ X
+            let h₀ := specification_set_subset (fun (z) => is_lower_bound 𝓐 X z) (setPO(𝓐))
+            let h₁ := And.right h𝓐 (𝓐 ▾ X) h₀
+            Exists.elim h₁ (
+              fun (α) =>
+                fun (hα : is_supremum 𝓐 Xlow α) =>
+                  let u₁ := And.left hα
+                  let u₂ := Iff.mp (upp_bou_set_is_upp_bou 𝓐 Xlow α) u₁
+                  let u₃ := And.left u₂
+                  Exists.intro α (And.intro (
+                    Iff.mpr (low_bou_set_is_low_bou 𝓐 X α) (
+                      And.intro (u₃) (
+                        fun (m) =>
+                          fun (hm : m ∈ X) =>
+                            let u₄ := Iff.mpr (low_bou_set_is_low_bou 𝓐 (𝓐 ▴ (𝓐 ▾ X)) α) (
+                              And.intro (u₃) (
+                                fun (y) =>
+                                  fun (hy : y ∈ (𝓐 ▴ (𝓐 ▾ X))) =>
+                                    And.right hα y hy
+                              )
+                            )
+
+                            let u₅ := eq_subst (fun (t) => α ∈ t) (𝓐 ▾ (𝓐 ▴ (𝓐 ▾ X))) (𝓐 ▾ X) (
+                              low_upp_low_is_upp 𝓐 X hX
+                            ) (u₄)
+
+                            And.right (Iff.mp (low_bou_set_is_low_bou 𝓐 X α) u₅) m hm
+
+                      )
+                    )
+                  ) (
+                    fun (x) =>
+                      fun (hx : x ∈ 𝓐 ▾ X) =>
+                        let u₁ := And.left hα
+                        And.right (Iff.mp (upp_bou_set_is_upp_bou 𝓐 Xlow α) u₁) x hx
+                  ))
+            )
+    )
+    (
+      fun (h𝓐 : ∀ X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X)) =>
+      And.intro (hPart) (
+        fun (X) =>
+          fun (hX : (X ⊆ setPO(𝓐))) =>
+              let Xup := 𝓐 ▴ X
+              let h₀ := specification_set_subset (fun (z) => is_upper_bound 𝓐 X z) (setPO(𝓐))
+              let h₁ := h𝓐 (𝓐 ▴ X) h₀
+              Exists.elim h₁ (
+                fun (α) =>
+                  fun (hα : is_infimum 𝓐 Xup α) =>
+                    let u₁ := And.left hα
+                    let u₂ := Iff.mp (low_bou_set_is_low_bou 𝓐 Xup α) u₁
+                    let u₃ := And.left u₂
+                    Exists.intro α (And.intro (
+                      Iff.mpr (upp_bou_set_is_upp_bou 𝓐 X α) (
+                        And.intro (u₃) (
+                          fun (m) =>
+                            fun (hm : m ∈ X) =>
+                              let u₄ := Iff.mpr (upp_bou_set_is_upp_bou 𝓐 (𝓐 ▾ (𝓐 ▴ X)) α) (
+                                And.intro (u₃) (
+                                  fun (y) =>
+                                    fun (hy : y ∈ (𝓐 ▾ (𝓐 ▴ X))) =>
+                                      And.right hα y hy
+                                )
+                              )
+
+                              let u₅ := eq_subst (fun (t) => α ∈ t) (𝓐 ▴ (𝓐 ▾ (𝓐 ▴ X))) (𝓐 ▴ X) (
+                                upp_low_upp_is_low 𝓐 X hX
+                              ) (u₄)
+
+                              And.right (Iff.mp (upp_bou_set_is_upp_bou 𝓐 X α) u₅) m hm
+
+                        )
+                      )
+                    ) (
+                      fun (x) =>
+                        fun (hx : x ∈ 𝓐 ▴ X) =>
+                          let u₁ := And.left hα
+                          And.right (Iff.mp (low_bou_set_is_low_bou 𝓐 Xup α) u₁) x hx
+                    ))
+              )
+            )
+    )
+
+
+theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) :=
+  fun (𝓐) =>
+    fun (h𝓐 : (CompLatt 𝓐)) =>
+      And.intro (And.left h𝓐) (
+        fun (x) =>
+          fun (hx : x ∈ setPO(𝓐)) =>
+            fun (y) =>
+              fun (hy : y ∈ setPO(𝓐)) =>
+                let u₀ := fun (t) =>
+                  fun (ht : t ∈ {x, y}) =>
+                    Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair x y t) ht)
+                    (
+                      fun (ht₁ : t = x) =>
+                        eq_subst (fun (r) => r ∈ setPO(𝓐)) x t (Eq.symm ht₁) (hx)
+                    )
+                    (
+                      fun (ht₂ : t = y) =>
+                        eq_subst (fun (r) => r ∈ setPO(𝓐)) y t (Eq.symm ht₂) (hy)
+                    )
+                let u₁ := And.right h𝓐 {x, y} (u₀)
+                let u₂ := Iff.mp (compl_latt_inf_crit 𝓐 (And.left h𝓐)) h𝓐 {x, y} (u₀)
+                And.intro u₁ u₂
+      )
+
+
+
+theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) :=
+  fun (A) =>
+    And.intro (boolean_PO A) (
+      fun (X) =>
+        fun (hX : X ⊆ setPO(BoolPO A)) =>
+          let u₁ := setPO_is_setPO (𝒫 A) (subneq_binrel A) (sub_binrel A)
+          let u₂ := eq_subst (fun (t) => X ⊆ t) (setPO(BoolPO A)) (𝒫 A) u₁ hX
+          let u₃ := sub_bool_un_mem_bool X A u₂
+          let u₄ := eq_subst (fun (t) => ⋃ X ∈ t) (𝒫 A) (setPO(BoolPO A)) (Eq.symm u₁) (u₃)
+          let u₅ := lesseqPO_is_lesseqPO (𝒫 A) (subneq_binrel A) (sub_binrel A)
+          Exists.intro (⋃ X) (
+            And.intro (
+              Iff.mpr (upp_bou_set_is_upp_bou (BoolPO A) X (⋃ X)) (
+                And.intro (u₄) (
+                  fun (y) =>
+                    fun (hy : y ∈ X) =>
+                      let u₆ := elem_subset_union X y hy
+                      let u₇ := u₂ y hy
+                      let u₈ := Iff.mpr (NSPO_bool_pair_prop A y u₇ (⋃ X) u₃) u₆
+                      eq_subst (fun (t) => (y, ⋃ X) ∈ t) (sub_binrel A) (≼(BoolPO A)) (Eq.symm u₅) (u₈)
+                )
+              )
+            ) (
+              fun (y) =>
+                fun (hy : y ∈ (BoolPO A) ▴ X) =>
+                  let u₆ := Iff.mp (upp_bou_set_is_upp_bou (BoolPO A) X y) hy
+                  let u₇ := eq_subst (fun (t) => y ∈ t) (setPO(BoolPO A)) (𝒫 A) (u₁) (And.left u₆)
+                  let u₈ := And.right u₆
+
+                  let v₁ := all_ss_then_union_ss X y (
+                    fun (x) =>
+                      fun (hx : x ∈ X) =>
+                        let u₉ := eq_subst (fun (t) => x ∈ t) (setPO(BoolPO A)) (𝒫 A) (u₁) (hX x hx)
+                        let u₁₀ := u₈ x hx
+                        let u₁₁ := eq_subst (fun t => (x, y) ∈ t) (≼(BoolPO(A))) (sub_binrel A) (u₅) (u₁₀)
+                        Iff.mp (NSPO_bool_pair_prop A x u₉ y u₇) (u₁₁)
+                  )
+
+                  eq_subst (fun (t) => (⋃ X, y) ∈ t) (sub_binrel A) (≼(BoolPO A)) (Eq.symm u₅) (
+                    Iff.mpr (NSPO_bool_pair_prop A (⋃ X) u₃ y u₇) (v₁)
+                  )
+            )
+          )
+
+    )
 
 
 def monotonic_func_rel (𝓐 f : Set) : Prop := (f Fun setPO(𝓐) To setPO(𝓐)) ∧ (
@@ -4693,13 +4954,116 @@ macro_rules
 
 
 
-theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 SuprExi (f FixOn 𝓐)) := sorry
+theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 MaxExi (f FixOn 𝓐)) :=
+  fun (𝓐) =>
+    fun (f) =>
+      fun (h𝓐 : (CompLatt 𝓐)) =>
+        fun (hf : (f MotFunRelOn 𝓐)) =>
+          let L := {m ∈ setPO(𝓐) | (m . (≼(𝓐)) . (f⦅m⦆)) }
+          let u₀ := specification_set_subset (fun (t) => (t . (≼(𝓐)) . (f⦅t⦆))) (setPO(𝓐))
+          let u₁ := And.right h𝓐 L (u₀)
+          Exists.elim u₁ (
+            fun (n) =>
+              fun (hn : is_supremum 𝓐 L n) =>
+                Exists.intro n (
+                  And.intro (
+
+                      Iff.mpr (spec_is_spec (fun (r) => f⦅r⦆ = r) (setPO(𝓐)) n) (
+
+                        let u₂ := And.left hn
+                        let u₃ := Iff.mp (upp_bou_set_is_upp_bou 𝓐 L n) u₂
+                        let u₄ := And.left u₃
+                        And.intro (u₄) (
+
+                          let u₅ := fun (x) =>
+                            fun (hx : x ∈ L) =>
+                              let v₀ := (Iff.mp (spec_is_spec (fun (r) => (r . (≼(𝓐)) . (f⦅r⦆))) (setPO(𝓐)) x) hx)
+                              let v₁ := And.right v₀
+                              let v₂ := And.left v₀
+                              let v₃ := And.right u₃ x hx
+                              let v₄ := And.right hf x v₂ n u₄ v₃
+                              let v₅ := trans_R₂ 𝓐 (And.left h𝓐) x (f⦅x⦆) (f⦅n⦆) v₁ v₄
+                              And.intro v₃ v₅
+
+                          let u₄₁ := And.left hf
+                          let u₄₂ := val_in_B f (setPO(𝓐)) (setPO(𝓐)) u₄₁ n u₄
 
 
-theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → ((f FixOn 𝓐) ≠ ∅) := sorry
+                          let u₆ := Iff.mpr (upp_bou_set_is_upp_bou 𝓐 (L) (f⦅n⦆)) (
+                            And.intro (u₄₂) (fun (t) => fun (ht : t ∈ L) => And.right (u₅ t ht))
+                          )
+
+                          let u₇ := And.right hn (f⦅n⦆) u₆
+
+                          let u₈ := And.right hf n u₄ (f⦅n⦆) u₄₂ u₇
+
+                          let u₉ := Iff.mpr (spec_is_spec (fun (r) => (r . (≼(𝓐)) . (f⦅r⦆))) (setPO(𝓐)) (f⦅n⦆)) (
+                            And.intro (u₄₂) (u₈)
+                          )
+
+                          let u₁₀ := And.left (u₅ (f⦅n⦆) u₉)
+
+                          antisymm_R₂ 𝓐 (And.left h𝓐) (f⦅n⦆) n u₁₀ u₇
+
+                        )
+
+                      )
+
+                  ) (
+                    fun (m) =>
+                      fun (hm : m ∈ (f FixOn 𝓐)) =>
+                        let u₂ := And.left hn
+                        let u₃ := Iff.mp (upp_bou_set_is_upp_bou 𝓐 (L) n) u₂
+                        And.right u₃ m (
+                          let u₄ := Iff.mp ( (spec_is_spec (fun (t) => (f⦅t⦆ = t))) (setPO(𝓐)) m ) hm
+                          let u₅ := And.left u₄
+                          let u₆ := And.right u₄
+                          Iff.mpr (spec_is_spec (fun (t) => (t . (≼(𝓐)) . (f⦅t⦆)) ) (setPO(𝓐)) m) (
+                            And.intro (u₅) (
+                              eq_subst (fun (q) => (m . (≼(𝓐)) . q)) m (f⦅m⦆) (Eq.symm u₆) (
+                                refl_R₂ 𝓐 (And.left h𝓐) m u₅
+                              )
+                            )
+                          )
+                        )
+                  )
+                )
+          )
 
 
-theorem Knaster_Tarski_theorem : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (CompLatt (𝓐 SubsPO (f FixOn 𝓐))) := sorry
+
+theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → ((f FixOn 𝓐) ≠ ∅) :=
+  fun (𝓐) =>
+    fun (f) =>
+      fun (h𝓐 : (CompLatt 𝓐)) =>
+        fun (hf : (f MotFunRelOn 𝓐)) =>
+          let u₁ := Knaster_Tarski_lemma₁ 𝓐 f h𝓐 hf
+          Exists.elim u₁ (
+            fun (maxel) =>
+              fun (hmaxel : is_maximum 𝓐 (f FixOn 𝓐) maxel) =>
+                let u₂ := And.left hmaxel
+                fun (hemp : (f FixOn 𝓐) = ∅) =>
+                  let u₃ := eq_subst (fun (t) => maxel ∈ t) (f FixOn 𝓐) (∅) (hemp) (u₂)
+                  let u₄ := empty_set_is_empty maxel
+                  u₄ u₃
+          )
+
+
+theorem Knaster_Tarski_theorem : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (CompLatt (𝓐 SubsPO (f FixOn 𝓐))) :=
+  fun (𝓐) =>
+    fun (f) =>
+      fun (h𝓐 : (CompLatt 𝓐)) =>
+        fun (hf : (f MotFunRelOn 𝓐)) =>
+          And.intro (sub_is_PO 𝓐 (f FixOn 𝓐) (Knaster_Tarski_lemma₂ 𝓐 f h𝓐 hf) (And.left h𝓐) (
+            specification_set_subset (fun (t) => f⦅t⦆ = t) (setPO(𝓐))
+          ))
+          (
+            fun (X) =>
+              fun (hX : X ⊆ setPO(𝓐 SubsPO (f FixOn 𝓐))) =>
+                let u₁ := setPO_is_setPO (f FixOn 𝓐) (≺(𝓐) spec (f FixOn 𝓐)) (≼(𝓐) spec (f FixOn 𝓐))
+                let u₂ := eq_subst (fun (t) => X ⊆ t) (setPO(𝓐 SubsPO (f FixOn 𝓐))) (f FixOn 𝓐) (u₁) (hX)
+                sorry
+          )
 
 
 
@@ -4709,5 +5073,3 @@ macro_rules
 | `(LinOrd $𝓐) => `(is_linear_order $𝓐)
 
 theorem lin_or_wk_conn_crit : ∀ 𝓐, (LinOrd 𝓐) ↔ (wkl_conn setPO(𝓐) ≺(𝓐)) := sorry
-
-theorem lin_lat : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) := sorry

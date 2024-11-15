@@ -536,7 +536,7 @@ theorem boolean_Latt : ∀ A, (Latt (BoolPO A)) := sorry
 theorem compl_latt_inf_crit : ∀ 𝓐, (CompLatt 𝓐) ↔ (∀ X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X)) := sorry
 theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) := sorry
 theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) := sorry
-theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 SuprExi (f FixOn 𝓐)) := sorry
+theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 MaxExi (f FixOn 𝓐)) := sorry
 theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → ((f FixOn 𝓐) ≠ ∅) := sorry
 theorem Knaster_Tarski_theorem : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (CompLatt (𝓐 SubsPO (f FixOn 𝓐))) := sorry
 
@@ -556,6 +556,7 @@ macro_rules
 | `($f FuncOrdOn $X To $𝓐) => `(func_order $𝓐 $X $f)
 
 theorem lin_or_wk_conn_crit : ∀ 𝓐, (LinOrd 𝓐) ↔ (wkl_conn setPO(𝓐) ≺(𝓐)) := sorry
+-- a lot of theorems of min max
 theorem lin_lat : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) := sorry
 theorem lin_inj_ord : ∀ 𝓐, (LinOrd 𝓐) → (f Inj X To setPO(𝓐)) → (LinOrd (f FuncOrdOn X To 𝓐)) := sorry
 
