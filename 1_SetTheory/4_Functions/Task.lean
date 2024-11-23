@@ -113,6 +113,7 @@ theorem partial_function_change_B : ∀ f A B C, (f PartFun A To B) → (B ⊆ C
 theorem partial_function_change_A : ∀ f A B C, (f PartFun A To B) → (A ⊆ C) → (f PartFun C To B) := sorry
 theorem function_change_B : ∀ f A B C, (f Fun A To B) → (B ⊆ C) → (f Fun A To C) := sorry
 theorem function_no_change_A : ∀ f A B C, (f Fun A To B) → (f Fun C To B) → (A = C) := sorry
+theorem function_rng_def : ∀ f A B, (f Fun A To B) → (f Fun A To (rng f)) := sorry
 
 
 -- 13) Domain and range of partial function and function properties
@@ -162,6 +163,7 @@ theorem part_val_in_B : ∀ f A B, (f PartFun A To B) → ∀ x ∈ dom f; f⦅x
 theorem part_val_in_rng : ∀ f A B, (f PartFun A To B) → ∀ x ∈ dom f; f⦅x⦆ ∈ rng f := sorry
 theorem val_in_B : ∀ f A B, (f Fun A To B) → ∀ x ∈ A; f⦅x⦆ ∈ B := sorry
 theorem val_in_rng : ∀ f A B, (f Fun A To B) → ∀ x ∈ A; f⦅x⦆ ∈ rng f := sorry
+theorem if_val_in_C : ∀ f A B C, (f Fun A To B) → (∀ x ∈ A; (f⦅x⦆ ∈ C)) → (f Fun A To C) := sorry
 
 
 -- 20) Image/preimage and value and image property
@@ -212,6 +214,7 @@ infix:50 (priority := high) "⨡" => fun_restriction
 theorem part_fun_restriction_prop : ∀ A B X f, (f PartFun A To B) → (f ⨡ X) PartFun X To B := sorry
 theorem part_fun_restriction_dom_subs_prop : ∀ A B X f, (X ⊆ dom f) →  (f PartFun A To B) → (f ⨡ X) Fun X To B := sorry
 theorem fun_restriction_prop : ∀ A B X f, (f Fun A To B) → (f ⨡ X) Fun (A ∩ X) To B := sorry
+theorem fun_restriction_val : ∀ A B f, (f Fun A To B) → ∀ x ∈ X; f⦅x⦆ = (f ⨡ X)⦅x⦆ := sorry
 theorem inj_restriction_prop : ∀ X f, (is_injective f) → (is_injective (f ⨡ X)) := sorry
 theorem surj_restriction_prop : ∀ Y f, (is_surjective f Y) → (is_surjective (f ⨡ X) (Y ∩ f.[X])) := sorry
 
@@ -234,6 +237,7 @@ macro_rules
 
 -- 27) id relation is bijection
 theorem id_is_bij : ∀ A, (id_ A) Bij A To A := sorry
+theorem id_val_prop : ∀ A x, (x ∈ A) → (id_ A⦅x⦆ = x) := sorry
 
 
 -- 28) Bijection, injection and surjection relations
@@ -361,8 +365,11 @@ theorem indexed_intersection_is_intersection :
 ∀ A I, (I ≠ ∅) → (A IndxFun I) → ∀ x, (x ∈ (⋂[ i in I ] A at i)) ↔ (∀ i ∈ I; x ∈ (A _ i)) := sorry
 theorem indexed_intersection_empty :
 ∀ A I, (I = ∅) → ((⋂[ i in I ] A at i) = ∅) := sorry
-theorem indexed_intersection_sub_indexed :
+theorem indexed_intersection_sub_indexed:
 ∀ A I, (A IndxFun I) → (∀ i ∈ I; (⋂[ i in I ] A at i) ⊆ (A _ i)) := sorry
+
+
+
 
 
 

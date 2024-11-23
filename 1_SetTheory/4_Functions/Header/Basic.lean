@@ -124,10 +124,12 @@ macro_rules
 axiom empty_set_is_empty : empty ∅
 axiom empty_set_is_subset_any : ∀ A, ∅ ⊆ A
 axiom subs_subs_eq : ∀ A B, A ⊆ B ∧ B ⊆ A ↔ A = B
+axiom intersec2_comm : (∀ A B, A ∩ B = B ∩ A)
 axiom non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ x ∈ A; P x) → ∃ x ∈ A; P x
 axiom non_empty_then_exi : ∀ A, (A ≠ ∅) → ∃ x, x ∈ A
 axiom elem_in_singl : ∀ x, x ∈ {x}
 axiom in_singl_elem : ∀ a x, x ∈ {a} → x = a
+axiom subset_using_equality : ∀ A B, (A ⊆ B ↔ A ∩ B = A) ∧ (A ⊆ B ↔ A ∪ B = B) ∧ (A ∩ B = A ↔ A ∪ B = B)
 axiom unordered_pair_set_is_unordered_pair : ∀ a₁ a₂ x, x ∈ {a₁, a₂} ↔ x = a₁ ∨ x = a₂
 axiom unordered_pair_is_unordered : ∀ a₁ a₂, {a₁, a₂} = {a₂, a₁}
 axiom union_set_is_union : (∀ A x, (x ∈ ⋃ A ↔ ∃ y ∈ A; x ∈ y))
@@ -171,6 +173,12 @@ noncomputable def snd_coor (A : Set) : Set := ⋃ ({x ∈ ⋃ A | ⋃ A ≠ ⋂ 
 axiom ordered_pair_set_prop : ∀ a b c d, (a, b) = (c, d) ↔ (a = c ∧ b = d)
 axiom coordinates_fst_corr : ∀ a b, fst_coor (a, b) = a
 axiom coordinates_snd_corr : ∀ a b, snd_coor (a, b) = b
+
+syntax "π₁" term : term
+syntax "π₂" term : term
+macro_rules
+| `(π₁ $s) => `(fst_coor $s)
+| `(π₂ $s) => `(snd_coor $s)
 
 
 noncomputable def cartesian_product (A : Set) (B : Set) : Set := {z ∈ 𝒫 (𝒫 (A ∪ B)) | ∃ x ∈ A; ∃ y ∈ B; z = (x, y)}

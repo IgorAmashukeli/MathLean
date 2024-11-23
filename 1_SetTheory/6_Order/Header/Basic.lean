@@ -1,3 +1,7 @@
+axiom disj_comm (p q : Prop) : (p ∨ q) ↔ (q ∨ p)
+axiom morgan_comm (p q : Prop) : ¬ (p ∧ q) ↔ ¬p ∨ ¬q
+axiom iff_transitivity (p q r : Prop) : (p ↔ q) → (q ↔ r) → (p ↔ r)
+
 def xor_pr (p q : Prop) : Prop := (p ∧ ¬q) ∨ (¬p ∧ q)
 syntax term "⨁" term : term
 macro_rules
@@ -190,6 +194,12 @@ axiom ordered_pair_set_prop : ∀ a b c d, (a, b) = (c, d) ↔ (a = c ∧ b = d)
 noncomputable def fst_coor (A : Set) : Set := ⋃ (⋂ A)
 noncomputable def snd_coor (A : Set) : Set := ⋃ ({x ∈ ⋃ A | ⋃ A ≠ ⋂ A → x ∉ ⋂ A})
 
+syntax "π₁" term : term
+syntax "π₂" term : term
+macro_rules
+| `(π₁ $s) => `(fst_coor $s)
+| `(π₂ $s) => `(snd_coor $s)
+
 axiom coordinates_fst_coor : ∀ a b, fst_coor (a, b) = a
 axiom coordinates_snd_coor : ∀ a b, snd_coor (a, b) = b
 
@@ -300,6 +310,7 @@ axiom id_rel_composition_right : ∀ A B R, binary_relation_between A B R → (R
 axiom monotonic_rel_image : ∀ X Y R, binary_relation R → X ⊆ Y → R.[X] ⊆ R.[Y]
 
 axiom rng_is_rel_image : ∀ R, binary_relation R → rng R = R.[dom R]
+axiom image_prop : ∀ R X y, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y))
 
 noncomputable def is_functional (R : Set) : Prop := ∀ x y z, (x . R . y) → (x . R . z) → y = z
 noncomputable def is_total (R X : Set) : Prop := ∀ x ∈ X; ∃ y, (x . R . y)
@@ -323,7 +334,7 @@ macro_rules
 
 
 axiom function_change_B : ∀ f A B C, (f Fun A To B) → (B ⊆ C) → (f Fun A To C)
-
+axiom function_rng_def : ∀ f A B, (f Fun A To B) → (f Fun A To (rng f))
 axiom rng_partial_function : ∀ f A B, (f PartFun A To B) → rng f ⊆ B
 
 noncomputable def val_defined (f x : Set) : Prop := x ∈ dom f
@@ -344,6 +355,7 @@ axiom val_in_B : ∀ f A B, (f Fun A To B) → ∀ x ∈ A; f⦅x⦆ ∈ B
 axiom function_equal_value_prop : ∀ f A B, (f Fun A To B) → ∀ x y, x ∈ A → ( (x . f . y) ↔ (y = f⦅x⦆))
 axiom dom_function: ∀ f A B, (f Fun A To B) → A = dom f
 axiom function_value_pick_property: ∀ f A B, ∀ x ∈ A; (f Fun A To B) → (x . f . (f⦅x⦆) )
+axiom if_val_in_C : ∀ f A B C, (f Fun A To B) → (∀ x ∈ A; (f⦅x⦆ ∈ C)) → (f Fun A To C)
 
 noncomputable def part_same_val (f g x y : Set) : Prop := ((f ↑↑ x) ∧ g ↑↑ y) ∨ (((f ↓↓ x) ∧ (g ↓↓ y)) ∧ (f⦅x⦆ = g⦅y⦆))
 
@@ -359,6 +371,7 @@ noncomputable def fun_restriction (f A : Set) := f ∩ (A × rng f)
 infix:50 (priority := high) "⨡" => fun_restriction
 
 axiom fun_restriction_prop : ∀ A B X f, (f Fun A To B) → (f ⨡ X) Fun (A ∩ X) To B
+axiom fun_restriction_val : ∀ A B X f, (X ⊆ A) → (f Fun A To B) → ∀ x ∈ X; f⦅x⦆ = (f ⨡ X)⦅x⦆
 axiom inj_restriction_prop : ∀ X f, (is_injective f) → (is_injective (f ⨡ X))
 
 
@@ -384,6 +397,7 @@ axiom func_surj_prop : ∀ A B f, (f Fun A To B) → ((f Surj A To B) ↔ (∀ y
 
 
 axiom id_is_bij : ∀ A, (id_ A) Bij A To A
+axiom id_val_prop : ∀ A x, (x ∈ A) → (id_ A⦅x⦆ = x)
 axiom bijection_inv_mp : ∀ f A B, ((f Bij A To B) → (f⁻¹ Bij B To A))
 axiom bijection_composition : ∀ f g A B C, (f Bij A To B) → (g Bij B To C) → ((g ∘ f) Bij A To C)
 axiom lam_then_fun_prop (P : Set → Set) : ∀ A B, (∀ x ∈ A; P x ∈ B) →  (((lam_fun A B P) Fun A To B) ∧ (∀ x ∈ A; (lam_fun A B P)⦅x⦆ = P x))

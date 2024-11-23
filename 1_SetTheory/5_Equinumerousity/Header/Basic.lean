@@ -146,6 +146,12 @@ axiom ordered_pair_set_prop : ∀ a b c d, (a, b) = (c, d) ↔ (a = c ∧ b = d)
 noncomputable def fst_coor (A : Set) : Set := ⋃ (⋂ A)
 noncomputable def snd_coor (A : Set) : Set := ⋃ ({x ∈ ⋃ A | ⋃ A ≠ ⋂ A → x ∉ ⋂ A})
 
+syntax "π₁" term : term
+syntax "π₂" term : term
+macro_rules
+| `(π₁ $s) => `(fst_coor $s)
+| `(π₂ $s) => `(snd_coor $s)
+
 axiom coordinates_fst_coor : ∀ a b, fst_coor (a, b) = a
 axiom coordinates_snd_coor : ∀ a b, snd_coor (a, b) = b
 

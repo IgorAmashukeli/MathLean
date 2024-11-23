@@ -180,6 +180,25 @@ syntax term "SubsPO" term : term
 macro_rules
 | `($𝓐 SubsPO $X) => `(subs_part_ord $𝓐 $X)
 
+noncomputable def inter_part_ord (𝓐 𝓑) := ⁅setPO(𝓐); ≺(𝓐) ∩ ≺(𝓑); ≼(𝓐) ∩ ≼(𝓑)⁆
+syntax term "InterPO" term : term
+macro_rules
+| `($𝓐 InterPO $𝓑) => `(inter_part_ord $𝓐 $𝓑)
+
+
+
+noncomputable def leq_cart (𝓐 𝓑) := {s ∈ (setPO(𝓐) × setPO(𝓑)) × (setPO(𝓐) × setPO(𝓑)) | ∃ x₁ ∈ setPO(𝓐); ∃ y₁ ∈ setPO(𝓑); ∃ x₂ ∈ setPO(𝓐); ∃ y₂ ∈ setPO(𝓐);
+(s = ((x₁, y₁), (x₂, y₂))) ∧ (x₁ . ≼(𝓐) . x₂) ∧ (y₁ . ≼(𝓑) . y₂)}
+
+noncomputable def le_cart (𝓐 𝓑) := str (setPO(𝓐) × setPO(𝓑)) (leq_cart 𝓐 𝓑)
+
+noncomputable def cartesian_part_ord (𝓐 𝓑) := ⁅setPO(𝓐) × setPO(𝓑); le_cart 𝓐 𝓑; leq_cart 𝓐 𝓑⁆
+syntax term "CartPO" term : term
+macro_rules
+| `($𝓐 CartPO $𝓑) => `(cartesian_part_ord $𝓐 $𝓑)
+
+
+
 
 theorem setPO_is_setPO : ∀ A R₁ R₂, (setPO(⁅A; R₁; R₂⁆) = A) := sorry
 theorem lessPO_is_lessPO :  ∀ A R₁ R₂, (≺(⁅A; R₁; R₂⁆) = R₁) := sorry
@@ -188,17 +207,18 @@ theorem triple_po_is_po : ∀ 𝓐, (PartOrd 𝓐) → (is_partial_order setPO(�
 theorem po_is_triple_po : ∀ A R₁ R₂, (R₁ with R₂ PO A) → (PartOrd (⁅A; R₁; R₂⁆)) := sorry
 theorem po_less_more : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≺(𝓐)) . y) ↔ (y . ≻(𝓐) . x) := sorry
 theorem po_lesseq_moreeq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(𝓐)) . y) ↔ (y . ≽(𝓐) . x) := sorry
+theorem po_emp : ∀ 𝓐, (PartOrd 𝓐) → (setPO(𝓐) ≠ ∅) := sorry
 
-
--- 17) inverse of a PO and intersection of two PO is a PO
+-- 17) sub of PO, inverse of a PO, intersection of two PO, cartesian product of two PO
 theorem inv_is_PO : ∀ 𝓐, (PartOrd 𝓐) → (PartOrd (invPO 𝓐) ) := sorry
-theorem sub_is_PO : ∀ 𝓐 B, (B ≠ ∅) → (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (PartOrd ⁅B; ≺(𝓐) ∩ (B × B); ≼(𝓐) ∩ (B × B)⁆) := sorry
+theorem sub_is_PO : ∀ 𝓐 B, (B ≠ ∅) → (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (PartOrd (𝓐 SubsPO B)) := sorry
 theorem inter_is_PO_PO :
-∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (setPO(𝓐) = setPO(𝓑)) → (PartOrd ⁅setPO(𝓐); ≺(𝓐) ∩ ≺(𝓑); ≼(𝓐) ∩ ≼(𝓑)⁆) := sorry
-theorem inv_PO_less : ∀ 𝓐 x y, (x . (≺(invPO 𝓐)) . y) ↔ (x . (≻(𝓐)) . y) := sorry
-theorem inv_PO_lesseq : ∀ 𝓐 x y, (x . (≼(invPO 𝓐)) . y) ↔ (x . (≽(𝓐)) . y) := sorry
-theorem inv_PO_more : ∀ 𝓐 x y,  (PartOrd 𝓐) → ((x . (≻(invPO 𝓐)) . y) ↔ (x . (≺(𝓐)) . y)) := sorry
-theorem inv_PO_moreeq : ∀ 𝓐 x y,  (PartOrd 𝓐) → ((x . (≽(invPO 𝓐)) . y) ↔ (x . (≼(𝓐)) . y)) := sorry
+∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (setPO(𝓐) = setPO(𝓑)) → (PartOrd (𝓐 InterPO 𝓑)) := sorry
+theorem inv_PO_less : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≺(invPO 𝓐)) . y) ↔ (y . (≺(𝓐)) . x) := sorry
+theorem inv_PO_lesseq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(invPO 𝓐)) . y) ↔ (y . (≼(𝓐)) . x)  := sorry
+
+
+theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 CartPO 𝓑)) := sorry
 
 
 -- 18) partial order pair properties
@@ -273,6 +293,8 @@ theorem max_um_subset_prop :
 ∀ 𝓐 B C x, (C ⊆ B) → (is_maximum 𝓐 B x) → (x ∈ C) → (is_maximum 𝓐 C x) := sorry
 theorem min_um_subset_prop :
 ∀ 𝓐 B C x, (C ⊆ B) → (is_minimum 𝓐 B x) → (x ∈ C) → (is_minimum 𝓐 C x) := sorry
+theorem min_um_sub_cmp : ∀ 𝓐 B C x y, (C ⊆ B) → (is_minimum 𝓐 B x) → (is_minimum 𝓐 C y) → (x . ≼(𝓐) . y) := sorry
+theorem max_um_sub_cmp : ∀ 𝓐 B C x y, (C ⊆ B) → (is_maximum 𝓐 B x) → (is_maximum 𝓐 C y) → (y . ≼(𝓐) . x) := sorry
 
 
 -- 24) maximal/minimal, maximum/minimum and intersection
@@ -285,6 +307,11 @@ theorem max_um_inter_prop :
 (∃ i ∈ I; is_maximum 𝓐 (B _ i) x) → (is_maximum 𝓐 (⋂[ i in I ] B at i) x) := sorry
 theorem min_um_inter_prop : ∀ 𝓐 B I x, (B IndxFun I) → (x ∈ (⋂[ i in I ] B at i)) →
 (∃ i ∈ I; is_minimum 𝓐 (B _ i) x) → (is_minimum 𝓐 (⋂[ i in I ] B at i) x) := sorry
+
+theorem um_min_inter_prop : ∀ 𝓐 B I x, (B IndxFun I) → (is_minimum 𝓐 ((⋂[ i in I ] B at i)) x)
+ → ∀ i ∈ I; ∀ y, (is_minimum 𝓐 ((B _ i)) y) → (y . ≼(𝓐) . x) := sorry
+ theorem um_max_inter_prop : ∀ 𝓐 B I x, (B IndxFun I) → (is_maximum 𝓐 ((⋂[ i in I ] B at i)) x)
+ → ∀ i ∈ I; ∀ y, (is_maximum 𝓐 ((B _ i)) y) → (x . ≼(𝓐) . y) := sorry
 
 
 -- 25) maximal/minimal, maximum/minimum and union
@@ -373,7 +400,6 @@ theorem inf_union :
 ∀ 𝓐 B I x, (I ≠ ∅) → (B Indx I) → (∀ i ∈ I; is_infimum 𝓐 (B _ i) x) → (is_infimum 𝓐 (⋃[i in I] B at i) x) := sorry
 
 
-
 -- 29) minimum, maximum, supremum and infimum existence properties
 def maximum_exists (𝓐 B : Set) : Prop := ∃ x, is_maximum 𝓐 B x
 def minimum_exists (𝓐 B : Set) : Prop := ∃ x, is_minimum 𝓐 B x
@@ -388,6 +414,14 @@ macro_rules
 | `($𝓐:term MinExi $B:term) => `(minimum_exists $𝓐 $B)
 | `($𝓐:term SuprExi $B:term) => `(supremum_exists $𝓐 $B)
 | `($𝓐:term InfmExi $B:term) => `(infimum_exists $𝓐 $B)
+
+
+theorem partmin_um_un_prop : ∀ 𝓐 B I x, (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 MinExi (B _ i))) →
+ (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐)) → ((is_minimum 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_minimum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_minimum 𝓐 (B _ i) y} x)) := sorry
+theorem partmax_um_un_prop : ∀ 𝓐 B I x, (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 MaxExi (B _ i))) →
+ (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐)) → ((is_maximum 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_maximum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_maximum 𝓐 (B _ i) y} x)) := sorry
 
 
 -- 30) minimum, maximum, supremum and infimum as an element and their main properties
@@ -440,8 +474,8 @@ theorem min_un_prop :
 theorem supr_subset : ∀ 𝓐 B C, (PartOrd 𝓐) →
  (B ⊆ C) → (𝓐 SuprExi C) → (𝓐 SuprExi B) → (¬ ((𝓐 Supr C) . (≺(𝓐)) . (𝓐 Supr B))) := sorry
 
-theorem infm_subset : ∀ 𝓐 B C, (PartOrd 𝓐) →
- (B ⊆ C) → (𝓐 InfmExi C) → (𝓐 InfmExi B) → (¬ ((𝓐 Infm C) . (≻(𝓐)) . (𝓐 Infm B))) := sorry
+theorem infm_subset : ∀ 𝓐 B C, (PartOrd 𝓐) → (B ⊆ C) → (𝓐 InfmExi C) → (𝓐 InfmExi B)
+→ (¬ ((𝓐 Infm B) . (≺(𝓐)) . (𝓐 Infm C))) := sorry
 
 theorem supr_union :
 ∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 SuprExi (B _ i))
@@ -508,6 +542,10 @@ theorem lo_is_lo : ∀ 𝓐 a, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ a ; +∞ ⦘ of
 theorem ro_is_ro : ∀ 𝓐 b, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; b ⦘ of 𝓐) ↔ (x . (≺(𝓐)) . b) := sorry
 theorem full_is_full : ∀ 𝓐, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; +∞ ⦘ of 𝓐) := sorry
 
+theorem lrc_nemp : ∀ 𝓐, ∀ a ∈ setPO(𝓐); ∀ b, (PartOrd 𝓐) → ((⟦ a ; b ⟧ of 𝓐) ≠ ∅ ↔ (a . ≼(𝓐) . b)) := sorry
+theorem lrc_min : ∀ 𝓐, ∀ a ∈ setPO(𝓐); ∀ b, (PartOrd 𝓐) → (a . ≼(𝓐) . b) → (is_minimum 𝓐 (⟦ a ; b ⟧ of 𝓐) a) := sorry
+theorem lrc_max : ∀ 𝓐 a, ∀ b ∈ setPO(𝓐); (PartOrd 𝓐) → (a . ≼(𝓐) . b) → (is_maximum 𝓐 (⟦ a ; b ⟧ of 𝓐) b) := sorry
+
 
 -- 32) lattice, complete lattice, monotonic functions on relation, fix point sets and their properties
 def is_lattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
@@ -536,33 +574,116 @@ theorem boolean_Latt : ∀ A, (Latt (BoolPO A)) := sorry
 theorem compl_latt_inf_crit : ∀ 𝓐, (CompLatt 𝓐) ↔ (∀ X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X)) := sorry
 theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) := sorry
 theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) := sorry
+theorem Knaster_Tarski_lemma₀ : ∀ 𝓐, ∀ a b ∈ setPO(𝓐); (a . ≼(𝓐) . b) → (CompLatt 𝓐) → (CompLatt (𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐))) := sorry
 theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 MaxExi (f FixOn 𝓐)) := sorry
 theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → ((f FixOn 𝓐) ≠ ∅) := sorry
 theorem Knaster_Tarski_theorem : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (CompLatt (𝓐 SubsPO (f FixOn 𝓐))) := sorry
 
 
 -- 33) linear order and it's main properties
-def is_linear_order (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧ (str_conn setPO(𝓐) ≼(𝓐))
+def is_linear_order (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧ (str_conn (≼(𝓐)) setPO(𝓐))
 syntax "LinOrd" term : term
 macro_rules
 | `(LinOrd $𝓐) => `(is_linear_order $𝓐)
 
 
-noncomputable def func_orderR₁ (𝓐 X f : Set) := {pr ∈ X × X | ((f⦅fst_coor pr⦆) . (≺(𝓐)) . (f⦅fst_coor pr⦆))}
-noncomputable def func_orderR₂ (𝓐 X f : Set) := {pr ∈ X × X | ((f⦅fst_coor pr⦆) . (≺(𝓐)) . (f⦅fst_coor pr⦆))}
-noncomputable def func_order (𝓐 X f : Set) := ⁅X; func_orderR₁ 𝓐 X f; func_orderR₂ 𝓐 X f⁆
-syntax term "FuncOrdOn" term "To" term : term
-macro_rules
-| `($f FuncOrdOn $X To $𝓐) => `(func_order $𝓐 $X $f)
-
-theorem lin_or_wk_conn_crit : ∀ 𝓐, (LinOrd 𝓐) ↔ (wkl_conn setPO(𝓐) ≺(𝓐)) := sorry
--- a lot of theorems of min max
-theorem lin_lat : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) := sorry
-theorem lin_inj_ord : ∀ 𝓐, (LinOrd 𝓐) → (f Inj X To setPO(𝓐)) → (LinOrd (f FuncOrdOn X To 𝓐)) := sorry
+theorem inv_is_LO : ∀ 𝓐, (LinOrd 𝓐) → (LinOrd (invPO 𝓐)) := sorry
+theorem sub_is_LO : ∀ 𝓐 B, (B ≠ ∅) → (LinOrd 𝓐) → (B ⊆ setPO(𝓐)) → (LinOrd (𝓐 SubsPO B)) := sorry
 
 
--- 34) well ordered and it's properties
-def is_well_order (𝓐 : Set) : Prop := (LinOrd 𝓐) ∧ (∀ X, (X ⊆ setPO(𝓐)) ∧ (X ≠ ∅) → (𝓐 MinExi X))
+theorem lin_ord_prop : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (x . (≼(𝓐)) . y) ∨ (y . (≼(𝓐)) . x)) := sorry
+theorem lin_ord_wk_prop : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (x ≠ y) → ((x . ≺(𝓐) . y) ∨ (y . (≺(𝓐)) . x))) := sorry
+theorem lin_ord_nR₁ : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (¬ (x . (≺(𝓐)) . y)) → (y . (≼(𝓐)) . x)) := sorry
+theorem lin_ord_nR₂ : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (¬ (x . (≼(𝓐)) . y)) → (y . (≺(𝓐)) . x)) := sorry
+
+
+theorem linmin_al_um : ∀ 𝓐 X x, (LinOrd 𝓐) → (X ⊆ setPO(𝓐)) → ((is_minimal 𝓐 X x) ↔ (is_minimum 𝓐 X x)) := sorry
+theorem linmax_al_um : ∀ 𝓐 X x, (LinOrd 𝓐) → (X ⊆ setPO(𝓐)) → ((is_maximal 𝓐 X x) ↔ (is_maximum 𝓐 X x)) := sorry
+
+theorem linmin_al_sub_cmp : ∀ 𝓐 B C x y, (LinOrd 𝓐) →
+(C ⊆ B) → (B ⊆ setPO(𝓐)) → (is_minimal 𝓐 B x) → (is_minimal 𝓐 C y) → (x . ≼(𝓐) . y) := sorry
+theorem linmax_al_sub_cmp : ∀ 𝓐 B C x y, (LinOrd 𝓐) →
+(C ⊆ B) → (B ⊆ setPO(𝓐)) → (is_maximal 𝓐 B x) → (is_maximal 𝓐 C y) → (y . ≼(𝓐) . x) := sorry
+theorem lin_al_min_inter_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐))
+→ (B IndxFun I) → (is_minimal 𝓐 ((⋂[ i in I ] B at i)) x)
+ → ∀ i ∈ I; ∀ y, (is_minimal 𝓐 ((B _ i)) y) → (y . ≼(𝓐) . x) := sorry
+theorem lin_al_max_inter_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (B IndxFun I) → (is_maximal 𝓐 ((⋂[ i in I ] B at i)) x)
+ → ∀ i ∈ I; ∀ y, (is_maximal 𝓐 ((B _ i)) y) → (x . ≼(𝓐) . y) := sorry
+theorem lin_partmin_al_un_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 MinExi (B _ i))) →
+ (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐)) → ((is_minimal 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_minimal 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_minimal 𝓐 (B _ i) y} x)) := sorry
+theorem lin_partmax_al_un_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 MaxExi (B _ i))) →
+ (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐)) → ((is_maximal 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_maximal 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_maximal 𝓐 (B _ i) y} x)) := sorry
+
+theorem linsup_al : ∀ 𝓐 B x, (LinOrd 𝓐) → ((is_supremum 𝓐 B x) ↔ (is_minimal 𝓐 (𝓐 ▴ B) x)) := sorry
+theorem lininf_al : ∀ 𝓐 B x, (LinOrd 𝓐) → ((is_infimum 𝓐 B x) ↔ (is_maximal 𝓐 (𝓐 ▾ B) x)) := sorry
+
+theorem lin_supr_subset : ∀ 𝓐 B C, (LinOrd 𝓐) →
+ (B ⊆ C) → (𝓐 SuprExi C) → (𝓐 SuprExi B) → (((𝓐 Supr B) . (≼(𝓐)) . (𝓐 Supr C))) := sorry
+theorem lin_infm_subset : ∀ 𝓐 B C, (LinOrd 𝓐) →
+ (B ⊆ C) → (𝓐 InfmExi C) → (𝓐 InfmExi B) → (((𝓐 Infm C) . (≼(𝓐)) . (𝓐 Infm B))) := sorry
+
+
+theorem linsup_un_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 SuprExi (B _ i)))
+ → ((is_supremum 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_supremum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_supremum 𝓐 (B _ i) y} x)) := sorry
+
+theorem lininf_un_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 InfmExi (B _ i))) →
+ (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐)) → ((is_infimum 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_infimum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_infimum 𝓐 (B _ i) y} x)) := sorry
+
+
+theorem lin_latt : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) := sorry
+
+
+-- 34) Well ordered set definition
+
+
+def is_well_order 𝓐 := (LinOrd 𝓐) ∧ ∀ X, (X ≠ ∅) → (X ⊆ setPO(𝓐)) → (𝓐 MinExi X)
 syntax "WellOrd" term : term
 macro_rules
 | `(WellOrd $𝓐) => `(is_well_order $𝓐)
+
+
+-- 35) chain and anti chain and some of their properties
+
+def is_chain (𝓐 B) := (PartOrd 𝓐) ∧ (B ⊆ setPO(𝓐)) ∧ (LinOrd (𝓐 SubsPO B))
+syntax term "Chain" term : term
+macro_rules
+| `($𝓐 Chain $B) => `(is_chain $𝓐 $B)
+
+def anti_chain (𝓐 B) := (PartOrd 𝓐) ∧ (B ⊆ setPO(𝓐)) ∧ (∀ x y ∈ B; noncomparable_str 𝓐 x y)
+syntax term "AntiChain" term : term
+macro_rules
+| `($𝓐 AntiChain $B) => `(anti_chain $𝓐 $B)
+
+theorem lin_chain : ∀ 𝓐 B, (B ≠ ∅) → (B ⊆ setPO(𝓐)) → (LinOrd 𝓐) → (𝓐 Chain B) := sorry
+theorem antichain : ∀ 𝓐 𝓑, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartPO 𝓑) AntiChain (A × B)) := sorry
+
+
+-- 36) Order isomorphism and its properties
+
+
+def ispo_iso (𝓐 𝓑 f : Set) := (f Bij setPO(𝓐) To setPO(𝓑)) ∧ (∀ x y ∈ setPO(𝓐); (x . ≼(𝓐) . y) ↔ ((f⦅x⦆) . (≼(𝓑)) . (f⦅y⦆)))
+syntax term "PO_ISO" term "To" term : term
+macro_rules
+| `($f PO_ISO $𝓐 To $𝓑) => `(ispo_iso $𝓐 $𝓑 $f)
+
+def pos_iso (𝓐 𝓑 : Set) := ∃ f, (f PO_ISO 𝓐 To 𝓑)
+syntax term "P≃O" term : term
+macro_rules
+| `($𝓐 P≃O $𝓑) => `(pos_iso $𝓐 $𝓑)
+
+
+theorem iso_equin : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (setPO(𝓐) ~ setPO(𝓑)) := sorry
+theorem iso_refl : ∀ 𝓐, (𝓐 P≃O 𝓐) := sorry
+theorem iso_symm : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓐) := sorry
+theorem iso_trans : ∀ 𝓐 𝓑 𝓒, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓒) → (𝓐 P≃O 𝓒) := sorry
+
+theorem iso_in₁ : ∀ 𝓐 𝓑 f x, (f PO_ISO 𝓐 To 𝓑) → (x ∈ setPO(𝓐)) → ((f⦅x⦆)) ∈ setPO(𝓑) := sorry
+theorem iso_in₂ : ∀ 𝓐 𝓑 T f x, (x ∈ setPO(𝓐)) → (f PO_ISO 𝓐 To 𝓑) → ((x ∈ T) ↔ (f⦅x⦆) ∈ f.[T]) := sorry
+
+theorem iso_R₂ : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → ∀ x y ∈ setPO(𝓐); (x . ≼(𝓐) . y) ↔ ((f⦅x⦆) . (≼(𝓑)) . (f⦅y⦆)) := sorry
+theorem iso_eq : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → ∀ x y ∈ setPO(𝓐); (x = y) ↔ ((f⦅x⦆) = (f⦅y⦆)) := sorry
+theorem iso_R₁ : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐); (x . ≺(𝓐) . y) ↔ ((f⦅x⦆) . (≺(𝓑)) . (f⦅y⦆))) := sorry

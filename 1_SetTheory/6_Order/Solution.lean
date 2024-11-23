@@ -1237,6 +1237,11 @@ syntax term "SubsPO" term : term
 macro_rules
 | `($𝓐 SubsPO $X) => `(subs_part_ord $𝓐 $X)
 
+noncomputable def inter_part_ord (𝓐 𝓑) := ⁅setPO(𝓐); ≺(𝓐) ∩ ≺(𝓑); ≼(𝓐) ∩ ≼(𝓑)⁆
+syntax term "InterPO" term : term
+macro_rules
+| `($𝓐 InterPO $𝓑) => `(inter_part_ord $𝓐 $𝓑)
+
 
 theorem spo_antisymm : ∀ A R, (R SPO A) → antisymm R :=
   fun (A R) =>
@@ -1735,6 +1740,32 @@ theorem po_lesseq_moreeq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(𝓐)
           let u := And.left (And.left (And.right (Iff.mp (part_ord_nspo_crit (setPO(𝓐)) (≺(𝓐)) (≼(𝓐))) (triple_po_is_po 𝓐 h𝓐))))
           let u₁ := bin_on_is_bin (setPO(𝓐)) (≼(𝓐)) u
           inv_pair_prop (≼(𝓐)) u₁ x y
+
+theorem po_emp : ∀ 𝓐, (PartOrd 𝓐) → (setPO(𝓐) ≠ ∅) :=
+  fun (𝓐) =>
+    fun (h𝓐 : (PartOrd 𝓐)) =>
+      Exists.elim h𝓐 (
+        fun (A) =>
+          fun (ha) =>
+            Exists.elim (ha) (
+              fun (R₁) =>
+                fun (hR₁) =>
+                  Exists.elim hR₁ (
+                    fun (R₂) =>
+                      fun (hR₂) =>
+                        let v := And.right hR₂
+                        let t := And.left v
+                        let u := And.left hR₂
+                        let u₀ := setPO_is_setPO A R₁ R₂
+                        let u₁ := eq_subst (fun (t) => setPO(t) = A) ⁅A; R₁; R₂⁆ (𝓐) (Eq.symm u) (u₀)
+
+                        eq_subst (fun (t) => t ≠ ∅) (A) (setPO(𝓐)) (Eq.symm u₁) (t)
+                  )
+            )
+      )
+
+
+
 
 theorem part_ord_pair_prop : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y ∈ (setPO(𝓐)); ((x . (≺(𝓐)) . y) ↔ ((x . ≼(𝓐) . y) ∧ x ≠ y)) ∧ ((x . (≼(𝓐)) . y) ↔ ((x . (≺(𝓐)) . y) ∨ x = y))) :=
   fun (𝓐) =>
@@ -2389,6 +2420,232 @@ theorem inv_PO_lesseq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(invPO �
           Iff.intro (Iff.mpr s) (Iff.mp s)
         )
 
+noncomputable def po_set_cart (𝓐 𝓑) := setPO(𝓐) × setPO(𝓑)
+
+def po_set_prop (𝓐 𝓑) := fun (s) => ∃ x₁ ∈ setPO(𝓐); ∃ y₁ ∈ setPO(𝓑); ∃ x₂ ∈ setPO(𝓐); ∃ y₂ ∈ setPO(𝓑);
+(s = ((x₁, y₁), (x₂, y₂))) ∧ (x₁ . ≼(𝓐) . x₂) ∧ (y₁ . ≼(𝓑) . y₂)
+
+noncomputable def leq_cart (𝓐 𝓑) := {s ∈ (po_set_cart 𝓐 𝓑) × (po_set_cart 𝓐 𝓑) | po_set_prop 𝓐 𝓑 s}
+
+noncomputable def le_cart (𝓐 𝓑) := str (setPO(𝓐) × setPO(𝓑)) (leq_cart 𝓐 𝓑)
+
+noncomputable def cartesian_part_ord (𝓐 𝓑) := ⁅setPO(𝓐) × setPO(𝓑); le_cart 𝓐 𝓑; leq_cart 𝓐 𝓑⁆
+syntax term "CartPO" term : term
+macro_rules
+| `($𝓐 CartPO $𝓑) => `(cartesian_part_ord $𝓐 $𝓑)
+
+
+theorem poset_cart_prop₁ : ∀ 𝓐 𝓑, ∀ s ∈ po_set_cart 𝓐 𝓑; (π₁ s) ∈ (setPO(𝓐)) :=
+  fun (𝓐 𝓑) =>
+    fun (s) =>
+      fun (hs : s ∈ po_set_cart 𝓐 𝓑) =>
+        fst_coor_set (setPO(𝓐)) (setPO(𝓑)) s hs
+
+
+theorem poset_cart_prop₂ : ∀ 𝓐 𝓑, ∀ s ∈ po_set_cart 𝓐 𝓑; (π₂ s) ∈ (setPO(𝓑)) :=
+  fun (𝓐 𝓑) =>
+    fun (s) =>
+      fun (hs : s ∈ po_set_cart 𝓐 𝓑) =>
+        snd_coor_set (setPO(𝓐)) (setPO(𝓑)) s hs
+
+
+theorem leq_cart_prop : ∀ 𝓐 𝓑, ∀ s₁ s₂ ∈ po_set_cart 𝓐 𝓑; (
+(s₁ . (leq_cart 𝓐 𝓑) . s₂) ↔ (((π₁ s₁) . ≼(𝓐) . (π₁ s₂)) ∧ ((π₂ s₁) . ≼(𝓑) . (π₂ s₂)))) :=
+  fun (𝓐 𝓑) =>
+    fun (s₁) =>
+      fun (hs₁ : s₁ ∈ po_set_cart 𝓐 𝓑) =>
+        fun (s₂) =>
+          fun (hs₂ : s₂ ∈ po_set_cart 𝓐 𝓑) =>
+                let S₁ := (po_set_cart 𝓐 𝓑)
+                let S := (S₁) × (S₁)
+                let P := po_set_prop 𝓐 𝓑
+                Iff.intro
+                (
+                  fun (hs : (s₁, s₂) ∈ (leq_cart 𝓐 𝓑)) =>
+                    let u := And.right (Iff.mp (spec_is_spec P S (s₁, s₂)) hs)
+
+                    Exists.elim u (
+                      fun (x₁) =>
+                        fun (hx₁) =>
+                          Exists.elim (And.right hx₁) (
+                            fun (y₁) =>
+                              fun (hy₁) =>
+                                Exists.elim (And.right hy₁) (
+                                  fun (x₂) =>
+                                    fun (hx₂) =>
+                                      Exists.elim (And.right hx₂) (
+                                        fun (y₂) =>
+                                          fun (hy₂) =>
+                                            let u₁ := And.right (hy₂)
+                                            let u₁₀ := And.left u₁
+                                            let u₁₁ := Iff.mp (ordered_pair_set_prop s₁ s₂ (x₁, y₁) (x₂, y₂)) u₁₀
+                                            let u₃ := coordinates_fst_coor x₁ y₁
+                                            let u₃₀ := coordinates_fst_coor x₂ y₂
+                                            let u₄ := eq_subst (fun (t) => (π₁ t) = x₁) (x₁, y₁) s₁ (Eq.symm (And.left u₁₁)) u₃
+                                            let u₅ := eq_subst (fun (t) => (π₁ t) = x₂) (x₂, y₂) s₂ (Eq.symm (And.right u₁₁)) u₃₀
+                                            let u₆ := And.left (And.right u₁)
+                                            let u₇ := eq_subst (fun (t) => (t, x₂) ∈ (≼(𝓐))) x₁ (π₁ s₁) (Eq.symm u₄) (u₆)
+                                            let u₈ := eq_subst (fun (t) => (π₁ s₁, t) ∈ (≼(𝓐))) x₂ (π₁ s₂) (Eq.symm u₅) (u₇)
+                                            let u₉ := coordinates_snd_coor x₁ y₁
+                                            let u₉₁ := coordinates_snd_coor x₂ y₂
+                                            let u₆₁ := And.right (And.right u₁)
+                                            let u₆₂ := eq_subst (fun (t) => (π₂ t) = y₁) (x₁, y₁) s₁ (Eq.symm (And.left u₁₁) ) u₉
+                                            let u₆₃ := eq_subst (fun (t) => (π₂ t) = y₂) (x₂, y₂) s₂ (Eq.symm (And.right u₁₁)) u₉₁
+                                            let u₆₄ := eq_subst (fun (t) => (t, y₂) ∈ (≼(𝓑))) y₁ (π₂ s₁) (Eq.symm u₆₂) (u₆₁)
+                                            let u₆₅ := eq_subst (fun (t) => (π₂ s₁, t) ∈ (≼(𝓑))) y₂ (π₂ s₂) (Eq.symm u₆₃) (u₆₄)
+                                            And.intro (u₈) (u₆₅)
+                                      )
+                                )
+                          )
+                    )
+                )
+                (
+                  fun (hs : ((π₁ s₁) . ≼(𝓐) . (π₁ s₂)) ∧ ((π₂ s₁) . ≼(𝓑) . (π₂ s₂))) =>
+                    let u₁ := poset_cart_prop₁ 𝓐 𝓑 (s₁) (hs₁)
+                    let u₂ := poset_cart_prop₂ 𝓐 𝓑 (s₁) (hs₁)
+                    let u₃ := poset_cart_prop₁ 𝓐 𝓑 (s₂) (hs₂)
+                    let u₄ := poset_cart_prop₂ 𝓐 𝓑 (s₂) (hs₂)
+                    Iff.mpr (spec_is_spec P S (s₁, s₂)) (
+                      And.intro (
+                        Iff.mpr (cartesian_product_pair_prop S₁ S₁ s₁ s₂) (
+                          And.intro (hs₁) (hs₂)
+                        )
+                      ) (
+                        Exists.intro (π₁ s₁) (
+                          And.intro (u₁) (
+                            Exists.intro (π₂ s₁) (
+                              And.intro (u₂) (
+                                Exists.intro (π₁ s₂) (
+                                  And.intro (u₃) (
+                                    Exists.intro (π₂ s₂) (
+                                      And.intro (u₄) (
+                                        And.intro (
+
+                                          Iff.mpr (ordered_pair_set_prop s₁ s₂ (π₁ s₁, π₂ s₁) (π₁ s₂, π₂ s₂)) (
+                                            And.intro (
+
+                                              fst_snd_then_unique setPO(𝓐) setPO(𝓑) s₁ (hs₁)
+
+                                            ) (
+                                              fst_snd_then_unique setPO(𝓐) setPO(𝓑) s₂ (hs₂)
+                                            )
+                                          )
+
+                                        ) (hs)
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+
+                )
+
+
+
+theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 CartPO 𝓑)) :=
+  fun (𝓐 𝓑) =>
+    fun (h𝓐 : (PartOrd 𝓐)) =>
+      fun (h𝓑 : (PartOrd 𝓑)) =>
+        let S := setPO(𝓐) × setPO(𝓑)
+        let L := le_cart 𝓐 𝓑
+        let LE := leq_cart 𝓐 𝓑
+        let P := po_set_prop 𝓐 𝓑
+        let prop₁ := specification_set_subset P (S × S)
+        let prop₂ := fun (x y) => fun (hxy : (x, y) ∈ LE) =>
+          let u₁ := prop₁ (x, y) (hxy)
+          Iff.mp (cartesian_product_pair_prop S S x y) u₁
+        Exists.intro S (
+          Exists.intro L (
+            Exists.intro LE (
+              And.intro (Eq.refl (𝓐 CartPO 𝓑)) (
+
+                let emp := Iff.mpr (set_non_empty_iff_non_empty S) (
+
+                      let u := po_emp 𝓐 h𝓐
+                      let v := po_emp 𝓑 h𝓑
+
+                      let u₁ := Iff.mp (set_non_empty_iff_non_empty (setPO(𝓐))) u
+                      let v₁ := Iff.mp (set_non_empty_iff_non_empty (setPO(𝓑))) v
+                      Exists.elim u₁ (
+                        fun (x) =>
+                          fun (hx) =>
+                            Exists.elim v₁ (
+                              fun (y) =>
+                                fun (hy) =>
+                                  Exists.intro (x, y) (
+                                    Iff.mpr (cartesian_product_pair_prop (setPO(𝓐)) (setPO(𝓑)) x y) (
+                                      And.intro (hx) (hy)
+                                    )
+                                  )
+                            )
+                      )
+                    )
+
+                let subs : LE ⊆ (S × S) := specification_set_subset P (S × S)
+                Iff.mpr (part_ord_nspo_crit S L LE) (
+                  And.intro (emp) (
+                    And.intro (
+                      And.intro (subs) (
+                        And.intro (
+                          fun (x) =>
+                            fun (hx : x ∈ S) =>
+                              Iff.mpr (leq_cart_prop 𝓐 𝓑 x hx x hx) (
+
+
+                                And.intro (refl_R₂ 𝓐 (h𝓐) (π₁ x) (poset_cart_prop₁ 𝓐 𝓑 x hx)) (
+                                  refl_R₂ 𝓑 (h𝓑) (π₂ x) (poset_cart_prop₂ 𝓐 𝓑 x hx)
+                                )
+                              )
+                        ) (And.intro (
+
+                          fun (x y) =>
+                            fun (hxy : (x, y) ∈ LE ∧ (y, x) ∈ LE) =>
+                              let u₀ := prop₂ x y (And.left hxy)
+
+                              let u₁ := Iff.mp (leq_cart_prop 𝓐 𝓑 x (And.left u₀) y (And.right u₀)) (And.left hxy)
+                              let u₂ := Iff.mp (leq_cart_prop 𝓐 𝓑 y (And.right u₀) x (And.left u₀)) (And.right hxy)
+
+                              let u₃ := antisymm_R₂ 𝓐 (h𝓐) (π₁ x) (π₁ y) (And.left u₁) (And.left u₂)
+                              let u₄ := antisymm_R₂ 𝓑 (h𝓑) (π₂ x) (π₂ y) (And.right u₁) (And.right u₂)
+
+
+                              equal_fst_snd (setPO(𝓐)) (setPO(𝓑)) x y (And.left u₀) (And.right u₀) (u₃) (u₄)
+
+                        ) (
+
+                          fun (x y z) =>
+                            fun (hxyz : (x, y) ∈ LE ∧ (y, z) ∈ LE) =>
+
+                              let u₀ := prop₂ x y (And.left hxyz)
+                              let u₀₁:= prop₂ y z (And.right hxyz)
+
+                              let u₁ := Iff.mp (leq_cart_prop 𝓐 𝓑 x (And.left u₀) y (And.right u₀)) (And.left hxyz)
+                              let u₂ := Iff.mp (leq_cart_prop 𝓐 𝓑 y (And.right u₀) z (And.right u₀₁)) (And.right hxyz)
+
+                              let u₃ := trans_R₂ 𝓐 (h𝓐) (π₁ x) (π₁ y) (π₁ z) (And.left u₁) (And.left u₂)
+                              let u₄ := trans_R₂ 𝓑 (h𝓑) (π₂ x) (π₂ y) (π₂ z) (And.right u₁) (And.right u₂)
+
+                              Iff.mpr (leq_cart_prop 𝓐 𝓑 x (And.left u₀) z (And.right u₀₁)) (
+
+                                And.intro (u₃) (u₄)
+                              )
+
+                        ))
+                      )
+                    ) (Eq.refl L)
+                  )
+                )
+              )
+            )
+          )
+        )
+
+
 
 
 
@@ -2967,6 +3224,7 @@ theorem min_um_inter_prop : ∀ 𝓐 B I x, (B IndxFun I) → (x ∈ (⋂[ i in 
           )
 
 
+
 theorem max_um_is_al : ∀ 𝓐 B x, (PartOrd 𝓐) → (is_maximum 𝓐 B x) → (is_maximal 𝓐 B x) :=
   fun (𝓐 B x) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -3187,6 +3445,51 @@ theorem min_um_subset_prop : ∀ 𝓐 B C x, (C ⊆ B) → (is_minimum 𝓐 B x)
                   fun (hy : y ∈ C) =>
                     And.right hmin y (hCB y hy)
               )
+
+
+theorem min_um_sub_cmp : ∀ 𝓐 B C x y, (C ⊆ B) → (is_minimum 𝓐 B x) → (is_minimum 𝓐 C y) → (x . ≼(𝓐) . y) :=
+  fun (𝓐 B C x y) =>
+      fun (hCB : (C ⊆ B)) =>
+        fun (hminB : (is_minimum 𝓐 B x)) =>
+          fun (hminC : (is_minimum 𝓐 C y) ) =>
+            And.right hminB y (hCB y (And.left hminC))
+
+
+theorem max_um_sub_cmp : ∀ 𝓐 B C x y, (C ⊆ B) → (is_maximum 𝓐 B x) → (is_maximum 𝓐 C y) → (y . ≼(𝓐) . x) :=
+  fun (𝓐 B C x y) =>
+      fun (hCB : (C ⊆ B)) =>
+        fun (hminB : (is_maximum 𝓐 B x)) =>
+          fun (hminC : (is_maximum 𝓐 C y) ) =>
+            And.right hminB y (hCB y (And.left hminC))
+
+
+theorem um_min_inter_prop : ∀ 𝓐 B I x, (B IndxFun I) → (is_minimum 𝓐 ((⋂[ i in I ] B at i)) x)
+ → ∀ i ∈ I; ∀ y, (is_minimum 𝓐 ((B _ i)) y) → (y . ≼(𝓐) . x) :=
+  fun (𝓐 B I x) =>
+    fun (hBI : (B IndxFun I)) =>
+      fun (hminx : (is_minimum 𝓐 ((⋂[ i in I ] B at i)) x)) =>
+        fun (i) =>
+          fun (hi : i ∈ I) =>
+            fun (y) =>
+              fun (hminy : (is_minimum 𝓐 ((B _ i)) y) ) =>
+                let u := indexed_intersection_sub_indexed B I hBI i hi
+                min_um_sub_cmp 𝓐 (B _ i) ((⋂[ i in I ] B at i)) y x u hminy hminx
+
+
+theorem um_max_inter_prop : ∀ 𝓐 B I x, (B IndxFun I) → (is_maximum 𝓐 ((⋂[ i in I ] B at i)) x)
+ → ∀ i ∈ I; ∀ y, (is_maximum 𝓐 ((B _ i)) y) → (x . ≼(𝓐) . y) :=
+  fun (𝓐 B I x) =>
+    fun (hBI : (B IndxFun I)) =>
+      fun (hminx : (is_maximum 𝓐 ((⋂[ i in I ] B at i)) x)) =>
+        fun (i) =>
+          fun (hi : i ∈ I) =>
+            fun (y) =>
+              fun (hminy : (is_maximum 𝓐 ((B _ i)) y) ) =>
+                let u := indexed_intersection_sub_indexed B I hBI i hi
+                max_um_sub_cmp 𝓐 (B _ i) ((⋂[ i in I ] B at i)) y x u hminy hminx
+
+
+
 theorem max_al_un_prop : ∀ 𝓐 B I x, (I ≠ ∅) → (B Indx I) → (∀ i ∈ I; is_maximal 𝓐 (B _ i) x) → (is_maximal 𝓐 (⋃[i in I] B at i) x) :=
   fun (𝓐 B I x) =>
     fun (hI : (I ≠ ∅)) =>
@@ -3279,6 +3582,10 @@ theorem min_um_un_prop : ∀ 𝓐 B I x, (I ≠ ∅) → (B Indx I) → (∀ i �
 
                 )
           )
+
+
+
+
 
 
 
@@ -3893,6 +4200,191 @@ macro_rules
 | `($𝓐:term InfmExi $B:term) => `(infimum_exists $𝓐 $B)
 
 
+theorem partmin_um_un_prop : ∀ 𝓐 B I x, (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 MinExi (B _ i))) →
+ (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐)) → ((is_minimum 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_minimum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_minimum 𝓐 (B _ i) y} x)
+  ) :=
+  fun (𝓐 B I x) =>
+    fun (h𝓐 : (PartOrd 𝓐)) =>
+        fun (hBI : (B Indx I)) =>
+          fun (hminexi : ((∀ i ∈ I; (𝓐 MinExi (B _ i))))) =>
+            fun (hiset : (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐))) =>
+              Iff.intro
+              (
+                fun (hx : (is_minimum 𝓐 (⋃[i in I] B at i) x)) =>
+                  let u₀ := And.right hx x (And.left hx)
+                  let u₁ := And.left (par_ord_pair_prop_R₂_A 𝓐 (h𝓐) x x u₀)
+                  let u₃ := Iff.mp (indexed_union_is_union B I (hBI) x) (And.left hx)
+                  Exists.elim u₃ (
+                    fun (i) =>
+                      fun (hi : i ∈ I ∧ x ∈ (B _ i)) =>
+                        let u := Iff.mpr (spec_is_spec (fun (P) => ∃ i ∈ I; is_minimum 𝓐 (B _ i) P) (setPO(𝓐)) x) (
+                          And.intro (u₁) (Exists.intro i (
+                            And.intro (And.left hi) (
+                              And.intro (And.right hi) (
+                                fun (y) =>
+                                  fun (hy : y ∈ (B _ i)) =>
+                                    And.right hx y (
+                                      indexed_sub_indexed_union B I hBI i (And.left hi) y hy
+                                    )
+                              )
+                            )
+                          ))
+                        )
+                        And.intro (u) (
+                          fun (s) =>
+                            fun (hs : s ∈ {y ∈ setPO(𝓐) | ∃ i ∈ I; is_minimum 𝓐 (B _ i) y}) =>
+                              let u₄ := And.right (Iff.mp (spec_is_spec (fun (P) => ∃ i ∈ I; is_minimum 𝓐 (B _ i) P)
+                              (setPO(𝓐)) s) hs)
+
+                              Exists.elim u₄ (
+                                fun (j) =>
+                                  fun (hj : j ∈ I ∧ is_minimum 𝓐 (B _ j) s) =>
+                                    let u₅ := And.left (And.right hj)
+                                    let u₆ := indexed_sub_indexed_union B I hBI j (And.left hj) s u₅
+                                    And.right hx s (
+                                      u₆
+                                    )
+                              )
+                        )
+                  )
+              )
+              (
+                fun (hx : is_minimum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_minimum 𝓐 (B _ i) y} x) =>
+                  let u₀ := And.right (Iff.mp (spec_is_spec (fun (P) => ∃ i ∈ I; is_minimum 𝓐 (B _ i) P)
+                              (setPO(𝓐)) x) (And.left hx))
+                  Exists.elim u₀ (
+                    fun (j) =>
+                      fun (hj : j ∈ I ∧ is_minimum 𝓐 (B _ j) x) =>
+                        let u₁ := And.left (And.right hj)
+                        let u₂ := indexed_sub_indexed_union B I hBI j (And.left hj) x u₁
+
+                        And.intro (u₂) (
+                        fun (y) =>
+                          fun (hy : y ∈ (⋃[i in I] B at i)) =>
+                            let u₃ := Iff.mp (indexed_union_is_union B I (hBI) y ) hy
+                            Exists.elim u₃ (
+
+                              fun (i) =>
+                                fun (hi : i ∈ I ∧ y ∈ (B _ i)) =>
+                                  let v₀ := hminexi i (And.left hi)
+                                  Exists.elim v₀ (
+                                    fun (s) =>
+                                      fun (hs : is_minimum 𝓐 (B _ i) s) =>
+
+                                        trans_R₂ 𝓐 (h𝓐) x s y (
+                                          And.right hx s (
+
+                                            Iff.mpr (spec_is_spec (fun (P) => ∃ i ∈ I; is_minimum 𝓐 (B _ i) P)
+                                          (setPO(𝓐)) s) (
+                                            And.intro (hiset i (And.left hi) s (And.left hs))
+                                            (Exists.intro i (And.intro (And.left hi) (hs)))
+                                          )
+                                          )
+                                        ) (And.right hs y (And.right hi))
+                                  )
+
+
+                            )
+
+                        )
+
+                  )
+              )
+
+
+theorem partmax_um_un_prop : ∀ 𝓐 B I x, (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 MaxExi (B _ i))) →
+ (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐)) → ((is_maximum 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_maximum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_maximum 𝓐 (B _ i) y} x)) :=
+fun (𝓐 B I x) =>
+    fun (h𝓐 : (PartOrd 𝓐)) =>
+        fun (hBI : (B Indx I)) =>
+          fun (hminexi : ((∀ i ∈ I; (𝓐 MaxExi (B _ i))))) =>
+            fun (hiset : (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐))) =>
+              Iff.intro
+              (
+                fun (hx : (is_maximum 𝓐 (⋃[i in I] B at i) x)) =>
+                  let u₀ := And.right hx x (And.left hx)
+                  let u₁ := And.left (par_ord_pair_prop_R₂_A 𝓐 (h𝓐) x x u₀)
+                  let u₃ := Iff.mp (indexed_union_is_union B I (hBI) x) (And.left hx)
+                  Exists.elim u₃ (
+                    fun (i) =>
+                      fun (hi : i ∈ I ∧ x ∈ (B _ i)) =>
+                        let u := Iff.mpr (spec_is_spec (fun (P) => ∃ i ∈ I; is_maximum 𝓐 (B _ i) P) (setPO(𝓐)) x) (
+                          And.intro (u₁) (Exists.intro i (
+                            And.intro (And.left hi) (
+                              And.intro (And.right hi) (
+                                fun (y) =>
+                                  fun (hy : y ∈ (B _ i)) =>
+                                    And.right hx y (
+                                      indexed_sub_indexed_union B I hBI i (And.left hi) y hy
+                                    )
+                              )
+                            )
+                          ))
+                        )
+                        And.intro (u) (
+                          fun (s) =>
+                            fun (hs : s ∈ {y ∈ setPO(𝓐) | ∃ i ∈ I; is_maximum 𝓐 (B _ i) y}) =>
+                              let u₄ := And.right (Iff.mp (spec_is_spec (fun (P) => ∃ i ∈ I; is_maximum 𝓐 (B _ i) P)
+                              (setPO(𝓐)) s) hs)
+
+                              Exists.elim u₄ (
+                                fun (j) =>
+                                  fun (hj : j ∈ I ∧ is_maximum 𝓐 (B _ j) s) =>
+                                    let u₅ := And.left (And.right hj)
+                                    let u₆ := indexed_sub_indexed_union B I hBI j (And.left hj) s u₅
+                                    And.right hx s (
+                                      u₆
+                                    )
+                              )
+                        )
+                  )
+              )
+              (
+                fun (hx : is_maximum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_maximum 𝓐 (B _ i) y} x) =>
+                  let u₀ := And.right (Iff.mp (spec_is_spec (fun (P) => ∃ i ∈ I; is_maximum 𝓐 (B _ i) P)
+                              (setPO(𝓐)) x) (And.left hx))
+                  Exists.elim u₀ (
+                    fun (j) =>
+                      fun (hj : j ∈ I ∧ is_maximum 𝓐 (B _ j) x) =>
+                        let u₁ := And.left (And.right hj)
+                        let u₂ := indexed_sub_indexed_union B I hBI j (And.left hj) x u₁
+
+                        And.intro (u₂) (
+                        fun (y) =>
+                          fun (hy : y ∈ (⋃[i in I] B at i)) =>
+                            let u₃ := Iff.mp (indexed_union_is_union B I (hBI) y ) hy
+                            Exists.elim u₃ (
+
+                              fun (i) =>
+                                fun (hi : i ∈ I ∧ y ∈ (B _ i)) =>
+                                  let v₀ := hminexi i (And.left hi)
+                                  Exists.elim v₀ (
+                                    fun (s) =>
+                                      fun (hs : is_maximum 𝓐 (B _ i) s) =>
+
+                                        trans_R₂ 𝓐 (h𝓐) y s x (And.right hs y (And.right hi)) (
+                                          And.right hx s (
+
+                                            Iff.mpr (spec_is_spec (fun (P) => ∃ i ∈ I; is_maximum 𝓐 (B _ i) P)
+                                          (setPO(𝓐)) s) (
+                                            And.intro (hiset i (And.left hi) s (And.left hs))
+                                            (Exists.intro i (And.intro (And.left hi) (hs)))
+                                          )
+                                          )
+                                        )
+                                  )
+
+
+                            )
+
+                        )
+
+                  )
+              )
+
+
 
 noncomputable def maximum (𝓐 B) := ⋃ {b ∈ B | is_maximum 𝓐 B b}
 noncomputable def minimum (𝓐 B) := ⋃ {b ∈ B | is_minimum 𝓐 B b}
@@ -4414,6 +4906,9 @@ theorem infm_union : ∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) �
 
 
 
+
+
+
 noncomputable def lro_intl (𝓐 a b) := {x ∈ setPO(𝓐) | (a . (≺(𝓐)) . x) ∧ (x . (≺(𝓐)) . b) }
 noncomputable def lcro_intl (𝓐 a b) := {x ∈ setPO(𝓐) | (a . (≼(𝓐)) . x) ∧ (x . (≺(𝓐)) . b) }
 noncomputable def lorc_intl (𝓐 a b) := {x ∈ setPO(𝓐) | (a . (≺(𝓐)) . x) ∧ (x . (≼(𝓐)) . b) }
@@ -4642,6 +5137,66 @@ theorem full_is_full : ∀ 𝓐, ∀ x ∈ setPO(𝓐); (x ∈ ⦗ -∞ ; +∞ �
       fun (hx : (x ∈ setPO(𝓐))) =>
         hx
 
+
+theorem lrc_nemp : ∀ 𝓐, ∀ a ∈ setPO(𝓐); ∀ b, (PartOrd 𝓐) → ((⟦ a ; b ⟧ of 𝓐) ≠ ∅ ↔ (a . ≼(𝓐) . b)) :=
+  fun (𝓐) =>
+    fun (a) =>
+      fun (ha : (a ∈ setPO(𝓐))) =>
+        fun (b) =>
+            fun (h𝓐 : (PartOrd 𝓐)) =>
+                Iff.intro
+                (
+                  fun (hnemp : (⟦ a ; b ⟧ of 𝓐) ≠ ∅) =>
+                    let u := Iff.mp (set_non_empty_iff_non_empty (⟦ a ; b ⟧ of 𝓐)) hnemp
+                    Exists.elim u
+                    (
+                      fun (x) =>
+                        fun (hx : x ∈ (⟦ a ; b ⟧ of 𝓐)) =>
+                          let v₀ := lrc_sub_all 𝓐 a b x hx
+                          let v := Iff.mp (lrc_is_lrc 𝓐 a b x v₀) hx
+                          trans_R₂ 𝓐 h𝓐 a x b (And.left v) (And.right v)
+
+                    )
+                )
+                (
+                  fun (hab : (a . ≼(𝓐) . b)) =>
+                    fun (hemp : (⟦ a ; b ⟧ of 𝓐) = ∅) =>
+                      Iff.mp (set_empty_iff_empty (⟦ a ; b ⟧ of 𝓐)) hemp a (
+                        Iff.mpr (lrc_is_lrc 𝓐 a b a ha) (
+                          And.intro (refl_R₂ 𝓐 h𝓐 a ha) (hab)
+                        )
+                      )
+                )
+
+
+theorem lrc_min : ∀ 𝓐, ∀ a ∈ setPO(𝓐); ∀ b, (PartOrd 𝓐) → (a . ≼(𝓐) . b) → (is_minimum 𝓐 (⟦ a ; b ⟧ of 𝓐) a) :=
+  fun (𝓐) =>
+    fun (a) =>
+      fun (ha : a ∈ setPO(𝓐)) =>
+        fun (b) =>
+            fun (h𝓐 : (PartOrd 𝓐)) =>
+              fun (hab : (a . ≼(𝓐) . b)) =>
+                And.intro (Iff.mpr (lrc_is_lrc 𝓐 a b a ha) (And.intro (refl_R₂ 𝓐 h𝓐 a ha) (hab))) (
+                  fun (x) =>
+                    fun (hx : x ∈ (⟦ a ; b ⟧ of 𝓐)) =>
+                      let u := lrc_sub_all 𝓐 a b x hx
+                      And.left (Iff.mp (lrc_is_lrc 𝓐 a b x u) hx)
+                )
+
+
+theorem lrc_max : ∀ 𝓐 a, ∀ b ∈ setPO(𝓐); (PartOrd 𝓐) → (a . ≼(𝓐) . b) → (is_maximum 𝓐 (⟦ a ; b ⟧ of 𝓐) b) :=
+  fun (𝓐) =>
+    fun (a) =>
+        fun (b) =>
+          fun (hb : b ∈ setPO(𝓐)) =>
+            fun (h𝓐 : (PartOrd 𝓐)) =>
+              fun (hab : (a . ≼(𝓐) . b)) =>
+                And.intro (Iff.mpr (lrc_is_lrc 𝓐 a b b hb) (And.intro (hab) (refl_R₂ 𝓐 h𝓐 b hb))) (
+                  fun (x) =>
+                    fun (hx : x ∈ (⟦ a ; b ⟧ of 𝓐)) =>
+                      let u := lrc_sub_all 𝓐 a b x hx
+                      And.right (Iff.mp (lrc_is_lrc 𝓐 a b x u) hx)
+                )
 
 
 def is_lattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
@@ -4952,6 +5507,179 @@ macro_rules
 
 
 
+theorem Knaster_Tarski_lemma₀ :
+∀ 𝓐, ∀ a b ∈ setPO(𝓐); (a . ≼(𝓐) . b) → (CompLatt 𝓐) → (CompLatt (𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐))) :=
+  fun (𝓐) =>
+    fun (a) =>
+      fun (ha : a ∈ setPO(𝓐)) =>
+        fun (b) =>
+          fun (hb : b ∈ setPO(𝓐)) =>
+            fun (hab : (a . ≼(𝓐) . b)) =>
+              fun (h𝓐 : (CompLatt 𝓐)) =>
+                let S := (⟦ a ; b ⟧ of 𝓐)
+                let T := 𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)
+                let u := Iff.mpr (lrc_nemp 𝓐 a ha b (And.left h𝓐)) hab
+                let is_po := sub_is_PO 𝓐 (⟦ a ; b ⟧ of 𝓐) u (And.left h𝓐) (lrc_sub_all 𝓐 a b)
+                let a_in_int := Iff.mpr (lrc_is_lrc 𝓐 a b a ha) (And.intro (refl_R₂ 𝓐 (And.left h𝓐) a ha) (hab))
+                let eq₁ := lesseqPO_is_lesseqPO (⟦ a ; b ⟧ of 𝓐) (≺(𝓐) spec (⟦ a ; b ⟧ of 𝓐)) (≼(𝓐) spec (⟦ a ; b ⟧ of 𝓐))
+
+
+                And.intro (is_po) (
+                  fun (X) =>
+                    fun (hX : X ⊆ (setPO(𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)))) =>
+                      let u₀ := setPO_is_setPO (⟦ a ; b ⟧ of 𝓐) (≺(𝓐) spec (⟦ a ; b ⟧ of 𝓐)) (≼(𝓐) spec (⟦ a ; b ⟧ of 𝓐))
+                      let u₁ := eq_subst (fun (t) => X ⊆ t) (setPO(𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐))) (⟦ a ; b ⟧ of 𝓐) u₀ hX
+                      let u₂ := specification_set_subset (fun (r) => is_upper_bound (𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) X r) (
+                        setPO(𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐))
+                      )
+                      let u₃ := eq_subst (fun (m) => ((𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) ▴ X) ⊆ m) setPO(𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) (⟦ a ; b ⟧ of 𝓐) u₀ u₂
+
+
+                      Or.elim (em (X = ∅))
+                      (
+                        fun (hemp : (X = ∅)) =>
+                          let v₁ :=
+                            fun (s) =>
+                              fun (hs : s ∈ (⟦ a ; b ⟧ of 𝓐)) =>
+                                Iff.mpr (upp_bou_set_is_upp_bou (𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) X s) (
+                                  eq_subst (fun (t) => is_upper_bound (𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) t s) ∅ X (Eq.symm hemp) (
+                                    And.intro (
+                                      eq_subst (fun (v) => s ∈ v) (⟦ a ; b ⟧ of 𝓐) (setPO(𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐))) (
+                                        Eq.symm u₀) hs
+                                    ) (
+                                      fun (r) =>
+                                        fun (hr : r ∈ ∅) =>
+                                          False.elim (
+                                            empty_set_is_empty r (hr)
+                                          )
+                                    )
+                                  )
+                                )
+
+                          let v₂ := sub_sub_then_eq ((𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) ▴ X) (⟦ a ; b ⟧ of 𝓐) (
+                            u₃
+                          ) (v₁)
+
+                          let v₄ := And.intro (a_in_int) (
+                            fun (x) =>
+                              fun (hx : x ∈ (⟦ a ; b ⟧ of 𝓐)) =>
+                                let u := lrc_sub_all 𝓐 a b x hx
+
+                                let v := Iff.mp (lrc_is_lrc 𝓐 a b x u) hx
+
+                                let v₂ := Iff.mpr (cartesian_product_pair_prop (⟦ a ; b ⟧ of 𝓐) (⟦ a ; b ⟧ of 𝓐) a x) (
+                                    And.intro (a_in_int) (hx))
+                                let specax := Iff.mpr (intersect_2sets_prop (≼(𝓐)) ((⟦ a ; b ⟧ of 𝓐) × (⟦ a ; b ⟧ of 𝓐)) (a, x)) (
+                                  And.intro (And.left v) (v₂)
+                                )
+
+
+                                eq_subst (fun (t) => (a, x) ∈ t) (≼(𝓐) spec (⟦ a ; b ⟧ of 𝓐)) (
+                                  ≼(𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐))) (Eq.symm (eq₁)) (specax)
+                          )
+
+                          let v₅ := eq_subst (fun (t) => is_minimum (𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) t a) (
+                            (⟦ a ; b ⟧ of 𝓐)) ((𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) ▴ X) (Eq.symm v₂) (v₄)
+
+
+                          Exists.intro a (
+                            v₅
+                          )
+                      )
+                      (
+                        fun (hnemp : (X ≠ ∅)) =>
+                          let v₁ := Iff.mp (set_non_empty_iff_non_empty X) hnemp
+                          Exists.elim v₁ (
+                            fun (k) =>
+                              fun (hk : k ∈ X) =>
+                                let v₂ := lrc_sub_all 𝓐 a b
+                                let v₃ := subset_trans X (⟦ a ; b ⟧ of 𝓐) (setPO(𝓐)) u₁ v₂
+
+                                let v₄ := And.right h𝓐 X v₃
+
+                                Exists.elim v₄ (
+                                  fun (m) =>
+                                    fun (hm : is_supremum 𝓐 X m) =>
+
+                                      let v₅ := And.left hm
+                                      let v₆ := Iff.mp (upp_bou_set_is_upp_bou 𝓐 X m) v₅
+                                      let v₇ := And.left v₆
+                                      let v₈ := And.right v₆ k hk
+                                      let v₉ := u₁ k hk
+                                      let v₁₀ := v₂ k v₉
+                                      let v₁₁ := And.left (Iff.mp (lrc_is_lrc 𝓐 a b k v₁₀) v₉)
+                                      let v₁₂ := trans_R₂ 𝓐 (And.left h𝓐) a k m v₁₁ v₈
+                                      let v₁₄ := Iff.mpr (upp_bou_set_is_upp_bou 𝓐 X b) (
+                                        And.intro (hb) (
+                                          fun (r) =>
+                                            fun (hr : r ∈ X) =>
+                                              let v₁₅ := u₁ r hr
+                                              let v₁₆ := v₂ r v₁₅
+                                              And.right (Iff.mp (lrc_is_lrc 𝓐 a b r v₁₆) v₁₅)
+                                        )
+                                      )
+                                      let v₁₇ := And.right hm b v₁₄
+                                      let v₁₈ := Iff.mpr (lrc_is_lrc 𝓐 a b m v₇) (And.intro (v₁₂) (v₁₇))
+                                      let v₁₉ := eq_subst (fun (t) => m ∈ t) (⟦ a ; b ⟧ of 𝓐) setPO(T) (Eq.symm u₀) (v₁₈)
+
+
+
+                                      Exists.intro m (
+
+                                        And.intro (
+
+                                          Iff.mpr (upp_bou_set_is_upp_bou T X m) (
+
+                                            And.intro (v₁₉) (
+                                              fun (y) =>
+                                                fun (hy : y ∈ X) =>
+                                                  eq_subst (fun (t) => (y, m) ∈ t) (≼(𝓐) spec S) (≼(T)) (
+                                                    Eq.symm eq₁) (
+                                                      Iff.mpr (intersect_2sets_prop (≼(𝓐)) (S × S) (y, m)) (
+                                                        And.intro (And.right v₆ y hy) (
+                                                          Iff.mpr (cartesian_product_pair_prop S S y m) (
+                                                            And.intro (u₁ y hy) (v₁₈)
+                                                          )
+                                                        )
+                                                      )
+                                                    )
+                                            )
+                                          )
+
+                                        ) (
+                                          fun (y) =>
+                                            fun (hy : y ∈ (T ▴ X)) =>
+                                              let v₂₀ := specification_set_subset (fun (t) => is_upper_bound T X t) (setPO(T)) y hy
+                                              let v₂₁ := eq_subst (fun (t) => y ∈ t) (setPO(T)) (S) (u₀) (v₂₀)
+                                              let v₂₂ := And.right (Iff.mp (upp_bou_set_is_upp_bou T X y) hy)
+                                              let v₂₃ := lrc_sub_all 𝓐 a b y v₂₁
+
+                                              let v₂₄ := Iff.mpr (upp_bou_set_is_upp_bou 𝓐 X y) (
+                                                And.intro (v₂₃) (
+                                                  fun (i) =>
+                                                    fun (hi : i ∈ X) =>
+                                                      let v₂₅ := v₂₂ i hi
+                                                      let v₂₆ := eq_subst (fun (t) => (i, y) ∈ t) (≼(T)) (≼(𝓐) spec S) eq₁ (v₂₅)
+                                                      And.left (interset2sets_subset_prop (≼(𝓐)) (S × S)) (i, y) v₂₆
+
+                                                )
+                                              )
+                                              let v₂₇ := And.right hm y v₂₄
+                                              eq_subst (fun (t) => (m, y) ∈ t) (≼(𝓐) spec S) (≼(T)) (Eq.symm eq₁) (
+                                                Iff.mpr (intersect_2sets_prop (≼(𝓐)) (S × S) (m, y)) (
+                                                  And.intro (v₂₇) (
+                                                    Iff.mpr (cartesian_product_pair_prop S S m y) (
+                                                      And.intro (v₁₈) (v₂₁)
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                        )
+                                      )
+                                )
+                          )
+                      )
+                )
 
 
 theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 MaxExi (f FixOn 𝓐)) :=
@@ -5032,7 +5760,86 @@ theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn
 
 
 
-theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → ((f FixOn 𝓐) ≠ ∅) :=
+theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 MinExi (f FixOn 𝓐)) :=
+  fun (𝓐) =>
+    fun (f) =>
+      fun (h𝓐 : (CompLatt 𝓐)) =>
+        fun (hf : (f MotFunRelOn 𝓐)) =>
+          let L := {m ∈ setPO(𝓐) | ((f⦅m⦆) . (≼(𝓐)) . (m)) }
+          let u₀ := specification_set_subset (fun (t) => ((f⦅t⦆) . (≼(𝓐)) . (t))) (setPO(𝓐))
+          let u₁ := Iff.mp (compl_latt_inf_crit 𝓐 (And.left h𝓐)) h𝓐 L u₀
+          Exists.elim u₁ (
+            fun (n) =>
+              fun (hn : is_infimum 𝓐 L n) =>
+                Exists.intro n (
+                  And.intro (
+
+                      Iff.mpr (spec_is_spec (fun (r) => f⦅r⦆ = r) (setPO(𝓐)) n) (
+
+                        let u₂ := And.left hn
+                        let u₃ := Iff.mp (low_bou_set_is_low_bou 𝓐 L n) u₂
+                        let u₄ := And.left u₃
+                        And.intro (u₄) (
+
+                          let u₅ := fun (x) =>
+                            fun (hx : x ∈ L) =>
+                              let v₀ := (Iff.mp (spec_is_spec (fun (r) => ((f⦅r⦆) . (≼(𝓐)) . r)) (setPO(𝓐)) x) hx)
+                              let v₁ := And.right v₀
+                              let v₂ := And.left v₀
+                              let v₃ := And.right u₃ x hx
+                              let v₄ := And.right hf n u₄ x v₂ v₃
+                              let v₅ := trans_R₂ 𝓐 (And.left h𝓐) (f⦅n⦆) (f⦅x⦆) x v₄ v₁
+                              And.intro v₃ v₅
+
+                          let u₄₁ := And.left hf
+                          let u₄₂ := val_in_B f (setPO(𝓐)) (setPO(𝓐)) u₄₁ n u₄
+
+
+                          let u₆ := Iff.mpr (low_bou_set_is_low_bou 𝓐 (L) (f⦅n⦆)) (
+                            And.intro (u₄₂) (fun (t) => fun (ht : t ∈ L) => And.right (u₅ t ht))
+                          )
+
+                          let u₇ := And.right hn (f⦅n⦆) u₆
+
+                          let u₈ := And.right hf (f⦅n⦆) u₄₂ n u₄ u₇
+
+                          let u₉ := Iff.mpr (spec_is_spec (fun (r) => ((f⦅r⦆) . (≼(𝓐)) . r)) (setPO(𝓐)) (f⦅n⦆)) (
+                            And.intro (u₄₂) (u₈)
+                          )
+
+                          let u₁₀ := And.left (u₅ (f⦅n⦆) u₉)
+
+                          antisymm_R₂ 𝓐 (And.left h𝓐) (f⦅n⦆) n u₇ u₁₀
+
+                        )
+
+                      )
+
+                  ) (
+                    fun (m) =>
+                      fun (hm : m ∈ (f FixOn 𝓐)) =>
+                        let u₂ := And.left hn
+                        let u₃ := Iff.mp (low_bou_set_is_low_bou 𝓐 (L) n) u₂
+                        And.right u₃ m (
+                          let u₄ := Iff.mp ( (spec_is_spec (fun (t) => (f⦅t⦆ = t))) (setPO(𝓐)) m ) hm
+                          let u₅ := And.left u₄
+                          let u₆ := And.right u₄
+                          Iff.mpr (spec_is_spec (fun (t) => (((f⦅t⦆) . (≼(𝓐)) . t)) ) (setPO(𝓐)) m) (
+                            And.intro (u₅) (
+                              eq_subst (fun (q) => (q . (≼(𝓐)) . m)) m (f⦅m⦆) (Eq.symm u₆) (
+                                refl_R₂ 𝓐 (And.left h𝓐) m u₅
+                              )
+                            )
+                          )
+                        )
+                  )
+                )
+          )
+
+
+
+
+theorem Knaster_Tarski_lemma₃ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → ((f FixOn 𝓐) ≠ ∅) :=
   fun (𝓐) =>
     fun (f) =>
       fun (h𝓐 : (CompLatt 𝓐)) =>
@@ -5049,27 +5856,1569 @@ theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn
           )
 
 
+
 theorem Knaster_Tarski_theorem : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (CompLatt (𝓐 SubsPO (f FixOn 𝓐))) :=
   fun (𝓐) =>
     fun (f) =>
       fun (h𝓐 : (CompLatt 𝓐)) =>
         fun (hf : (f MotFunRelOn 𝓐)) =>
-          And.intro (sub_is_PO 𝓐 (f FixOn 𝓐) (Knaster_Tarski_lemma₂ 𝓐 f h𝓐 hf) (And.left h𝓐) (
+          And.intro (sub_is_PO 𝓐 (f FixOn 𝓐) (Knaster_Tarski_lemma₃ 𝓐 f h𝓐 hf) (And.left h𝓐) (
             specification_set_subset (fun (t) => f⦅t⦆ = t) (setPO(𝓐))
           ))
           (
             fun (X) =>
               fun (hX : X ⊆ setPO(𝓐 SubsPO (f FixOn 𝓐))) =>
+                let Fix := (f FixOn 𝓐)
+                let Sub := 𝓐 SubsPO (f FixOn 𝓐)
+                let u₀ := specification_set_subset (fun (r) => (f⦅r⦆) = r) (setPO(𝓐))
+
                 let u₁ := setPO_is_setPO (f FixOn 𝓐) (≺(𝓐) spec (f FixOn 𝓐)) (≼(𝓐) spec (f FixOn 𝓐))
+                let u_less := lesseqPO_is_lesseqPO (f FixOn 𝓐) (≺(𝓐) spec (f FixOn 𝓐)) (≼(𝓐) spec (f FixOn 𝓐))
+
                 let u₂ := eq_subst (fun (t) => X ⊆ t) (setPO(𝓐 SubsPO (f FixOn 𝓐))) (f FixOn 𝓐) (u₁) (hX)
-                sorry
+                let u₃ := subset_trans X (f FixOn 𝓐) (setPO(𝓐)) u₂ u₀
+
+                let u₄ := And.right h𝓐 (setPO(𝓐)) (subset_refl (setPO(𝓐)))
+                Exists.elim (u₄) (
+                  fun (a) =>
+                    fun (ha : is_supremum 𝓐 (setPO(𝓐)) a) =>
+                      let u₅ := And.right h𝓐 X (u₃)
+                      Exists.elim (u₅) (
+                        fun (m) =>
+                          fun (hm : is_supremum 𝓐 X m) =>
+
+                            let u₇ := And.left hm
+                            let u₈ := Iff.mp (upp_bou_set_is_upp_bou 𝓐 X m) u₇
+                            let u₉ := And.left u₈
+
+                            let u₆ := fun (x) =>
+                              fun (hx : x ∈ X) =>
+                                let u₇₀ := u₃ x hx
+                                let u₁₀ := And.right u₈ x hx
+                                let u₁₁ := And.right hf x u₇₀ m u₉ u₁₀
+                                let u₁₂ := u₂ x hx
+                                let u₁₃ := And.right (Iff.mp (spec_is_spec (fun (r) => (f⦅r⦆) = r) (setPO(𝓐)) x) u₁₂)
+                                let u₁₄ := eq_subst (fun (t) => (t . ≼(𝓐) . (f⦅m⦆))) (f⦅x⦆) x (u₁₃) (u₁₁)
+                                u₁₄
+
+                            let u₁₀ := val_in_B f (setPO(𝓐)) (setPO(𝓐)) (And.left hf) m (u₉)
+
+                            let u₈ := Iff.mpr (upp_bou_set_is_upp_bou 𝓐 X (f⦅m⦆)) (
+                              And.intro (u₁₀) (
+                                u₆
+                              )
+                            )
+
+                            let u₁₁ := And.right hm (f⦅m⦆) u₈
+
+
+                            let R := ⟦ m ; a ⟧ of 𝓐
+
+                            let u₁₂ := fun (y) =>
+                              fun (hy : y ∈ R) =>
+                                let u₁₃ := lrc_sub_all 𝓐 m a y hy
+                                let u₁₄ := Iff.mp (lrc_is_lrc 𝓐 m a y (u₁₃)) hy
+                                let u₁₅ := And.left u₁₄
+                                let u₁₇ := And.right hf m u₉ y u₁₃ u₁₅
+                                let u₁₈ := trans_R₂ 𝓐 (And.left h𝓐) m (f⦅m⦆) ((f⦅y⦆)) u₁₁ u₁₇
+                                let u₁₉ := And.left ha
+                                let u₂₀ := Iff.mp (upp_bou_set_is_upp_bou 𝓐 (setPO(𝓐)) a) u₁₉
+                                let u₂₁ := val_in_B f (setPO(𝓐)) (setPO(𝓐)) (And.left hf) y (u₁₃)
+                                let u₂₂ := And.right u₂₀ (f⦅y⦆) u₂₁
+                                Iff.mpr (lrc_is_lrc 𝓐 m a (f⦅y⦆) u₂₁) (And.intro (u₁₈) (u₂₂))
+
+                            let spec_f := f ⨡ R
+
+                            let f_fun := fun_restriction_prop (setPO(𝓐)) (setPO(𝓐)) R f (And.left hf)
+                            let R_sub := lrc_sub_all 𝓐 m a
+                            let int_prp := Iff.mp (And.left (subset_using_equality R setPO(𝓐))) R_sub
+                            let int_prp₂ := intersec2_comm (setPO(𝓐)) R
+                            let int_prp₃ := Eq.trans int_prp₂ int_prp
+                            let f_fun₂ := eq_subst (fun (t) => (f ⨡ R) Fun t To (setPO(𝓐))) (set_PO (𝓐) ∩ R) R (
+                              int_prp₃) (f_fun)
+
+                            let u₁₃ := fun_restriction_val (setPO(𝓐)) (setPO(𝓐)) R f R_sub (And.left hf)
+                            let u₁₄ := fun (y) => fun (hy : y ∈ R) =>
+                              let u₁₅ := u₁₂ y hy
+                              let u₁₆ := u₁₃ y hy
+                              eq_subst (fun (t) => t ∈ R) (f⦅y⦆) ((f ⨡ R)⦅y⦆) (u₁₆) (u₁₅)
+
+                            let u₁₅ := if_val_in_C (spec_f) R (setPO(𝓐)) R f_fun₂ (u₁₄)
+
+
+                            let RLat := 𝓐 SubsPO R
+
+                            let a_set₀ := And.left ha
+                            let a_set₁ := And.left (Iff.mp (upp_bou_set_is_upp_bou 𝓐 (setPO(𝓐)) a) a_set₀)
+
+                            let a_set₂ := And.right (Iff.mp (upp_bou_set_is_upp_bou 𝓐 (setPO(𝓐)) a) a_set₀) m (u₉)
+
+                            let is_latR : CompLatt RLat := Knaster_Tarski_lemma₀ 𝓐 m (u₉) a (a_set₁) a_set₂ (h𝓐)
+
+
+                            let setpo_latR := setPO_is_setPO R ((≺(𝓐)) spec R) (≼(𝓐) spec R)
+                            let spec_latR := lesseqPO_is_lesseqPO R ((≺(𝓐)) spec R) (≼(𝓐) spec R)
+
+                            let specf_Rlat := eq_subst (fun (t) => spec_f Fun t To t) (R) (setPO(RLat)) (Eq.symm setpo_latR) (
+                              u₁₅)
+
+                            let mon_spec : (spec_f MotFunRelOn RLat) := And.intro (specf_Rlat) (fun (x) =>
+                              fun (hx : x ∈ setPO(RLat)) =>
+                                fun (y) =>
+                                  fun (hy : y ∈  setPO(RLat)) =>
+                                    fun (hxy : (x . ≼(RLat) . y)) =>
+                                      let xR := eq_subst (fun (t) => x ∈ t) (setPO(RLat)) R (setpo_latR) (hx)
+                                      let yR := eq_subst (fun (t) => y ∈ t) (setPO(RLat)) R (setpo_latR) (hy)
+                                      eq_subst (fun (t) => ((spec_f⦅x⦆) . t . (spec_f⦅y⦆))) (≼(𝓐) spec R) (≼(RLat)) (
+                                        Eq.symm spec_latR) (
+                                            Iff.mpr (intersect_2sets_prop (≼(𝓐)) (R × R) ((spec_f⦅x⦆), (spec_f⦅y⦆))) (
+                                              And.intro (
+                                                eq_subst (fun (t) => (t . (≼(𝓐)) . (spec_f⦅y⦆))) (f⦅x⦆) (spec_f⦅x⦆) (u₁₃ x xR) (
+                                                  eq_subst (fun (t) => ((f⦅x⦆) . (≼(𝓐)) . t)) (f⦅y⦆) (spec_f⦅y⦆) (u₁₃ y yR) (
+                                                    let xA := R_sub x xR
+                                                    let yA := R_sub y yR
+                                                    And.right hf x xA y yA (
+                                                      let xyRlat := eq_subst (fun (t) => (x . t . y)) (≼(RLat)) (≼(𝓐) spec R) (spec_latR) (hxy)
+                                                      And.left (Iff.mp (intersect_2sets_prop (≼(𝓐)) (R × R) (x, y)) (xyRlat))
+                                                    )
+
+                                                  )
+                                                )
+                                              ) (
+                                                Iff.mpr (cartesian_product_pair_prop R R (spec_f⦅x⦆) (spec_f⦅y⦆)) (
+                                                  And.intro (
+                                                    val_in_B spec_f R R u₁₅ x xR
+                                                  ) (
+                                                    val_in_B spec_f R R u₁₅ y yR
+                                                  )
+                                                )
+                                              )
+                                            )
+                                        )
+                            )
+
+
+                          let min_rlat := Knaster_Tarski_lemma₂ (RLat) (spec_f) (is_latR) mon_spec
+                          Exists.elim min_rlat (
+                            fun (r) =>
+                              fun (hr : is_minimum (RLat) (spec_f FixOn RLat) r) =>
+
+                                let M := (spec_f FixOn RLat)
+                                let N := (Sub ▴ X)
+
+                                let u₁₆ : M ⊆ N := fun (x) =>
+                                    fun (hx : x ∈ M) =>
+                                      let u₁₇ := specification_set_subset (fun (t) => (spec_f⦅t⦆ = t)) (setPO(RLat)) x hx
+                                      let u₁₈ := eq_subst (fun (t) => x ∈ t) (setPO(RLat)) R (setpo_latR) (u₁₇)
+                                      let u₁₉ := R_sub x u₁₈
+                                      let u₂₀ := And.left (Iff.mp (lrc_is_lrc 𝓐 m a x u₁₉) u₁₈)
+                                      let v₂ := And.right (Iff.mp (spec_is_spec (fun (t) => (spec_f⦅t⦆ = t)) (setPO(RLat)) x)
+                                             hx)
+                                      let v₃ := u₁₃ x u₁₈
+
+
+
+                                      let v₄ := eq_subst (fun (t) => f⦅x⦆ = t) (spec_f⦅x⦆) x v₂ v₃
+                                      let v₀ := eq_subst (fun (t) => x ∈ t) (f FixOn 𝓐) (setPO(Sub)) (Eq.symm u₁) (
+
+                                        Iff.mpr (spec_is_spec (fun (P) => (f⦅P⦆) = P) (setPO(𝓐)) x) (
+                                          And.intro (u₁₉) (
+                                            v₄
+
+
+                                          )
+                                        )
+                                      )
+                                      let u₂₃ := Iff.mpr (upp_bou_set_is_upp_bou Sub X x) (
+                                        And.intro (v₀) (
+
+                                          fun (e) =>
+                                            fun (he : e ∈ X) =>
+                                              eq_subst (fun (t) => (e, x) ∈ t) (≼(𝓐) spec Fix) (≼(Sub)) (Eq.symm u_less) (
+
+                                                Iff.mpr (intersect_2sets_prop (≼(𝓐)) (Fix × Fix) (e, x)) (
+                                                  And.intro (
+
+                                                    trans_R₂ 𝓐 (And.left h𝓐) e m x (
+                                                      let v₅ := And.left hm
+                                                      And.right (Iff.mp (upp_bou_set_is_upp_bou 𝓐 X m) v₅) e he
+                                                    ) (
+                                                        u₂₀
+                                                    )
+                                                  ) (
+                                                    Iff.mpr (cartesian_product_pair_prop Fix Fix e x) (
+                                                      And.intro (u₂ e he) (
+                                                        Iff.mpr (spec_is_spec (fun (P) => f⦅P⦆ = P) (setPO(𝓐)) x) (
+                                                          And.intro (u₁₉) (v₄)
+                                                        )
+                                                      )
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                        )
+                                      )
+                                      u₂₃
+
+                                let u₁₇ : N ⊆ M := fun (x) =>
+                                  fun (hx : x ∈ N) =>
+                                    let upp_x := Iff.mp (upp_bou_set_is_upp_bou Sub X x) hx
+                                    let upp_x₀ := And.left upp_x
+                                    let upp_x₁ := eq_subst (fun (t) => x ∈ t) (setPO(Sub)) (Fix) (u₁) (upp_x₀)
+                                    let upp_x₂ := u₀ x upp_x₁
+                                    Iff.mpr (spec_is_spec (fun (P) => spec_f⦅P⦆ = P) (setPO(RLat)) x) (
+
+                                      let xR := Iff.mpr (lrc_is_lrc 𝓐 m a x (upp_x₂)) (
+                                            And.intro (
+
+                                              And.right hm x (
+                                                Iff.mpr (upp_bou_set_is_upp_bou 𝓐 X x) (
+                                                  And.intro (upp_x₂) (
+                                                    fun (s) =>
+                                                      fun (hs : s ∈ X) =>
+                                                        let u₁₈ := And.right upp_x s hs
+
+                                                        let u₁₉ := eq_subst (fun (t) => (s, x) ∈ t) (≼(Sub)) (≼(𝓐) spec Fix) (u_less) (u₁₈)
+
+                                                        And.left (interset2sets_subset_prop (≼(𝓐)) (Fix × Fix)) (s, x) u₁₉
+                                                  )
+                                                )
+                                              )
+                                            ) (
+                                              let u₁₈ := And.left ha
+                                              And.right ((Iff.mp (upp_bou_set_is_upp_bou 𝓐 (setPO(𝓐)) a)) u₁₈) x (upp_x₂)
+                                            )
+                                          )
+
+                                      And.intro (
+                                        eq_subst (fun (t) => x ∈ t) (R) (setPO(RLat)) (Eq.symm setpo_latR) (
+                                          xR
+                                        )
+                                      ) (
+
+                                        let u₁₈ := And.right (Iff.mp (spec_is_spec (fun (P) => f⦅P⦆ = P) (setPO(𝓐)) x) upp_x₁)
+
+                                        let u₁₉ := Eq.symm (u₁₃ x (
+
+                                          xR
+                                        ))
+
+                                        Eq.trans u₁₉ (u₁₈)
+                                      )
+                                    )
+
+
+                                    let u₁₈ := sub_sub_then_eq M N (u₁₆) (u₁₇)
+
+                                    let hr_N := eq_subst (fun (t) => is_minimum RLat t r) M N (u₁₈) (hr)
+                                    let hr_N₀ := And.left hr_N
+                                    let rupp := And.left (Iff.mp (upp_bou_set_is_upp_bou Sub X r) hr_N₀)
+                                    let rwhe := eq_subst (fun (P) => r ∈ P) (setPO(Sub)) (Fix) (u₁) (rupp)
+                                    let hr_N₁ := fun (t) =>
+                                      fun (ht : t ∈ N) =>
+                                        let tupp := And.left (Iff.mp (upp_bou_set_is_upp_bou Sub X t) ht)
+                                        let twhe := eq_subst (fun (P) => t ∈ P) (setPO(Sub)) (Fix) (u₁) tupp
+                                        let u₁₉ := And.right hr_N t ht
+                                        let u₂₀ := eq_subst (fun (P) => (r, t) ∈ P) (≼(RLat)) (≼(𝓐) spec R) (spec_latR) (u₁₉)
+                                        let u₂₁ := And.left (interset2sets_subset_prop (≼(𝓐)) (R × R)) (r, t) u₂₀
+                                        let u₂₂ := Iff.mpr (intersect_2sets_prop (≼(𝓐)) (Fix × Fix) (r, t)) (
+                                          And.intro (u₂₁) (
+                                            Iff.mpr (cartesian_product_pair_prop Fix Fix r t) (
+                                              And.intro (rwhe) (twhe)
+                                            )
+                                          )
+                                        )
+                                        let u₂₃ := eq_subst (fun (P) => (r, t) ∈ P) (≼(𝓐) spec Fix) (≼(Sub)) (Eq.symm (u_less)) (
+                                          u₂₂
+                                        )
+                                        u₂₃
+
+                                    let hr_N₂ : is_minimum Sub (Sub ▴ X) r := And.intro hr_N₀ hr_N₁
+
+                                Exists.intro r (
+                                  hr_N₂
+                                )
+                          )
+                      )
+                )
           )
 
 
 
-def is_linear_order (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧ (str_conn setPO(𝓐) ≼(𝓐))
+def is_linear_order (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧ (str_conn ≼(𝓐) setPO(𝓐))
 syntax "LinOrd" term : term
 macro_rules
 | `(LinOrd $𝓐) => `(is_linear_order $𝓐)
 
-theorem lin_or_wk_conn_crit : ∀ 𝓐, (LinOrd 𝓐) ↔ (wkl_conn setPO(𝓐) ≺(𝓐)) := sorry
+
+
+theorem lin_ord_prop : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (x . (≼(𝓐)) . y) ∨ (y . (≼(𝓐)) . x)) :=
+  fun (𝓐) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (x) =>
+        fun (hx : x ∈ setPO(𝓐)) =>
+          fun (y) =>
+            fun (hy : y ∈ setPO(𝓐)) =>
+              And.right h𝓐 x hx y hy
+
+theorem lin_ord_wk_prop : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (x ≠ y) → ((x . ≺(𝓐) . y) ∨ (y . (≺(𝓐)) . x))) :=
+  fun (𝓐) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (x) =>
+        fun (hx : (x ∈ setPO(𝓐))) =>
+          fun (y) =>
+            fun (hy : (y ∈ setPO(𝓐))) =>
+              fun (hnxy : (x ≠ y)) =>
+                let u := lin_ord_prop 𝓐 h𝓐 x hx y hy
+                Or.elim u
+                (
+                  fun (hxy : (x . (≼(𝓐)) . y)) =>
+                    let v₀ := Iff.mpr (And.left (part_ord_pair_prop 𝓐 (And.left h𝓐) x hx y hy)) (And.intro hxy hnxy)
+                    Or.inl v₀
+                )
+                (
+                  fun (hxy : (y . (≼(𝓐)) . x)) =>
+                    let v₀ := Iff.mpr (And.left (part_ord_pair_prop 𝓐 (And.left h𝓐) y hy x hx)) (And.intro hxy (
+                      fun (hyx : (y = x)) =>
+                        hnxy (Eq.symm hyx)
+                    ))
+                    Or.inr v₀
+                )
+
+theorem lin_ord_nR₁ : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (¬ (x . (≺(𝓐)) . y)) → (y . (≼(𝓐)) . x)) :=
+  fun (𝓐) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (x) =>
+        fun (hx : x ∈ setPO(𝓐)) =>
+          fun (y) =>
+            fun (hy : y ∈ setPO(𝓐)) =>
+              fun (hnxy : ¬ (x . (≺(𝓐)) . y)) =>
+                let u := lin_ord_prop 𝓐 h𝓐 x hx y hy
+                Or.elim u
+                (
+                  fun (hxy : (x . (≼(𝓐)) . y)) =>
+
+                    let v := Iff.mp (And.right (part_ord_pair_prop 𝓐 (And.left h𝓐) x hx y hy)) hxy
+                    Or.elim v
+                    (
+                      fun (hxly : (x . (≺(𝓐)) . y)) =>
+                        False.elim (
+                          hnxy (hxly)
+                        )
+                    )
+                    (
+                      fun (hxey : (x = y)) =>
+                        let s := refl_R₂ 𝓐 (And.left h𝓐) x hx
+                        eq_subst (fun (t) => (t, x) ∈ (≼(𝓐))) x y (hxey) (s)
+
+                    )
+                )
+                (
+                  fun (hyx : (y . (≼(𝓐)) . x)) =>
+                    hyx
+                )
+
+
+theorem lin_ord_nR₂ : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (¬ (x . (≼(𝓐)) . y)) → (y . (≺(𝓐)) . x)) :=
+  fun (𝓐) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (x) =>
+        fun (hx : (x ∈ setPO(𝓐))) =>
+          fun (y) =>
+            fun (hy : (y ∈ setPO(𝓐))) =>
+              fun (hnxy : ¬ (x . (≼(𝓐)) . y)) =>
+                let u := lin_ord_prop 𝓐 h𝓐 x hx y hy
+                Or.elim u
+                (
+                  fun (hxley : (x . ≼(𝓐) . y)) =>
+                    False.elim (
+                      hnxy hxley
+                    )
+                )
+                (
+                  fun (hylex : (y . ≼(𝓐) . x)) =>
+                    Iff.mpr (And.left (part_ord_pair_prop 𝓐 (And.left h𝓐) y hy x hx)) (
+                      And.intro (hylex) (
+                        fun (hyx : y = x) =>
+                          hnxy (
+                            eq_subst (fun (t) => (x . (≼(𝓐)) . t)) x y (Eq.symm hyx) (
+                              refl_R₂ 𝓐 (And.left h𝓐) x hx
+                            )
+                          )
+                      )
+                    )
+                )
+
+
+theorem inv_is_LO : ∀ 𝓐, (LinOrd 𝓐) → (LinOrd (invPO 𝓐)) :=
+  fun (𝓐) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      And.intro (inv_is_PO 𝓐 (And.left h𝓐)) (
+        fun (x) =>
+          fun (hx : x ∈ setPO( invPO 𝓐)) =>
+            fun (y) =>
+              fun (hy : y ∈ setPO( invPO 𝓐 )) =>
+                let v₁ := eq_subst (fun (t) => x ∈ t) (setPO( invPO 𝓐 )) (setPO(𝓐)) (setPO_is_setPO setPO(𝓐) ≻(𝓐) ≽(𝓐)) (hx)
+                let v₂ := eq_subst (fun (t) => y ∈ t) (setPO( invPO 𝓐 )) (setPO(𝓐)) (setPO_is_setPO setPO(𝓐) ≻(𝓐) ≽(𝓐)) (hy)
+                let u := lin_ord_prop 𝓐 h𝓐 x v₁ y v₂
+                Or.elim u
+                (
+                  fun (hxy : (x . (≼(𝓐)) . y)) =>
+                    let u₀ := Iff.mp (po_lesseq_moreeq 𝓐 (And.left h𝓐) x y) hxy
+                    let u₁ := eq_subst (fun (t) => (y, x) ∈ t) (≽(𝓐)) (≼(invPO 𝓐)) (Eq.symm (
+                      lesseqPO_is_lesseqPO setPO(𝓐) ≻(𝓐) ≽(𝓐)
+                    )) (u₀)
+                    Or.inr u₁
+                )
+                (
+                  fun (hyx :(y . (≼(𝓐)) . x)) =>
+                    let u₀ := Iff.mp (po_lesseq_moreeq 𝓐 (And.left h𝓐) y x) hyx
+                    let u₁ := eq_subst (fun (t) => (x, y) ∈ t) (≽(𝓐)) (≼(invPO 𝓐)) (Eq.symm (
+                      lesseqPO_is_lesseqPO setPO(𝓐) ≻(𝓐) ≽(𝓐)
+                    )) (u₀)
+                    Or.inl u₁
+                )
+      )
+
+
+theorem sub_is_LO : ∀ 𝓐 B, (B ≠ ∅) → (LinOrd 𝓐) → (B ⊆ setPO(𝓐)) → (LinOrd (𝓐 SubsPO B)) :=
+  fun (𝓐 B) =>
+    fun (hB : (B ≠ ∅)) =>
+      fun (h𝓐 : (LinOrd 𝓐)) =>
+        fun (hBA : (B ⊆ setPO(𝓐))) =>
+          And.intro (sub_is_PO 𝓐 B hB (And.left h𝓐) hBA) (
+            fun (x) =>
+              fun (hx : x ∈ setPO(𝓐 SubsPO B)) =>
+                fun (y) =>
+                  fun (hy : y ∈ setPO(𝓐 SubsPO B)) =>
+                    let setposub := setPO_is_setPO (B) (≺(𝓐) spec B) (≼(𝓐) spec B)
+                    let lesseqsub := lesseqPO_is_lesseqPO (B) (≺(𝓐) spec B) (≼(𝓐) spec B)
+                    let hxB := eq_subst (fun (t) => x ∈ t) (setPO(𝓐 SubsPO B)) B (setposub) (hx)
+                    let hyB := eq_subst (fun (t) => y ∈ t) (setPO(𝓐 SubsPO B)) B (setposub) (hy)
+                    let hx𝓐 := hBA x hxB
+                    let hy𝓐 := hBA y hyB
+                    let u := lin_ord_prop 𝓐 h𝓐 x (hx𝓐) y (hy𝓐)
+                    Or.elim u
+                    (
+                      fun (hxy : (x . (≼(𝓐)) . y)) =>
+
+                        Or.inl (eq_subst (fun (t) => (x, y) ∈ t) (≼(𝓐) spec B) (≼(𝓐 SubsPO B)) (Eq.symm lesseqsub) (
+                          Iff.mpr (intersect_2sets_prop (≼(𝓐)) (B × B) (x, y)) (
+                            And.intro (hxy) (
+                              Iff.mpr (cartesian_product_pair_prop B B x y) (And.intro hxB hyB)
+                            )
+                          )
+                        ))
+                    )
+                    (
+                      fun (hyx : (y . (≼(𝓐)) . x)) =>
+                        Or.inr (eq_subst (fun (t) => (y, x) ∈ t) (≼(𝓐) spec B) (≼(𝓐 SubsPO B)) (Eq.symm lesseqsub) (
+                          Iff.mpr (intersect_2sets_prop (≼(𝓐)) (B × B) (y, x)) (
+                            And.intro (hyx) (
+                              Iff.mpr (cartesian_product_pair_prop B B y x) (And.intro hyB hxB)
+                            )
+                          )
+                        ))
+                    )
+          )
+
+
+
+
+
+theorem linmin_al_um : ∀ 𝓐 X x, (LinOrd 𝓐) → (X ⊆ setPO(𝓐)) → ((is_minimal 𝓐 X x) ↔ (is_minimum 𝓐 X x)) :=
+  fun (𝓐 X x) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (hX : X ⊆ setPO(𝓐)) =>
+      Iff.intro (
+        fun (hx : (is_minimal 𝓐 X x)) =>
+          And.intro (And.left hx) (
+            fun (y) =>
+              fun (hy : y ∈ X) =>
+                lin_ord_nR₁ 𝓐 h𝓐 y (hX y hy) x (hX x (And.left hx)) (
+                  And.right hx y hy
+                )
+          )
+      )
+      (
+        min_um_is_al 𝓐 X x (And.left h𝓐)
+      )
+
+
+
+theorem linmax_al_um : ∀ 𝓐 X x, (LinOrd 𝓐) → (X ⊆ setPO(𝓐)) → ((is_maximal 𝓐 X x) ↔ (is_maximum 𝓐 X x)):=
+  fun (𝓐 X x) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (hX : X ⊆ setPO(𝓐)) =>
+        Iff.intro (
+        fun (hx : (is_maximal 𝓐 X x)) =>
+          And.intro (And.left hx) (
+            fun (y) =>
+              fun (hy : y ∈ X) =>
+                lin_ord_nR₁ 𝓐 h𝓐 x (hX x (And.left hx)) y (hX y hy) (
+                  And.right hx y hy
+                )
+          )
+        )
+        (
+          max_um_is_al 𝓐 X x (And.left h𝓐)
+        )
+
+
+theorem linmin_al_sub_cmp : ∀ 𝓐 B C x y, (LinOrd 𝓐) →
+(C ⊆ B) → (B ⊆ setPO(𝓐)) → (is_minimal 𝓐 B x) → (is_minimal 𝓐 C y) → (x . ≼(𝓐) . y) :=
+  fun (𝓐 B C x y) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (hCB : (C ⊆ B)) =>
+        fun (hB𝓐 : (B ⊆ setPO(𝓐))) =>
+          fun (hminB : (is_minimal 𝓐 B x)) =>
+            fun (hminC : (is_minimal 𝓐 C y) ) =>
+              let hminumB := Iff.mp (linmin_al_um 𝓐 B x h𝓐 hB𝓐) hminB
+              And.right (hminumB) y (hCB y (And.left hminC))
+
+
+theorem linmax_al_sub_cmp : ∀ 𝓐 B C x y, (LinOrd 𝓐) →
+(C ⊆ B) → (B ⊆ setPO(𝓐)) → (is_maximal 𝓐 B x) → (is_maximal 𝓐 C y) → (y . ≼(𝓐) . x) :=
+  fun (𝓐 B C x y) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (hCB : (C ⊆ B)) =>
+        fun (hB𝓐 : (B ⊆ setPO(𝓐))) =>
+          fun (hmaxB : (is_maximal 𝓐 B x)) =>
+            fun (hmaxC : (is_maximal 𝓐 C y) ) =>
+              let hmaxumB := Iff.mp (linmax_al_um 𝓐 B x h𝓐 hB𝓐) hmaxB
+              And.right (hmaxumB) y (hCB y (And.left hmaxC))
+
+
+
+theorem lin_al_min_inter_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐))
+→ (B IndxFun I) → (is_minimal 𝓐 ((⋂[ i in I ] B at i)) x)
+ → ∀ i ∈ I; ∀ y, (is_minimal 𝓐 ((B _ i)) y) → (y . ≼(𝓐) . x) :=
+   fun (𝓐 B I x) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (hsub : (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐))) =>
+        fun (hBI : (B IndxFun I)) =>
+          fun (hminx : (is_minimal 𝓐 ((⋂[ i in I ] B at i)) x)) =>
+            fun (i) =>
+              fun (hi : i ∈ I) =>
+                fun (y) =>
+                  fun (hminy : (is_minimal 𝓐 ((B _ i)) y) ) =>
+                    let u := indexed_intersection_sub_indexed B I hBI i hi
+                    let u₀ := hsub i hi
+                    let u₁ := subset_trans (⋂[ i in I ] B at i) (B _ i) (setPO(𝓐)) u u₀
+                    let v := Iff.mp (linmin_al_um 𝓐 ((⋂[ i in I ] B at i)) x (h𝓐) u₁) hminx
+                    let v₁ := Iff.mp (linmin_al_um 𝓐 (B _ i) y (h𝓐) u₀) hminy
+                    min_um_sub_cmp 𝓐 (B _ i) ((⋂[ i in I ] B at i)) y x u v₁ v
+
+
+theorem lin_al_max_inter_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐))
+→ (B IndxFun I) → (is_maximal 𝓐 ((⋂[ i in I ] B at i)) x)
+ → ∀ i ∈ I; ∀ y, (is_maximal 𝓐 ((B _ i)) y) → (x . ≼(𝓐) . y) :=
+   fun (𝓐 B I x) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      fun (hsub : (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐))) =>
+        fun (hBI : (B IndxFun I)) =>
+          fun (hminx : (is_maximal 𝓐 ((⋂[ i in I ] B at i)) x)) =>
+            fun (i) =>
+              fun (hi : i ∈ I) =>
+                fun (y) =>
+                  fun (hminy : (is_maximal 𝓐 ((B _ i)) y) ) =>
+                    let u := indexed_intersection_sub_indexed B I hBI i hi
+                    let u₀ := hsub i hi
+                    let u₁ := subset_trans (⋂[ i in I ] B at i) (B _ i) (setPO(𝓐)) u u₀
+                    let v := Iff.mp (linmax_al_um 𝓐 ((⋂[ i in I ] B at i)) x (h𝓐) u₁) hminx
+                    let v₁ := Iff.mp (linmax_al_um 𝓐 (B _ i) y (h𝓐) u₀) hminy
+                    max_um_sub_cmp 𝓐 (B _ i) ((⋂[ i in I ] B at i)) y x u v₁ v
+
+
+theorem lin_partmin_al_un_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 MinExi (B _ i))) →
+ (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐)) → ((is_minimal 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_minimal 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_minimal 𝓐 (B _ i) y} x)) :=
+    fun (𝓐 B I x) =>
+      fun (h𝓐 : (LinOrd 𝓐)) =>
+        fun (hBI : (B Indx I)) =>
+          fun (hmin : (∀ i ∈ I; (𝓐 MinExi (B _ i)))) =>
+            fun (hset : (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐))) =>
+              let u₀ := fun (r) =>
+                fun (hr : r ∈ (⋃[i in I] B at i)) =>
+                  let u₁ := Iff.mp (indexed_union_is_union B I (hBI) r) hr
+                  Exists.elim u₁ (
+                    fun (i) =>
+                      fun (hi : i ∈ I ∧ r ∈ (B _ i)) =>
+                        hset i (And.left hi) r (And.right hi)
+                  )
+
+              let T := {y ∈ setPO(𝓐) | ∃ i ∈ I; is_minimum 𝓐 (B _ i) y}
+              let S := {y ∈ setPO(𝓐) | ∃ i ∈ I; is_minimal 𝓐 (B _ i) y}
+
+              let TS : T ⊆ S:=
+                fun (s) =>
+                  fun (hs : s ∈ T) =>
+                    let a := (Iff.mp (spec_is_spec (fun (P) => ∃ i ∈ I; is_minimum 𝓐 (B _ i) P) (setPO(𝓐)) s) hs)
+                    Exists.elim (And.right a) (
+                      fun (i) =>
+                        fun (hi : i ∈ I ∧ is_minimum 𝓐 (B _ i) s) =>
+                          Iff.mpr (spec_is_spec (fun (P) => ∃ i ∈ I; is_minimal 𝓐 (B _ i) P) (setPO(𝓐)) s) (
+                            And.intro (And.left a) (
+                              Exists.intro i (
+                                And.intro (And.left hi) (Iff.mpr (linmin_al_um 𝓐 (B _ i) s (h𝓐) (hset i (And.left hi))) (
+                                  And.right hi
+                                ))
+                              )
+                            )
+                          )
+                    )
+
+              let ST := fun (s) =>
+                  fun (hs : s ∈ S) =>
+                    let a := (Iff.mp (spec_is_spec (fun (P) => ∃ i ∈ I; is_minimal 𝓐 (B _ i) P) (setPO(𝓐)) s) hs)
+                    Exists.elim (And.right a) (
+                      fun (i) =>
+                        fun (hi : i ∈ I ∧ is_minimal 𝓐 (B _ i) s) =>
+                          Iff.mpr (spec_is_spec (fun (P) => ∃ i ∈ I; is_minimum 𝓐 (B _ i) P) (setPO(𝓐)) s) (
+                            And.intro (And.left a) (
+                              Exists.intro i (
+                                And.intro (And.left hi) (Iff.mp (linmin_al_um 𝓐 (B _ i) s (h𝓐) (hset i (And.left hi))) (
+                                  And.right hi
+                                ))
+                              )
+                            )
+                          )
+                    )
+
+              let TSeq := sub_sub_then_eq T S (TS) (ST)
+
+
+
+
+              let u₁ := specification_set_subset (fun (P) => ∃ i ∈ I; is_minimum 𝓐 (B _ i) P) (setPO(𝓐))
+
+              let u₂ := linmin_al_um 𝓐 (⋃[i in I] B at i) x (h𝓐) (u₀)
+              let u₃ := linmin_al_um 𝓐 ({y ∈ setPO(𝓐) | ∃ i ∈ I; is_minimum 𝓐 (B _ i) y}) x (h𝓐) (u₁)
+
+
+              Iff.intro (
+                fun (halx : (is_minimal 𝓐 (⋃[i in I] B at i) x) ) =>
+                  let humx := Iff.mp (u₂) halx
+                  let prop := Iff.mp (partmin_um_un_prop 𝓐 B I x (And.left h𝓐) hBI hmin hset) humx
+
+                  let res := Iff.mpr u₃ (prop)
+
+                  eq_subst (fun (t) => is_minimal 𝓐 t x) T S (TSeq) (res)
+
+              ) (
+                fun (halx : is_minimal 𝓐 S x) =>
+                  let u₄ := eq_subst (fun (t) => is_minimal 𝓐 t x) S T (Eq.symm TSeq) (halx)
+                  let u₅ := Iff.mp (u₃) u₄
+                  let u₆ := Iff.mpr (partmin_um_un_prop 𝓐 B I x (And.left h𝓐) hBI hmin hset) u₅
+                  Iff.mpr (u₂) u₆
+              )
+
+
+
+theorem lin_partmax_al_un_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 MaxExi (B _ i))) →
+ (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐)) → ((is_maximal 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_maximal 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_maximal 𝓐 (B _ i) y} x)) :=
+    fun (𝓐 B I x) =>
+      fun (h𝓐 : (LinOrd 𝓐)) =>
+        fun (hBI : (B Indx I)) =>
+          fun (hmin : (∀ i ∈ I; (𝓐 MaxExi (B _ i)))) =>
+            fun (hset : (∀ i ∈ I; (B _ i) ⊆ setPO(𝓐))) =>
+              let u₀ := fun (r) =>
+                fun (hr : r ∈ (⋃[i in I] B at i)) =>
+                  let u₁ := Iff.mp (indexed_union_is_union B I (hBI) r) hr
+                  Exists.elim u₁ (
+                    fun (i) =>
+                      fun (hi : i ∈ I ∧ r ∈ (B _ i)) =>
+                        hset i (And.left hi) r (And.right hi)
+                  )
+
+              let T := {y ∈ setPO(𝓐) | ∃ i ∈ I; is_maximum 𝓐 (B _ i) y}
+              let S := {y ∈ setPO(𝓐) | ∃ i ∈ I; is_maximal 𝓐 (B _ i) y}
+
+              let TS : T ⊆ S:=
+                fun (s) =>
+                  fun (hs : s ∈ T) =>
+                    let a := (Iff.mp (spec_is_spec (fun (P) => ∃ i ∈ I; is_maximum 𝓐 (B _ i) P) (setPO(𝓐)) s) hs)
+                    Exists.elim (And.right a) (
+                      fun (i) =>
+                        fun (hi : i ∈ I ∧ is_maximum 𝓐 (B _ i) s) =>
+                          Iff.mpr (spec_is_spec (fun (P) => ∃ i ∈ I; is_maximal 𝓐 (B _ i) P) (setPO(𝓐)) s) (
+                            And.intro (And.left a) (
+                              Exists.intro i (
+                                And.intro (And.left hi) (Iff.mpr (linmax_al_um 𝓐 (B _ i) s (h𝓐) (hset i (And.left hi))) (
+                                  And.right hi
+                                ))
+                              )
+                            )
+                          )
+                    )
+
+              let ST := fun (s) =>
+                  fun (hs : s ∈ S) =>
+                    let a := (Iff.mp (spec_is_spec (fun (P) => ∃ i ∈ I; is_maximal 𝓐 (B _ i) P) (setPO(𝓐)) s) hs)
+                    Exists.elim (And.right a) (
+                      fun (i) =>
+                        fun (hi : i ∈ I ∧ is_maximal 𝓐 (B _ i) s) =>
+                          Iff.mpr (spec_is_spec (fun (P) => ∃ i ∈ I; is_maximum 𝓐 (B _ i) P) (setPO(𝓐)) s) (
+                            And.intro (And.left a) (
+                              Exists.intro i (
+                                And.intro (And.left hi) (Iff.mp (linmax_al_um 𝓐 (B _ i) s (h𝓐) (hset i (And.left hi))) (
+                                  And.right hi
+                                ))
+                              )
+                            )
+                          )
+                    )
+
+              let TSeq := sub_sub_then_eq T S (TS) (ST)
+
+
+
+
+              let u₁ := specification_set_subset (fun (P) => ∃ i ∈ I; is_maximum 𝓐 (B _ i) P) (setPO(𝓐))
+
+              let u₂ := linmax_al_um 𝓐 (⋃[i in I] B at i) x (h𝓐) (u₀)
+              let u₃ := linmax_al_um 𝓐 ({y ∈ setPO(𝓐) | ∃ i ∈ I; is_maximum 𝓐 (B _ i) y}) x (h𝓐) (u₁)
+
+
+              Iff.intro (
+                fun (halx : (is_maximal 𝓐 (⋃[i in I] B at i) x) ) =>
+                  let humx := Iff.mp (u₂) halx
+                  let prop := Iff.mp (partmax_um_un_prop 𝓐 B I x (And.left h𝓐) hBI hmin hset) humx
+
+                  let res := Iff.mpr u₃ (prop)
+
+                  eq_subst (fun (t) => is_maximal 𝓐 t x) T S (TSeq) (res)
+
+              ) (
+                fun (halx : is_maximal 𝓐 S x) =>
+                  let u₄ := eq_subst (fun (t) => is_maximal 𝓐 t x) S T (Eq.symm TSeq) (halx)
+                  let u₅ := Iff.mp (u₃) u₄
+                  let u₆ := Iff.mpr (partmax_um_un_prop 𝓐 B I x (And.left h𝓐) hBI hmin hset) u₅
+                  Iff.mpr (u₂) u₆
+              )
+
+
+
+theorem linsup_al : ∀ 𝓐 B x, (LinOrd 𝓐) → ((is_supremum 𝓐 B x) ↔ (is_minimal 𝓐 (𝓐 ▴ B) x)) :=
+  fun (𝓐 B x) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+        let u₀ := specification_set_subset (fun (P) => is_upper_bound 𝓐 B P) (setPO(𝓐))
+        let u := linmin_al_um 𝓐 (𝓐 ▴ B) x h𝓐 u₀
+        Iff.intro (Iff.mpr u) (Iff.mp u)
+
+theorem lininf_al : ∀ 𝓐 B x, (LinOrd 𝓐) → ((is_infimum 𝓐 B x) ↔ (is_maximal 𝓐 (𝓐 ▾ B) x)) :=
+  fun (𝓐 B x) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      let u₀ := specification_set_subset (fun (P) => is_lower_bound 𝓐 B P) (setPO(𝓐))
+      let u := linmax_al_um 𝓐 (𝓐 ▾ B) x h𝓐 u₀
+      Iff.intro (Iff.mpr u) (Iff.mp u)
+
+
+theorem lin_supr_subset : ∀ 𝓐 B C, (LinOrd 𝓐) →
+ (B ⊆ C) → (𝓐 SuprExi C) → (𝓐 SuprExi B) → (((𝓐 Supr B) . (≼(𝓐)) . (𝓐 Supr C))) :=
+  fun (𝓐 B C) =>
+    fun (h𝓐 : (LinOrd 𝓐) ) =>
+      fun (hBC : (B ⊆ C)) =>
+        fun (hC : (𝓐 SuprExi C)) =>
+          fun (hB : (𝓐 SuprExi B)) =>
+            let u := supr_subset 𝓐 B C (And.left h𝓐) hBC hC hB
+            let suprB := And.left (supr_po_prop 𝓐 B (And.left h𝓐) (hB))
+            let suprBupp := And.left (Iff.mp (upp_bou_set_is_upp_bou 𝓐 B (𝓐 Supr B)) suprB)
+            let suprC := And.left (supr_po_prop 𝓐 C (And.left h𝓐) (hC))
+            let suprCupp := And.left (Iff.mp (upp_bou_set_is_upp_bou 𝓐 C (𝓐 Supr C)) suprC)
+            lin_ord_nR₁ 𝓐 (h𝓐) (𝓐 Supr C) (suprCupp) (𝓐 Supr B) (suprBupp) u
+
+
+theorem lin_infm_subset : ∀ 𝓐 B C, (LinOrd 𝓐) →
+ (B ⊆ C) → (𝓐 InfmExi C) → (𝓐 InfmExi B) → (((𝓐 Infm C) . (≼(𝓐)) . (𝓐 Infm B))) :=
+  fun (𝓐 B C) =>
+    fun (h𝓐 : (LinOrd 𝓐) ) =>
+      fun (hBC : (B ⊆ C)) =>
+        fun (hC : (𝓐 InfmExi C)) =>
+          fun (hB : (𝓐 InfmExi B)) =>
+            let u := infm_subset 𝓐 B C (And.left h𝓐) hBC hC hB
+            let suprB := And.left (inf_po_prop 𝓐 B (And.left h𝓐) (hB))
+            let suprBupp := And.left (Iff.mp (low_bou_set_is_low_bou 𝓐 B (𝓐 Infm B)) suprB)
+            let suprC := And.left (inf_po_prop 𝓐 C (And.left h𝓐) (hC))
+            let suprCupp := And.left (Iff.mp (low_bou_set_is_low_bou 𝓐 C (𝓐 Infm C)) suprC)
+            lin_ord_nR₁ 𝓐 (h𝓐) (𝓐 Infm B) (suprBupp) (𝓐 Infm C) (suprCupp) u
+
+
+
+theorem linsup_un_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 SuprExi (B _ i)))
+ → ((is_supremum 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_supremum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_supremum 𝓐 (B _ i) y} x)) :=
+    fun (𝓐 B I x) =>
+      fun (h𝓐 : (LinOrd 𝓐)) =>
+        fun (hBI : (B Indx I)) =>
+          fun (hsupr : (∀ i ∈ I; (𝓐 SuprExi (B _ i)))) =>
+              let A := setPO(𝓐)
+              let P := fun (t) => ∃ i ∈ I; is_supremum 𝓐 (B _ i) t
+              let U := ⋃[i in I] B at i
+              let T := {y ∈ setPO(𝓐) | ∃ i ∈ I; is_supremum 𝓐 (B _ i) y}
+              Iff.intro
+              (
+                fun (hsupx : (is_supremum 𝓐 U x)) =>
+                  let u := And.left hsupx
+                  let v := And.left (Iff.mp (upp_bou_set_is_upp_bou 𝓐 U x) u)
+                  And.intro (
+                    Iff.mpr (upp_bou_set_is_upp_bou 𝓐 T x) (
+                      And.intro (v) (
+                        fun (y) =>
+                          fun (hy : y ∈ T) =>
+                            let s := And.right (Iff.mp (spec_is_spec P A y) hy)
+                            Exists.elim s (
+                              fun (i) =>
+                                fun (hi : i ∈ I ∧ (is_supremum 𝓐 (B _ i) y)) =>
+                                  let u₁ := lin_supr_subset 𝓐 (B _ i) (U) (h𝓐) (
+                                    indexed_sub_indexed_union B I (hBI) i (And.left hi)
+                                  ) (Exists.intro x hsupx) (Exists.intro y (And.right hi))
+                                  let v₁ := Iff.mp (supr_po_crit 𝓐 U x (And.left h𝓐) (Exists.intro x hsupx)) hsupx
+                                  let v₂ := Iff.mp (supr_po_crit 𝓐 (B _ i) y (And.left h𝓐) (Exists.intro y (And.right hi))) (And.right hi)
+                                  let v₃ := eq_subst (fun (t) => (t, 𝓐 Supr U) ∈ (≼(𝓐))) (𝓐 Supr (B _ i)) y (Eq.symm v₂) u₁
+                                  eq_subst (fun (t) => (y, t) ∈ (≼(𝓐))) (𝓐 Supr U) x (Eq.symm v₁) v₃
+                            )
+                      )
+                    )
+                  ) (
+                    fun (y) =>
+                      fun (hy : y ∈ (𝓐 ▴ T)) =>
+                        let u := Iff.mp (upp_bou_set_is_upp_bou 𝓐 T y) hy
+                        let v := And.left u
+                        (And.right hsupx) y (
+                          Iff.mpr (upp_bou_set_is_upp_bou 𝓐 U y) (
+                            And.intro (v) (
+                              fun (s) =>
+                                fun (hs : s ∈ U) =>
+                                  let m := Iff.mp (indexed_union_is_union B I (hBI) s) hs
+                                  Exists.elim m (
+                                    fun (i) =>
+                                      fun (hi : i ∈ I ∧ s ∈ (B _ i)) =>
+                                        let u₂ := hsupr i (And.left hi)
+                                        Exists.elim u₂ (
+                                          fun (sup) =>
+                                            fun (hsup : is_supremum 𝓐 (B _ i) sup) =>
+                                              let u₃ := And.left hsup
+                                              let u₄ := Iff.mp (upp_bou_set_is_upp_bou 𝓐 (B _ i) sup) u₃
+                                              let u₅ := And.right u₄ s (And.right hi)
+                                              let a := And.left u₄
+                                              let u₆ := Iff.mpr (spec_is_spec P A sup) (And.intro
+                                              (a) (Exists.intro i (And.intro (And.left hi) (hsup)))
+                                              )
+                                              let u₇ := And.right u sup u₆
+                                              trans_R₂ 𝓐 (And.left h𝓐) s sup y u₅ u₇
+                                        )
+                                  )
+                            )
+                          )
+                        )
+                  )
+              )
+              (
+                fun (hx : is_supremum 𝓐 T x) =>
+                  let u := And.left hx
+                  let v := Iff.mp (upp_bou_set_is_upp_bou 𝓐 T x) u
+                  let v₁ := And.left v
+                  And.intro (
+                    Iff.mpr (upp_bou_set_is_upp_bou 𝓐 U x) (
+                      And.intro (v₁) (
+                        fun (y) =>
+                          fun (hy : y ∈ U) =>
+                            let u₁ := Iff.mp (indexed_union_is_union B I (hBI) y) hy
+                            Exists.elim u₁ (
+                              fun (i) =>
+                                fun (hi : i ∈ I ∧ y ∈ (B _ i)) =>
+                                  let u₂ := hsupr i (And.left hi)
+                                  Exists.elim u₂ (
+                                    fun (sup) =>
+                                      fun (hsup : is_supremum 𝓐 (B _ i) sup) =>
+                                        let u₃ := And.left hsup
+                                        let u₄ := Iff.mp (upp_bou_set_is_upp_bou 𝓐 (B _ i) sup) u₃
+                                        let u₅ := And.right u₄ y (And.right hi)
+                                        let u₆ := Iff.mpr (spec_is_spec P A sup) (
+                                          And.intro (And.left u₄) (Exists.intro i (
+                                            And.intro (And.left hi) (hsup)
+                                          ))
+                                        )
+                                        let u₇ := And.left hx
+                                        let u₈ := Iff.mp (upp_bou_set_is_upp_bou 𝓐 T x) u₇
+                                        let u₉ := And.right u₈ sup u₆
+                                        trans_R₂ (𝓐) (And.left h𝓐) y sup x u₅ u₉
+                                  )
+                            )
+                      )
+                    )
+                  ) (
+                    fun (y) =>
+                      fun (hy : y ∈ (𝓐 ▴ U)) =>
+                        let v := Iff.mp (upp_bou_set_is_upp_bou 𝓐 U y) hy
+                        let v₁ := And.left v
+                        let u := Iff.mpr (upp_bou_set_is_upp_bou 𝓐 T y) (
+                          And.intro (v₁) (
+                            fun (x) =>
+                              fun (hx : x ∈ T) =>
+                                let v₂ := Iff.mp (spec_is_spec P A x) hx
+                                let v₃ := And.right v₂
+                                Exists.elim v₃ (
+                                  fun (i) =>
+                                    fun (hi : i ∈ I ∧ is_supremum 𝓐 (B _ i) x) =>
+                                      let v₄ := Iff.mpr (upp_bou_set_is_upp_bou 𝓐 (B _ i) y) (
+                                        And.intro (v₁) (
+                                          fun (m) =>
+                                            fun (hm : m ∈ (B _ i)) =>
+                                              let v₅ := indexed_sub_indexed_union B I (hBI) i (And.left hi) m hm
+                                              And.right v m v₅
+                                        )
+                                      )
+                                      And.right (And.right hi) y v₄
+                                )
+
+                          )
+                        )
+                        And.right hx y u
+                  )
+              )
+
+
+
+
+theorem lininf_un_prop : ∀ 𝓐 B I x, (LinOrd 𝓐) → (B Indx I) → (∀ i ∈ I; (𝓐 InfmExi (B _ i)))
+→ ((is_infimum 𝓐 (⋃[i in I] B at i) x) ↔ (
+  is_infimum 𝓐 {y ∈ setPO(𝓐) | ∃ i ∈ I; is_infimum 𝓐 (B _ i) y} x)) :=
+  fun (𝓐 B I x) =>
+      fun (h𝓐 : (LinOrd 𝓐)) =>
+        fun (hBI : (B Indx I)) =>
+          fun (hsupr : (∀ i ∈ I; (𝓐 InfmExi (B _ i)))) =>
+              let A := setPO(𝓐)
+              let P := fun (t) => ∃ i ∈ I; is_infimum 𝓐 (B _ i) t
+              let U := ⋃[i in I] B at i
+              let T := {y ∈ setPO(𝓐) | ∃ i ∈ I; is_infimum 𝓐 (B _ i) y}
+              Iff.intro
+              (
+                fun (hsupx : (is_infimum 𝓐 U x)) =>
+                  let u := And.left hsupx
+                  let v := And.left (Iff.mp (low_bou_set_is_low_bou 𝓐 U x) u)
+                  And.intro (
+                    Iff.mpr (low_bou_set_is_low_bou 𝓐 T x) (
+                      And.intro (v) (
+                        fun (y) =>
+                          fun (hy : y ∈ T) =>
+                            let s := And.right (Iff.mp (spec_is_spec P A y) hy)
+                            Exists.elim s (
+                              fun (i) =>
+                                fun (hi : i ∈ I ∧ (is_infimum 𝓐 (B _ i) y)) =>
+                                  let u₁ := lin_infm_subset 𝓐 (B _ i) (U) (h𝓐) (
+                                    indexed_sub_indexed_union B I (hBI) i (And.left hi)
+                                  ) (Exists.intro x hsupx) (Exists.intro y (And.right hi))
+                                  let v₁ := Iff.mp (infm_po_crit 𝓐 U x (And.left h𝓐) (Exists.intro x hsupx)) hsupx
+                                  let v₂ := Iff.mp (infm_po_crit 𝓐 (B _ i) y (And.left h𝓐) (Exists.intro y (And.right hi))) (And.right hi)
+                                  let v₃ := eq_subst (fun (t) => (𝓐 Infm U, t) ∈ (≼(𝓐))) (𝓐 Infm (B _ i)) y (Eq.symm v₂) u₁
+                                  eq_subst (fun (t) => (t, y) ∈ (≼(𝓐))) (𝓐 Infm U) x (Eq.symm v₁) v₃
+                            )
+                      )
+                    )
+                  ) (
+                    fun (y) =>
+                      fun (hy : y ∈ (𝓐 ▾ T)) =>
+                        let u := Iff.mp (low_bou_set_is_low_bou 𝓐 T y) hy
+                        let v := And.left u
+                        (And.right hsupx) y (
+                          Iff.mpr (low_bou_set_is_low_bou 𝓐 U y) (
+                            And.intro (v) (
+                              fun (s) =>
+                                fun (hs : s ∈ U) =>
+                                  let m := Iff.mp (indexed_union_is_union B I (hBI) s) hs
+                                  Exists.elim m (
+                                    fun (i) =>
+                                      fun (hi : i ∈ I ∧ s ∈ (B _ i)) =>
+                                        let u₂ := hsupr i (And.left hi)
+                                        Exists.elim u₂ (
+                                          fun (sup) =>
+                                            fun (hsup : is_infimum 𝓐 (B _ i) sup) =>
+                                              let u₃ := And.left hsup
+                                              let u₄ := Iff.mp (low_bou_set_is_low_bou 𝓐 (B _ i) sup) u₃
+                                              let u₅ := And.right u₄ s (And.right hi)
+                                              let a := And.left u₄
+                                              let u₆ := Iff.mpr (spec_is_spec P A sup) (And.intro
+                                              (a) (Exists.intro i (And.intro (And.left hi) (hsup)))
+                                              )
+                                              let u₇ := And.right u sup u₆
+                                              trans_R₂ 𝓐 (And.left h𝓐) y sup s u₇ u₅
+                                        )
+                                  )
+                            )
+                          )
+                        )
+                  )
+              )
+              (
+                fun (hx : is_infimum 𝓐 T x) =>
+                  let u := And.left hx
+                  let v := Iff.mp (low_bou_set_is_low_bou 𝓐 T x) u
+                  let v₁ := And.left v
+                  And.intro (
+                    Iff.mpr (low_bou_set_is_low_bou 𝓐 U x) (
+                      And.intro (v₁) (
+                        fun (y) =>
+                          fun (hy : y ∈ U) =>
+                            let u₁ := Iff.mp (indexed_union_is_union B I (hBI) y) hy
+                            Exists.elim u₁ (
+                              fun (i) =>
+                                fun (hi : i ∈ I ∧ y ∈ (B _ i)) =>
+                                  let u₂ := hsupr i (And.left hi)
+                                  Exists.elim u₂ (
+                                    fun (sup) =>
+                                      fun (hsup : is_infimum 𝓐 (B _ i) sup) =>
+                                        let u₃ := And.left hsup
+                                        let u₄ := Iff.mp (low_bou_set_is_low_bou 𝓐 (B _ i) sup) u₃
+                                        let u₅ := And.right u₄ y (And.right hi)
+                                        let u₆ := Iff.mpr (spec_is_spec P A sup) (
+                                          And.intro (And.left u₄) (Exists.intro i (
+                                            And.intro (And.left hi) (hsup)
+                                          ))
+                                        )
+                                        let u₇ := And.left hx
+                                        let u₈ := Iff.mp (low_bou_set_is_low_bou 𝓐 T x) u₇
+                                        let u₉ := And.right u₈ sup u₆
+                                        trans_R₂ (𝓐) (And.left h𝓐) x sup y u₉ u₅
+                                  )
+                            )
+                      )
+                    )
+                  ) (
+                    fun (y) =>
+                      fun (hy : y ∈ (𝓐 ▾ U)) =>
+                        let v := Iff.mp (low_bou_set_is_low_bou 𝓐 U y) hy
+                        let v₁ := And.left v
+                        let u := Iff.mpr (low_bou_set_is_low_bou 𝓐 T y) (
+                          And.intro (v₁) (
+                            fun (x) =>
+                              fun (hx : x ∈ T) =>
+                                let v₂ := Iff.mp (spec_is_spec P A x) hx
+                                let v₃ := And.right v₂
+                                Exists.elim v₃ (
+                                  fun (i) =>
+                                    fun (hi : i ∈ I ∧ is_infimum 𝓐 (B _ i) x) =>
+                                      let v₄ := Iff.mpr (low_bou_set_is_low_bou 𝓐 (B _ i) y) (
+                                        And.intro (v₁) (
+                                          fun (m) =>
+                                            fun (hm : m ∈ (B _ i)) =>
+                                              let v₅ := indexed_sub_indexed_union B I (hBI) i (And.left hi) m hm
+                                              And.right v m v₅
+                                        )
+                                      )
+                                      And.right (And.right hi) y v₄
+                                )
+
+                          )
+                        )
+                        And.right hx y u
+                  )
+              )
+
+
+theorem lin_latt_lemma₁ : ∀ 𝓐, ∀ x y ∈ setPO(𝓐); (LinOrd 𝓐) → (x . (≼(𝓐)) . y) → (is_supremum 𝓐 {x, y} y) :=
+  fun (𝓐) =>
+    fun (x) =>
+      fun (hx) =>
+        fun (y) =>
+          fun (hy) =>
+            fun (h𝓐) =>
+              fun (hxy) =>
+                let u₀ := fun (s) =>
+                        fun (hs : s ∈ {x , y}) =>
+                    Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair x y s) hs)
+                    (
+                      fun (hx₁ : s = x) =>
+                        eq_subst (fun (t) => t ∈ setPO(𝓐)) x s (Eq.symm hx₁) (hx)
+                    )
+                    (
+                      fun (hy₁ : s = y) =>
+                        eq_subst (fun (t) => t ∈ setPO(𝓐)) y s (Eq.symm hy₁) (hy)
+                    )
+                let u₁ := And.intro (right_unordered_pair x y) (
+                  fun (s) =>
+                    fun (hs : s ∈ {x, y}) =>
+                      let u := Iff.mp (unordered_pair_set_is_unordered_pair x y s) hs
+                      Or.elim u
+                      (
+                        fun (hx₁ : s = x) =>
+                          eq_subst (fun (t) => (t, y) ∈ (≼(𝓐))) x s (Eq.symm hx₁) (hxy)
+                      )
+                      (
+                        fun (hy₁ : s = y) =>
+                          eq_subst (fun (t) => (t, y) ∈ (≼(𝓐))) y s (Eq.symm hy₁) (refl_R₂ 𝓐 (And.left h𝓐) y hy)
+                      )
+                )
+                max_um_is_sup 𝓐 {x, y} y (u₀) (u₁)
+
+
+
+theorem lin_latt_lemma₂ : ∀ 𝓐, ∀ x y ∈ setPO(𝓐); (LinOrd 𝓐) → (x . (≼(𝓐)) . y) → (is_infimum 𝓐 {x, y} x) :=
+  fun (𝓐) =>
+    fun (x) =>
+      fun (hx) =>
+        fun (y) =>
+          fun (hy) =>
+            fun (h𝓐) =>
+              fun (hxy) =>
+                let u₀ := fun (s) =>
+                        fun (hs : s ∈ {x , y}) =>
+                    Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair x y s) hs)
+                    (
+                      fun (hx₁ : s = x) =>
+                        eq_subst (fun (t) => t ∈ setPO(𝓐)) x s (Eq.symm hx₁) (hx)
+                    )
+                    (
+                      fun (hy₁ : s = y) =>
+                        eq_subst (fun (t) => t ∈ setPO(𝓐)) y s (Eq.symm hy₁) (hy)
+                    )
+
+                let u₁ := And.intro (left_unordered_pair x y) (
+                  fun (s) =>
+                    fun (hs : s ∈ {x, y}) =>
+
+                      let u := Iff.mp (unordered_pair_set_is_unordered_pair x y s) hs
+                      Or.elim u
+                      (
+                        fun (hx₁ : s = x) =>
+                          eq_subst (fun (t) => (x, t) ∈ (≼(𝓐))) x s (Eq.symm hx₁) (refl_R₂ 𝓐 (And.left h𝓐) x hx)
+                      )
+                      (
+                        fun (hy₁ : s = y) =>
+                          eq_subst (fun (t) => (x, t) ∈ (≼(𝓐))) y s (Eq.symm hy₁) (hxy)
+                      )
+                )
+                min_um_is_inf 𝓐 {x, y} x (u₀) (u₁)
+
+
+
+theorem lin_latt : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) :=
+  fun (𝓐) =>
+    fun (h𝓐 : (LinOrd 𝓐)) =>
+      And.intro (And.left h𝓐) (
+        fun (x) =>
+          fun (hx : (x ∈ setPO(𝓐))) =>
+            fun (y) =>
+              fun (hy : (y ∈ setPO(𝓐))) =>
+                let u := lin_ord_prop 𝓐 (h𝓐) x hx y hy
+                Or.elim u
+                (
+                  fun (hxy : (x . (≼(𝓐)) . y)) =>
+                    And.intro (Exists.intro y (lin_latt_lemma₁ 𝓐 x hx y hy h𝓐 hxy)) (
+                      Exists.intro x (lin_latt_lemma₂ 𝓐 x hx y hy h𝓐 hxy)
+                    )
+                )
+                (
+                  fun (hyx : (y . (≼(𝓐)) . x)) =>
+                    let u₁ := lin_latt_lemma₁ 𝓐 y hy x hx h𝓐 hyx
+                    let u₂ := lin_latt_lemma₂ 𝓐 y hy x hx h𝓐 hyx
+                    let u₃ := extensionality {x, y} {y, x} (
+                      fun (t) =>
+                        Iff.intro
+                        (
+                          fun (ht : t ∈ {x, y}) =>
+                              Iff.mpr (unordered_pair_set_is_unordered_pair y x t) (
+                                Iff.mp (disj_comm (t = x) (t = y)) (
+                                  Iff.mp (unordered_pair_set_is_unordered_pair x y t) ht
+                                )
+                              )
+                        )
+                        (
+                          fun (ht : t ∈ {y, x}) =>
+                              Iff.mpr (unordered_pair_set_is_unordered_pair x y t) (
+                                Iff.mp (disj_comm (t = y) (t = x)) (
+                                  Iff.mp (unordered_pair_set_is_unordered_pair y x t) ht
+                                )
+                              )
+                        )
+                    )
+                    let u₄ := eq_subst (fun (t) => is_supremum 𝓐 t x) {y, x} {x, y} (Eq.symm u₃) u₁
+                    let u₅ := eq_subst (fun (t) => is_infimum 𝓐 t y) {y, x} {x, y} (Eq.symm u₃) u₂
+                    And.intro (Exists.intro x (u₄)) (
+                      Exists.intro y (u₅)
+                    )
+                )
+      )
+
+
+def is_well_order 𝓐 := (LinOrd 𝓐) ∧ ∀ X, (X ≠ ∅) → (X ⊆ setPO(𝓐)) → (𝓐 MinExi X)
+syntax "WellOrd" term : term
+macro_rules
+| `(WellOrd $𝓐) => `(is_well_order $𝓐)
+
+
+def is_chain (𝓐 B) := (PartOrd 𝓐) ∧ (B ⊆ setPO(𝓐)) ∧ (LinOrd (𝓐 SubsPO B))
+syntax term "Chain" term : term
+macro_rules
+| `($𝓐 Chain $B) => `(is_chain $𝓐 $B)
+
+def anti_chain (𝓐 B) := (PartOrd 𝓐) ∧ (B ⊆ setPO(𝓐)) ∧ (∀ x y ∈ B; noncomparable_str 𝓐 x y)
+syntax term "AntiChain" term : term
+macro_rules
+| `($𝓐 AntiChain $B) => `(anti_chain $𝓐 $B)
+
+theorem lin_chain : ∀ 𝓐 B, (B ≠ ∅) → (B ⊆ setPO(𝓐)) →  (LinOrd 𝓐) → (𝓐 Chain B) :=
+  fun (𝓐 B) =>
+    fun (hemp : (B ≠ ∅)) =>
+      fun (hB : (B ⊆ setPO(𝓐))) =>
+        fun (h𝓐 : (LinOrd 𝓐)) =>
+          let u := sub_is_LO 𝓐 B (hemp) (h𝓐) (hB)
+          And.intro (And.left h𝓐) (And.intro (hB) (u))
+
+
+theorem antichain : ∀ 𝓐 𝓑, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartPO 𝓑) AntiChain (A × B)) :=
+  fun (𝓐 𝓑) =>
+    fun (h𝓐 : (𝓐 AntiChain A)) =>
+      fun (h𝓑 : (𝓑 AntiChain B)) =>
+        let L₀ := (≼(𝓐 CartPO 𝓑))
+        let L₂ := (le_cart 𝓐 𝓑)
+        let L₃ := (leq_cart 𝓐 𝓑)
+        let S := setPO(𝓐) × setPO(𝓑)
+        let cart_po_po := cart_PO_PO 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑)
+        let ABsub₀ := cartesian_product_subset A B (setPO(𝓐)) (setPO(𝓑)) (And.left (And.right h𝓐)) (And.left (And.right h𝓑))
+        let ABsub := eq_subst (fun (t) => (A × B) ⊆ t) (setPO(𝓐) × setPO(𝓑)) (setPO(𝓐 CartPO 𝓑)) (Eq.symm (setPO_is_setPO (setPO(𝓐) × setPO(𝓑))
+            (le_cart 𝓐 𝓑) (leq_cart 𝓐 𝓑))) (
+              ABsub₀
+            )
+        And.intro (cart_PO_PO 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑)) (
+          And.intro (ABsub
+          ) (
+
+            fun (x) =>
+              fun (hx : x ∈ A × B) =>
+                fun (y) =>
+                  fun (hy : y ∈ A × B) =>
+                    let hxcart := ABsub x hx
+                    let hycart := ABsub y hy
+                    let hx𝓐₁ := And.left (And.right h𝓐) (π₁ x) (fst_coor_set A B x hx)
+                    let hx𝓑₂ := And.left (And.right h𝓑) (π₂ x) (snd_coor_set A B x hx)
+                    let hy𝓐₁ := And.left (And.right h𝓐) (π₁ y) (fst_coor_set A B y hy)
+                    let hy𝓑₂ := And.left (And.right h𝓑) (π₂ y) (snd_coor_set A B y hy)
+
+                    And.intro (
+
+                      fun (hxy : (x, y) ∈ ≺(𝓐 CartPO 𝓑)) =>
+                        let u₁ := Iff.mp (And.left (part_ord_pair_prop (𝓐 CartPO 𝓑) cart_po_po x hxcart y hycart)) hxy
+                        let u₂ := eq_subst (fun (t) => (x, y) ∈ t) L₀ L₃ (lesseqPO_is_lesseqPO S L₂ L₃) (And.left u₁)
+                        let u₃ := Iff.mp (leq_cart_prop 𝓐 𝓑 x (ABsub₀ x hx) y (ABsub₀ y hy)) u₂
+                        let u₄ := And.right u₁
+                        let u₅ := fst_snd_then_unique A B x hx
+                        let u₆ := fst_snd_then_unique A B y hy
+                        let u₇ := fun (hxyeq : (π₁ x) = (π₁ y) ∧ (π₂ x) = (π₂ y)) =>
+                          let u₈ := Iff.mpr (ordered_pair_set_prop (π₁ x) (π₂ x) (π₁ y) (π₂ y)) hxyeq
+                          let u₉ := Eq.trans (u₅) (u₈)
+                          let u₁₀ := Eq.trans u₉ (Eq.symm u₆)
+                          u₄ u₁₀
+                        let u₈ : ((π₁ x) ≠ (π₁ y)) ∨ ((π₂ x) ≠ (π₂ y)) := Iff.mp (morgan_comm ((π₁ x) = (π₁ y)) ((π₂ x) = (π₂ y))) u₇
+                        Or.elim u₈
+                        (
+                          fun (hπ₁ : (π₁ x) ≠ (π₁ y)) =>
+                            let u₉ := Iff.mpr (And.left (part_ord_pair_prop 𝓐 (And.left h𝓐) (π₁ x) (hx𝓐₁) (π₁ y) (hy𝓐₁))) (
+                              And.intro (And.left u₃) (hπ₁)
+                            )
+                            And.left (And.right (And.right h𝓐) (π₁ x) (fst_coor_set A B x hx) (π₁ y) (fst_coor_set A B y hy)) u₉
+                        )
+                        (
+                          fun (hπ₂ : (π₂ x) ≠ (π₂ y)) =>
+                            let u₉ := Iff.mpr (And.left (part_ord_pair_prop 𝓑 (And.left h𝓑) (π₂ x) (hx𝓑₂) (π₂ y) (hy𝓑₂))) (
+                              And.intro (And.right u₃) (hπ₂)
+                            )
+                            And.left (And.right (And.right h𝓑) (π₂ x) (snd_coor_set A B x hx) (π₂ y) (snd_coor_set A B y hy)) u₉
+                        )
+
+
+
+                    ) (
+                      fun (hyx : (x, y) ∈ ≻(𝓐 CartPO 𝓑)) =>
+                        let hxy : (y, x) ∈ ≺(𝓐 CartPO 𝓑) := Iff.mpr (po_less_more (𝓐 CartPO 𝓑) (cart_po_po) y x) (hyx)
+                        let u₁ := Iff.mp (And.left (part_ord_pair_prop (𝓐 CartPO 𝓑) cart_po_po y hycart x hxcart)) hxy
+                        let u₂ := eq_subst (fun (t) => (y, x) ∈ t) L₀ L₃ (lesseqPO_is_lesseqPO S L₂ L₃) (And.left u₁)
+                        let u₃ := Iff.mp (leq_cart_prop 𝓐 𝓑 y (ABsub₀ y hy) x (ABsub₀ x hx)) u₂
+                        let u₄ := And.right u₁
+                        let u₅ := fst_snd_then_unique A B x hx
+                        let u₆ := fst_snd_then_unique A B y hy
+                        let u₇ := fun (hxyeq : (π₁ y) = (π₁ x) ∧ (π₂ y) = (π₂ x)) =>
+                          let u₈ := Iff.mpr (ordered_pair_set_prop (π₁ y) (π₂ y) (π₁ x) (π₂ x)) hxyeq
+                          let u₉ := Eq.trans (u₆) (u₈)
+                          let u₁₀ := Eq.trans u₉ (Eq.symm u₅)
+                          u₄ u₁₀
+                        let u₈ : ((π₁ y) ≠ (π₁ x)) ∨ ((π₂ y) ≠ (π₂ x)) := Iff.mp (morgan_comm ((π₁ y) = (π₁ x)) ((π₂ y) = (π₂ x))) u₇
+                        Or.elim u₈
+                        (
+                          fun (hπ₁ : (π₁ y) ≠ (π₁ x)) =>
+                            let u₉ := Iff.mpr (And.left (part_ord_pair_prop 𝓐 (And.left h𝓐) (π₁ y) (hy𝓐₁) (π₁ x) (hx𝓐₁))) (
+                              And.intro (And.left u₃) (hπ₁)
+                            )
+                            And.left (And.right (And.right h𝓐) (π₁ y) (fst_coor_set A B y hy) (π₁ x) (fst_coor_set A B x hx)) u₉
+                        )
+                        (
+                          fun (hπ₂ : (π₂ y) ≠ (π₂ x)) =>
+                            let u₉ := Iff.mpr (And.left (part_ord_pair_prop 𝓑 (And.left h𝓑) (π₂ y) (hy𝓑₂) (π₂ x) (hx𝓑₂))) (
+                              And.intro (And.right u₃) (hπ₂)
+                            )
+                            And.left (And.right (And.right h𝓑) (π₂ y) (snd_coor_set A B y hy) (π₂ x) (snd_coor_set A B x hx)) u₉
+                        )
+                    )
+          )
+        )
+
+
+def ispo_iso (𝓐 𝓑 f : Set) := (f Bij setPO(𝓐) To setPO(𝓑)) ∧ (∀ x y ∈ setPO(𝓐); (x . ≼(𝓐) . y) ↔ ((f⦅x⦆) . (≼(𝓑)) . (f⦅y⦆)))
+syntax term "PO_ISO" term "To" term : term
+macro_rules
+| `($f PO_ISO $𝓐 To $𝓑) => `(ispo_iso $𝓐 $𝓑 $f)
+
+def pos_iso (𝓐 𝓑 : Set) := ∃ f, (f PO_ISO 𝓐 To 𝓑)
+syntax term "P≃O" term : term
+macro_rules
+| `($𝓐 P≃O $𝓑) => `(pos_iso $𝓐 $𝓑)
+
+
+theorem iso_equin : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (setPO(𝓐) ~ setPO(𝓑)) :=
+  fun (𝓐 𝓑) =>
+    fun (h𝓐𝓑 : (𝓐 P≃O 𝓑)) =>
+      Exists.elim h𝓐𝓑 (
+        fun (f) =>
+          fun (hf) =>
+            Exists.intro f (And.left hf)
+      )
+
+
+theorem iso_eq : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → ∀ x y ∈ setPO(𝓐); (x = y) ↔ ((f⦅x⦆) = (f⦅y⦆)) :=
+  fun (𝓐 𝓑 f) =>
+    fun (hf) =>
+      fun (x) =>
+        fun (hx) =>
+          fun (y) =>
+            fun (hy) =>
+              Iff.intro
+              (
+                fun (hxy : (x = y)) =>
+                  eq_subst (fun (t) => (f⦅t⦆) = (f⦅y⦆)) y x (Eq.symm hxy) (Eq.refl (f⦅y⦆))
+              )
+              (
+                fun (hfxy : (f⦅x⦆) = (f⦅y⦆)) =>
+                  let u := And.left (And.left hf)
+                  let v := And.left (And.right (And.left hf))
+                  let s := And.intro u v
+
+                  Iff.mp (func_inj_prop setPO(𝓐) setPO(𝓑) f (u)) s x hx y hy hfxy
+              )
+
+
+theorem iso_in₁ : ∀ 𝓐 𝓑 f x, (f PO_ISO 𝓐 To 𝓑) → (x ∈ setPO(𝓐)) → ((f⦅x⦆)) ∈ setPO(𝓑) :=
+  fun (𝓐 𝓑 f x) =>
+    fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+      fun (hx : (x ∈ setPO(𝓐))) =>
+        val_in_B f (setPO(𝓐)) (setPO(𝓑)) (And.left (And.left hf)) x hx
+
+
+theorem iso_in₂ : ∀ 𝓐 𝓑 T f x, (x ∈ setPO(𝓐)) → (f PO_ISO 𝓐 To 𝓑) → ((x ∈ T) ↔ (f⦅x⦆) ∈ f.[T]) :=
+  fun (𝓐 𝓑 T f x) =>
+    fun (hx : (x ∈ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+        Iff.intro
+        (
+            fun (hxT : x ∈ T) =>
+              Iff.mpr (image_prop f T (f⦅x⦆)) (
+                Exists.intro x (
+                  And.intro hxT (
+                    Iff.mpr (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) (And.left (And.left hf)) x (f⦅x⦆) hx) (
+                      Eq.refl ((f⦅x⦆))
+                    )
+
+                  )
+                )
+              )
+        )
+        (
+          fun (hfxT : (f⦅x⦆) ∈ f.[T]) =>
+            let u := Iff.mp (image_prop f T (f⦅x⦆)) hfxT
+            Exists.elim u (
+              fun (y) =>
+                fun (hy) =>
+                  let u₀ := And.left (And.left (And.left (And.left hf))) (y, (f⦅x⦆)) (And.right hy)
+                  let u₁ := And.left (Iff.mp (cartesian_product_pair_prop (setPO(𝓐)) setPO(𝓑) y (f⦅x⦆)) u₀)
+                  eq_subst (fun (t) => t ∈ T) y x (Eq.symm (
+                    Iff.mpr (iso_eq 𝓐 𝓑 f hf x hx y (u₁)) (
+                      Iff.mp (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) (And.left (And.left hf)) y (f⦅x⦆) u₁) (And.right hy)
+
+                    )
+
+                  )) (And.left hy)
+            )
+        )
+
+
+
+
+
+theorem iso_R₂ : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → ∀ x y ∈ setPO(𝓐); (x . ≼(𝓐) . y) ↔ ((f⦅x⦆) . (≼(𝓑)) . (f⦅y⦆)) :=
+  fun (𝓐 𝓑 f) =>
+    fun (hf) =>
+      And.right hf
+
+
+
+
+
+theorem iso_refl : ∀ 𝓐, (𝓐 P≃O 𝓐) :=
+  fun (𝓐) =>
+    Exists.intro (id_ setPO(𝓐)) (
+      And.intro (id_is_bij (setPO(𝓐))) (
+        fun (x) =>
+          fun (hx : x ∈ setPO(𝓐)) =>
+            fun (y) =>
+              fun (hy : y ∈ setPO(𝓐)) =>
+                let f := id_ setPO(𝓐)
+                let u := id_val_prop (setPO(𝓐)) x hx
+                let v := id_val_prop (setPO(𝓐)) y hy
+
+                eq_subst (fun (t) => ((x, y) ∈ (≼(𝓐))) ↔ ((t, (f⦅y⦆)) ∈ ≼(𝓐))) x (f⦅x⦆) (Eq.symm u) (
+                    eq_subst (fun (t) => ((x, y) ∈ (≼(𝓐))) ↔ ((x, t) ∈ ≼(𝓐))) y (f⦅y⦆) (Eq.symm v) (
+                      Iff.intro
+                      (
+                        fun (hxy) => hxy
+                      )
+                      (
+                        fun (hxy) => hxy
+                      )
+                    )
+                  )
+          )
+      )
+
+
+
+
+theorem iso_symm : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓐) :=
+  fun (𝓐 𝓑) =>
+    fun (h𝓐𝓑 : (𝓐 P≃O 𝓑)) =>
+      Exists.elim h𝓐𝓑 (
+        fun (f) =>
+          fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+            let u := bijection_inv_mp f setPO(𝓐) setPO(𝓑) (And.left hf)
+            Exists.intro (f⁻¹) (
+              And.intro (u) (
+                fun (x) =>
+                  fun (hx : x ∈ setPO(𝓑)) =>
+                    fun (y) =>
+                      fun (hy : y ∈ setPO(𝓑)) =>
+                        let s := And.left hf
+                        let t := And.left s
+                        let r := And.left t
+                        let k := And.left r
+                        let u₁ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                        let u₂ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u) t) x hx
+                        let u₃ := eq_subst (fun (t) => t⦅x⦆ = (f⦅f⁻¹⦅x⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₁) u₂
+                        let u₄ := id_val_prop (setPO(𝓑)) x hx
+                        let u₅ := Eq.trans (Eq.symm u₄) (u₃)
+
+                        let u₆ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u) t) y hy
+                        let u₇ := eq_subst (fun (t) => t⦅y⦆ = (f⦅f⁻¹⦅y⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₁) u₆
+                        let u₈ := id_val_prop (setPO(𝓑)) y hy
+                        let u₉ := Eq.trans (Eq.symm u₇) (u₈)
+
+                        let xset := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u) x hx
+                        let yset := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u) y hy
+
+                        let res₁ := And.right hf (f⁻¹⦅x⦆) xset (f⁻¹⦅y⦆) yset
+                        let res₂ := Iff.intro (Iff.mpr res₁) (Iff.mp res₁)
+
+                        let res₃ := eq_subst (fun (t) => ((t, (f⦅f⁻¹⦅y⦆⦆)) ∈ ≼(𝓑)) ↔ (((f⁻¹⦅x⦆), (f⁻¹⦅y⦆)) ∈ ≼(𝓐))) (f⦅f⁻¹⦅x⦆⦆) x (Eq.symm u₅) (res₂)
+
+
+                        eq_subst (fun (t) => (((x, t) ∈ ≼(𝓑)) ↔ (((f⁻¹⦅x⦆), (f⁻¹⦅y⦆)) ∈ ≼(𝓐)))) (f⦅f⁻¹⦅y⦆⦆) y (u₉) (res₃)
+              )
+            )
+      )
+
+
+
+theorem iso_trans :  ∀ 𝓐 𝓑 𝓒, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓒) → (𝓐 P≃O 𝓒) :=
+  fun (𝓐 𝓑 𝓒) =>
+    let A := setPO(𝓐)
+    let B := setPO(𝓑)
+    let C := setPO(𝓒)
+    let LA := ≼(𝓐)
+    let LB := ≼(𝓑)
+    let LC := ≼(𝓒)
+    fun (h𝓐𝓑 : (𝓐 P≃O 𝓑)) =>
+      fun (h𝓑𝓒 : (𝓑 P≃O 𝓒)) =>
+
+        Exists.elim h𝓐𝓑 (
+        fun (f) =>
+          fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+              Exists.elim h𝓑𝓒 (
+                fun (g) =>
+                  fun (hg : (g PO_ISO 𝓑 To 𝓒)) =>
+
+                  Exists.intro (g ∘ f) (
+                    And.intro (bijection_composition f g A B C (And.left hf) (And.left hg)) (
+                      fun (x) =>
+                        fun (hx : x ∈ setPO(𝓐)) =>
+                          fun (y) =>
+                            fun (hy : y ∈ setPO(𝓐)) =>
+
+                              let u₁ := And.right hf x hx y hy
+
+                              iff_transitivity (x . LA . y) ((f⦅x⦆) . LB . (f⦅y⦆)) (((g ∘ f)⦅x⦆) . LC . ((g ∘ f)⦅y⦆)) u₁ (
+
+
+                                let u₁ := And.right hg (f⦅x⦆) (val_in_B f A B (And.left (And.left hf)) x hx) (f⦅y⦆) (val_in_B f A B (And.left (And.left hf)) y hy)
+
+                                let u₂ := And.right (function_composition_A f g A B C (And.left (And.left hf)) (And.left (And.left hg))) x hx
+                                let u₃ := And.right (function_composition_A f g A B C (And.left (And.left hf)) (And.left (And.left hg))) y hy
+
+                                eq_subst (fun (t) => (((f⦅x⦆), (f⦅y⦆)) ∈ LB) ↔ (t, ((g ∘ f)⦅y⦆)) ∈ LC) (g⦅f⦅x⦆⦆) ((g ∘ f)⦅x⦆) (Eq.symm u₂) (
+                                  eq_subst (fun (r) => (((f⦅x⦆), (f⦅y⦆)) ∈ LB) ↔ ((((g⦅f⦅x⦆⦆), r) ∈ LC))) (g⦅f⦅y⦆⦆) ((g ∘ f)⦅y⦆) (Eq.symm u₃) (
+                                    u₁
+                                  )
+                                )
+                              )
+                    )
+                  )
+              )
+        )
+
+
+
+theorem iso_R₁ : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐); (x . ≺(𝓐) . y) ↔ ((f⦅x⦆) . (≺(𝓑)) . (f⦅y⦆))) :=
+  fun (𝓐 𝓑 f) =>
+    fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+      fun (h𝓐 : (PartOrd 𝓐)) =>
+        fun (h𝓑 : (PartOrd 𝓑)) =>
+          fun (x) =>
+            fun (hx : x ∈ setPO(𝓐)) =>
+              fun (y) =>
+                fun (hy : y ∈ setPO(𝓐)) =>
+
+                  Iff.intro
+                  (
+                    fun (hxy) =>
+                      let u₀ := Iff.mp (And.left (part_ord_pair_prop 𝓐 h𝓐 x hx y hy)) hxy
+                      let u₀₁ := Iff.mp (iso_R₂ 𝓐 𝓑 f hf x hx y hy) (And.left u₀)
+
+                      Iff.mpr (And.left (part_ord_pair_prop 𝓑 h𝓑 (f⦅x⦆) (iso_in₁ 𝓐 𝓑 f x hf hx) (f⦅y⦆) (iso_in₁ 𝓐 𝓑 f y hf hy))) (
+                        And.intro (u₀₁) (
+                          fun (hfxy : (f⦅x⦆) = (f⦅y⦆)) =>
+                            let u₂ := Iff.mpr (iso_eq 𝓐 𝓑 f hf x hx y hy) hfxy
+                            (And.right u₀) u₂
+                        )
+                      )
+
+                  )
+                  (
+                    fun (hfxy) =>
+                      let u₀ := Iff.mp (And.left (part_ord_pair_prop 𝓑 h𝓑 (f⦅x⦆) (iso_in₁ 𝓐 𝓑 f x hf hx) (f⦅y⦆) (iso_in₁ 𝓐 𝓑 f y hf hy))) hfxy
+                      let u₀₁ := Iff.mpr (iso_R₂ 𝓐 𝓑 f hf x hx y hy) (And.left u₀)
+                      Iff.mpr (And.left (part_ord_pair_prop 𝓐 h𝓐 x hx y hy)) (
+                        And.intro (u₀₁) (
+                          fun (hxy : (x = y)) =>
+                            let u₂ := Iff.mp (iso_eq 𝓐 𝓑 f hf x hx y hy) hxy
+                            (And.right u₀) u₂
+                        )
+                      )
+                  )

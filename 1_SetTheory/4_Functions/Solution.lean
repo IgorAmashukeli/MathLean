@@ -921,6 +921,19 @@ theorem function_no_change_A : ∀ f A B C, (f Fun A To B) → (f Fun C To B) �
           Eq.trans (dom_function f A B hf) (Eq.symm (dom_function f C B hf₂))
 
 
+theorem function_rng_def : ∀ f A B, (f Fun A To B) → (f Fun A To (rng f)) :=
+  fun (f A B) =>
+    fun (hf : (f Fun A To B)) =>
+      And.intro (And.intro (
+        let v := And.left (And.left hf)
+        let v₀ := And.left (prop_then_binary_relation A B f (v))
+        let u := binary_relation_prop f v₀
+        let u₀ := dom_function f A B hf
+        eq_subst (fun (t) => f ⊆ t × (rng f)) (dom f) (A) (Eq.symm u₀) (u)
+
+      ) (And.right (And.left hf))) (And.right hf)
+
+
 
 noncomputable def value_pick (f x : Set) : Set := ⋃ (f  .[ { x } ])
 syntax term "⦅" term "⦆" : term
@@ -1276,6 +1289,34 @@ theorem val_in_rng : ∀ f A B, (f Fun A To B) → ∀ x ∈ A; f⦅x⦆ ∈ rng
   fun (f A B) => fun (h₁ : f Fun A To B) => fun (x) => fun (h₂ : x ∈ A) =>
     let h₃ := function_value_pick_property f A B x h₂ h₁
     Iff.mpr (rng_prop f (f⦅x⦆)) (Exists.intro x (h₃))
+
+
+theorem if_val_in_C : ∀ f A B C, (f Fun A To B) → (∀ x ∈ A; (f⦅x⦆ ∈ C)) → (f Fun A To C) :=
+  fun (f A B C) =>
+    fun (hf : (f Fun A To B)) =>
+      fun (hC : ∀ x ∈ A; (f⦅x⦆ ∈ C)) =>
+        let u := And.left (prop_then_binary_relation A B f (And.left (And.left hf)))
+        let v := And.left (prop_then_binary_relation A C (A × C) (subset_refl (A × C)))
+        And.intro (And.intro (
+          (rel_subset (f) (A × C) u v) (
+            fun (x) =>
+              fun (y) =>
+                fun (hxyf : (x . f . y)) =>
+                  let u₀ := And.left (And.left hf) (x, y) hxyf
+                  let u₁ := And.left (Iff.mp (cartesian_product_pair_prop A B x y) u₀)
+                  Iff.mpr (cartesian_product_pair_prop A C x y) (
+                    And.intro (u₁) (
+                      let u₂ := hC x u₁
+                      eq_subst (fun (t) => t ∈ C) (f⦅x⦆) (y) (
+                        Eq.symm (
+                          Iff.mp (function_equal_value_prop f A B hf x y u₁) (hxyf)
+                        )
+                      ) (u₂)
+                    )
+                  )
+          )
+
+        ) (And.right (And.left hf))) (And.right hf)
 
 
 
@@ -1946,6 +1987,35 @@ theorem fun_restriction_prop : ∀ A B X f, (f Fun A To B) → (f ⨡ X) Fun (A 
     eq_subst (fun (u) => u Fun (A ∩ X) To B) (f ⨡ (A ∩ X)) (f ⨡ X) (h₂) (h₁)
 
 
+theorem fun_restriction_val : ∀ A B X f, (X ⊆ A) → (f Fun A To B) → ∀ x ∈ X; f⦅x⦆ = (f ⨡ X)⦅x⦆ :=
+  fun (A) =>
+    fun (B) =>
+      fun (X) =>
+        fun (f) =>
+          fun(hX : (X ⊆ A)) =>
+            fun (hf : (f Fun A To B)) =>
+              fun (x) =>
+                fun (hx : x ∈ X) =>
+                  let u₀ := hX x hx
+                  let u := Iff.mp (function_equal_value_prop f A B hf x ((f ⨡ X)⦅x⦆) u₀) (
+                    And.left (intersect_2sets_subset_prop (f) (X × rng f)) (x, (f ⨡ X)⦅x⦆) (
+                      Iff.mpr (function_equal_value_prop (f ⨡ X) X B (
+                        let m := fun_restriction_prop A B X f hf
+                        let n := Iff.mp (And.left (subset_using_equality X A)) hX
+                        eq_subst (fun (t) => (f ⨡ X) Fun t To B) (X ∩ A) (X) (n) (
+                          eq_subst (fun (t) => (f ⨡ X) Fun t To B) (A ∩ X) (X ∩ A) (
+                            intersec2_comm A X
+                          ) (m)
+                        )
+
+
+
+                      ) x ((f ⨡ X)⦅x⦆) hx) (Eq.refl ((f ⨡ X)⦅x⦆))
+                    )
+                  )
+                  Eq.symm u
+
+
 
 theorem inj_restriction_prop : ∀ X f, (is_injective f) → (is_injective (f ⨡ X)) :=
   fun (X f) => fun (h₁ : is_injective f) =>
@@ -2029,6 +2099,14 @@ theorem id_is_bij : ∀ A, (id_ A) Bij A To A :=
     And.intro (And.intro (And.intro (h₁) (h₂)) (h₅)) (
       And.intro (h₆) (h₇)
     )
+
+
+theorem id_val_prop : ∀ A x, (x ∈ A) → (id_ A⦅x⦆ = x) :=
+  fun (A x) =>
+    fun (hx : x ∈ A) =>
+      let u := prop_then_id A x hx
+      let v := Iff.mp (function_equal_value_prop (id_ A) A A (And.left (id_is_bij A)) x x hx ) u
+      Eq.symm v
 
 
 

@@ -16,6 +16,12 @@ noncomputable def snd_coor (A : Set) : Set := ⋃ ({x ∈ ⋃ A | ⋃ A ≠ ⋂ 
 theorem coordinates_fst_coor : ∀ a b, fst_coor (a, b) = a := sorry
 theorem coordinates_snd_copr : ∀ a b, snd_coor (a, b) = b := sorry
 
+syntax "π₁" term : term
+syntax "π₂" term : term
+macro_rules
+| `(π₁ $s) => `(fst_coor $s)
+| `(π₂ $s) => `(snd_coor $s)
+
 
 
 -- 3) A × B (cartesian product) construction and its property
@@ -159,8 +165,8 @@ theorem rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | �
 
 
 -- 18) Image and preimage main properties
-theorem image_prop : ∀ R y, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y)) := sorry
-theorem preimage_prop : ∀ R, (BinRel R) → ∀ x, (x ∈ R⁻¹.[Y] ↔ ∃ y ∈ Y; (x . R . y)) := sorry
+theorem image_prop : ∀ R y X, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y)) := sorry
+theorem preimage_prop : ∀ R Y, (BinRel R) → ∀ x, (x ∈ R⁻¹.[Y] ↔ ∃ y ∈ Y; (x . R . y)) := sorry
 
 
 
