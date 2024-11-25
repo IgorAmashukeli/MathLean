@@ -662,7 +662,7 @@ theorem lin_chain : ∀ 𝓐 B, (B ≠ ∅) → (B ⊆ setPO(𝓐)) → (LinOrd 
 theorem antichain : ∀ 𝓐 𝓑, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartPO 𝓑) AntiChain (A × B)) := sorry
 
 
--- 36) Order isomorphism and its properties
+-- 36) Order isomorphism
 
 
 def ispo_iso (𝓐 𝓑 f : Set) := (f Bij setPO(𝓐) To setPO(𝓑)) ∧ (∀ x y ∈ setPO(𝓐); (x . ≼(𝓐) . y) ↔ ((f⦅x⦆) . (≼(𝓑)) . (f⦅y⦆)))
@@ -675,11 +675,16 @@ syntax term "P≃O" term : term
 macro_rules
 | `($𝓐 P≃O $𝓑) => `(pos_iso $𝓐 $𝓑)
 
+--- 37) Main properties: reflexivity, symmetry, transitivity, equinumerosity of sets
+
 
 theorem iso_equin : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (setPO(𝓐) ~ setPO(𝓑)) := sorry
 theorem iso_refl : ∀ 𝓐, (𝓐 P≃O 𝓐) := sorry
 theorem iso_symm : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓐) := sorry
 theorem iso_trans : ∀ 𝓐 𝓑 𝓒, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓒) → (𝓐 P≃O 𝓒) := sorry
+
+
+-- 38) Simple properties that doesn't change through isomorphism in different partial ordered set
 
 theorem iso_in₁ : ∀ 𝓐 𝓑 f x, (f PO_ISO 𝓐 To 𝓑) → (x ∈ setPO(𝓐)) → ((f⦅x⦆)) ∈ setPO(𝓑) := sorry
 theorem iso_in₂ : ∀ 𝓐 𝓑 T f x, (x ∈ setPO(𝓐)) → (f PO_ISO 𝓐 To 𝓑) → ((x ∈ T) ↔ (f⦅x⦆) ∈ f.[T]) := sorry
@@ -687,3 +692,26 @@ theorem iso_in₂ : ∀ 𝓐 𝓑 T f x, (x ∈ setPO(𝓐)) → (f PO_ISO 𝓐 
 theorem iso_R₂ : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → ∀ x y ∈ setPO(𝓐); (x . ≼(𝓐) . y) ↔ ((f⦅x⦆) . (≼(𝓑)) . (f⦅y⦆)) := sorry
 theorem iso_eq : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → ∀ x y ∈ setPO(𝓐); (x = y) ↔ ((f⦅x⦆) = (f⦅y⦆)) := sorry
 theorem iso_R₁ : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐); (x . ≺(𝓐) . y) ↔ ((f⦅x⦆) . (≺(𝓑)) . (f⦅y⦆))) := sorry
+
+
+-- 39) Logical properties that doesn't change through isomorphism in different partial ordered set
+
+
+theorem poiso_not_equiv (φ₁ φ₂ : Set → Prop) : ∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((¬(φ₁ x)) ↔ (¬φ₂ (f⦅x⦆))) := sorry
+theorem poiso_and_equiv (φ₁ φ₂ φ₃ φ₄ : Set → Prop) :
+∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((φ₃ x) ↔ (φ₄ (f⦅x⦆))) → (((φ₁ x) ∧ ((φ₃ x))) ↔ ((φ₂ (f⦅x⦆)) ∧ (φ₄ (f⦅x⦆)))) := sorry
+theorem poiso_or_equiv (φ₁ φ₂ φ₃ φ₄ : Set → Prop) :
+∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((φ₃ x) ↔ (φ₄ (f⦅x⦆))) → (((φ₁ x) ∨ ((φ₃ x))) ↔ ((φ₂ (f⦅x⦆)) ∨ (φ₄ (f⦅x⦆)))) := sorry
+theorem poiso_if_equiv (φ₁ φ₂ φ₃ φ₄ : Set → Prop) :
+∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((φ₃ x) ↔ (φ₄ (f⦅x⦆))) → (((φ₁ x) → ((φ₃ x))) ↔ ((φ₂ (f⦅x⦆)) → (φ₄ (f⦅x⦆)))) := sorry
+theorem poiso_iff_equiv (φ₁ φ₂ φ₃ φ₄ : Set → Prop) :
+∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((φ₃ x) ↔ (φ₄ (f⦅x⦆))) → (((φ₁ x) ↔ ((φ₃ x))) ↔ ((φ₂ (f⦅x⦆)) ↔ (φ₄ (f⦅x⦆)))) := sorry
+
+theorem poiso_all_equiv (φ₁ φ₂ : Set → Prop) :
+∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (∀ x ∈ setPO(𝓐); ((φ₁ x) ↔ (φ₂ (f⦅x⦆)))) → ((∀ x ∈ setPO(𝓐); (φ₁ x)) ↔ (∀ x ∈ setPO(𝓑); (φ₂ x))) := sorry
+
+theorem posio_exi_equiv (φ₁ φ₂ : Set → Prop) :
+∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (∀ x ∈ setPO(𝓐); ((φ₁ x) ↔ (φ₂ (f⦅x⦆)))) → ((∃ x ∈ setPO(𝓐); (φ₁ x)) ↔ (∃ x ∈ setPO(𝓑); (φ₂ x))) := sorry
+
+
+-- 40) Using the above theorems about isomorphism for particular properties

@@ -7422,3 +7422,259 @@ theorem iso_R₁ : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (PartOrd 𝓐) �
                         )
                       )
                   )
+
+
+theorem poiso_not_equiv (φ₁ φ₂ : Set → Prop) : ∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((¬(φ₁ x)) ↔ (¬φ₂ (f⦅x⦆))) :=
+  fun (_ _) =>
+    fun (heqv) =>
+      Iff.intro
+      (
+        fun (hnφ₁x) =>
+          fun (hφ₂fx) =>
+            hnφ₁x (Iff.mpr heqv hφ₂fx)
+      )
+      (
+        fun (hnφ₂x) =>
+          fun (hφ₁fx) =>
+            hnφ₂x (Iff.mp heqv hφ₁fx)
+      )
+
+
+theorem poiso_and_equiv (φ₁ φ₂ φ₃ φ₄ : Set → Prop) :
+∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((φ₃ x) ↔ (φ₄ (f⦅x⦆))) → (((φ₁ x) ∧ ((φ₃ x))) ↔ ((φ₂ (f⦅x⦆)) ∧ (φ₄ (f⦅x⦆)))) :=
+  fun (_ _) =>
+    fun (heqv₁₂) =>
+      fun (heqv₃₄) =>
+        Iff.intro
+        (
+          fun (hφ₁φ₃x) =>
+            And.intro (Iff.mp heqv₁₂ (And.left hφ₁φ₃x)) (Iff.mp heqv₃₄ (And.right hφ₁φ₃x))
+        )
+        (
+          fun (hφ₂φ₄x) =>
+            And.intro (Iff.mpr heqv₁₂ (And.left hφ₂φ₄x)) (Iff.mpr heqv₃₄ (And.right hφ₂φ₄x))
+        )
+
+
+theorem poiso_or_equiv (φ₁ φ₂ φ₃ φ₄ : Set → Prop) :
+∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((φ₃ x) ↔ (φ₄ (f⦅x⦆))) → (((φ₁ x) ∨ ((φ₃ x))) ↔ ((φ₂ (f⦅x⦆)) ∨ (φ₄ (f⦅x⦆)))) :=
+  fun (_ _) =>
+    fun (heqv₁₂) =>
+      fun (heqv₃₄) =>
+        Iff.intro
+        (
+          fun (hφ₁φ₃x) =>
+            Or.elim hφ₁φ₃x
+            (
+              fun (hφ₁x) =>
+                Or.inl ( (Iff.mp heqv₁₂) (hφ₁x))
+            )
+            (
+              fun (hφ₃x) =>
+                Or.inr ((Iff.mp heqv₃₄) (hφ₃x))
+            )
+        )
+        (
+          fun (hφ₂φ₄x) =>
+            Or.elim hφ₂φ₄x
+            (
+              fun (hφ₂x) =>
+                Or.inl ((Iff.mpr heqv₁₂) (hφ₂x))
+            )
+            (
+              fun (hφ₄x) =>
+                Or.inr ((Iff.mpr heqv₃₄) (hφ₄x))
+            )
+        )
+
+
+
+theorem poiso_if_equiv (φ₁ φ₂ φ₃ φ₄ : Set → Prop) :
+∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((φ₃ x) ↔ (φ₄ (f⦅x⦆))) → (((φ₁ x) → ((φ₃ x))) ↔ ((φ₂ (f⦅x⦆)) → (φ₄ (f⦅x⦆)))) :=
+  fun (_ _) =>
+    fun (heqv₁₂) =>
+      fun (heqv₃₄) =>
+        Iff.intro
+        (
+          fun (hφ₁φ₃x) =>
+            fun (hφ₂fx) =>
+              Iff.mp heqv₃₄ (
+                hφ₁φ₃x (
+                  Iff.mpr heqv₁₂ (
+                    hφ₂fx
+                  )
+                )
+              )
+        )
+        (
+          fun (hφ₂φ₄x) =>
+            fun (hφ₁x) =>
+              Iff.mpr heqv₃₄ (
+                hφ₂φ₄x (
+                  Iff.mp heqv₁₂ (
+                    hφ₁x
+                  )
+                )
+              )
+        )
+
+
+
+theorem poiso_iff_equiv (φ₁ φ₂ φ₃ φ₄ : Set → Prop) :
+∀ f x, ((φ₁ x) ↔ (φ₂ (f⦅x⦆))) → ((φ₃ x) ↔ (φ₄ (f⦅x⦆))) → (((φ₁ x) ↔ ((φ₃ x))) ↔ ((φ₂ (f⦅x⦆)) ↔ (φ₄ (f⦅x⦆)))) :=
+  fun (_ _) =>
+    fun (heqv₁₂) =>
+      fun (heqv₃₄) =>
+        Iff.intro
+        (
+          fun (hφ₁φ₃x) =>
+            Iff.intro
+            (
+              fun (hφ₂fx) =>
+                Iff.mp heqv₃₄ (
+                  (Iff.mp hφ₁φ₃x) (
+                    Iff.mpr heqv₁₂ (
+                      hφ₂fx
+                    )
+                  )
+                )
+            )
+            (
+              fun (hφ₄fx) =>
+                Iff.mp heqv₁₂ (
+                  Iff.mpr hφ₁φ₃x (
+                    Iff.mpr (heqv₃₄) (
+                      hφ₄fx
+                    )
+                  )
+                )
+            )
+        )
+        (
+          fun (hφ₂φ₄x) =>
+            Iff.intro
+            (
+              fun (hφ₁x) =>
+                Iff.mpr heqv₃₄ (
+                  Iff.mp hφ₂φ₄x (
+                    Iff.mp heqv₁₂ (
+                      hφ₁x
+                    )
+                  )
+                )
+            )
+            (
+              fun (hφ₃x) =>
+                Iff.mpr heqv₁₂ (
+                  Iff.mpr hφ₂φ₄x (
+                    Iff.mp heqv₃₄ (
+                      hφ₃x
+                    )
+                  )
+                )
+            )
+        )
+
+
+
+theorem poiso_all_equiv (φ₁ φ₂ : Set → Prop) :
+∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (∀ x ∈ setPO(𝓐); ((φ₁ x) ↔ (φ₂ (f⦅x⦆)))) → ((∀ x ∈ setPO(𝓐); (φ₁ x)) ↔ (∀ x ∈ setPO(𝓑); (φ₂ x))) :=
+  fun (𝓐 𝓑 f) =>
+    fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+      let u₁ := bijection_inv_mp f setPO(𝓐) setPO(𝓑) (And.left hf)
+
+      let s := And.left hf
+      let t := And.left s
+      let r := And.left t
+      let k := And.left r
+
+
+
+      fun (hφ₁φ₂x : (∀ x ∈ setPO(𝓐); ((φ₁ x) ↔ (φ₂ (f⦅x⦆))))) =>
+        Iff.intro
+        (
+          fun (hφ₁x) =>
+            fun (x) =>
+              fun (hx : x ∈ setPO(𝓑)) =>
+
+                let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) x hx
+                let u₄ := eq_subst (fun (t) => t⦅x⦆ = (f⦅f⁻¹⦅x⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                let u₅ := id_val_prop (setPO(𝓑)) x hx
+                let u₅ := Eq.trans (Eq.symm u₅) (u₄)
+                let v := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) x hx
+                let u := Iff.mp (hφ₁φ₂x (f⁻¹⦅x⦆) (v)) (
+                  hφ₁x (f⁻¹⦅x⦆) (v)
+                )
+
+                eq_subst (fun (t) => φ₂ t) (f⦅f⁻¹⦅x⦆⦆) x (Eq.symm u₅) (u)
+        )
+        (
+          fun (hφ₂x) =>
+            fun (x) =>
+              fun (hx : x ∈ setPO(𝓐)) =>
+                Iff.mpr (hφ₁φ₂x x hx) (
+                  hφ₂x (f⦅x⦆) (
+                    val_in_B f (setPO(𝓐)) (setPO(𝓑)) (t) x hx
+                  )
+                )
+        )
+
+
+
+theorem posio_exi_equiv (φ₁ φ₂ : Set → Prop) :
+∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (∀ x ∈ setPO(𝓐); ((φ₁ x) ↔ (φ₂ (f⦅x⦆)))) → ((∃ x ∈ setPO(𝓐); (φ₁ x)) ↔ (∃ x ∈ setPO(𝓑); (φ₂ x))) :=
+  fun (𝓐 𝓑 f) =>
+    fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+      let u₁ := bijection_inv_mp f setPO(𝓐) setPO(𝓑) (And.left hf)
+      fun (hφ₁φ₂x : (∀ x ∈ setPO(𝓐); ((φ₁ x) ↔ (φ₂ (f⦅x⦆))))) =>
+
+        let s := And.left hf
+        let t := And.left s
+        let r := And.left t
+        let k := And.left r
+
+        Iff.intro
+        (
+          fun (hφ₂x) =>
+            Exists.elim hφ₂x (
+              fun (x) =>
+                fun (hx) =>
+                  Exists.intro (f⦅x⦆) (
+                    And.intro (val_in_B f (setPO(𝓐)) (setPO(𝓑)) (t) x (And.left hx)) (
+
+                      Iff.mp (hφ₁φ₂x x (And.left hx)) (And.right hx)
+                    )
+                  )
+            )
+        )
+        (
+          fun (hφ₁x) =>
+            Exists.elim hφ₁x (
+              fun (x) =>
+                fun (hx) =>
+                  let v := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) x (And.left hx)
+
+
+                  Exists.intro (f⁻¹⦅x⦆) (
+                    And.intro (v) (
+
+                      Iff.mpr (hφ₁φ₂x (f⁻¹⦅x⦆) v) (
+
+                        let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                        let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) x (And.left hx)
+                        let u₄ := eq_subst (fun (t) => t⦅x⦆ = (f⦅f⁻¹⦅x⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                        let u₅ := id_val_prop (setPO(𝓑)) x (And.left hx)
+                        let u₅ := Eq.trans (Eq.symm u₅) (u₄)
+
+
+                        eq_subst (fun (t) => φ₂ t) x (f⦅f⁻¹⦅x⦆⦆) (u₅) (And.right hx)
+                      )
+
+
+                    )
+                  )
+
+
+            )
+        )
