@@ -7170,15 +7170,26 @@ syntax term "PO_ISO" term "To" term : term
 macro_rules
 | `($f PO_ISO $𝓐 To $𝓑) => `(ispo_iso $𝓐 $𝓑 $f)
 
+def ispo_iso_po (𝓐 𝓑 f : Set) := (PartOrd 𝓐) ∧ (PartOrd 𝓑) ∧ (f PO_ISO 𝓐 To 𝓑)
+syntax term "PO_ISO_PO" term "To" term : term
+macro_rules
+| `($f PO_ISO_PO $𝓐 To $𝓑) => `(ispo_iso_po $𝓐 $𝓑 $f)
+
 def pos_iso (𝓐 𝓑 : Set) := ∃ f, (f PO_ISO 𝓐 To 𝓑)
+syntax term "≃O" term : term
+macro_rules
+| `($𝓐 ≃O $𝓑) => `(pos_iso $𝓐 $𝓑)
+
+
+def pos_iso_po (𝓐 𝓑 : Set) := (PartOrd 𝓐) ∧ (PartOrd 𝓑) ∧ (𝓐 ≃O 𝓑)
 syntax term "P≃O" term : term
 macro_rules
-| `($𝓐 P≃O $𝓑) => `(pos_iso $𝓐 $𝓑)
+| `($𝓐 P≃O $𝓑) => `(pos_iso_po $𝓐 $𝓑)
 
 
-theorem iso_equin : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (setPO(𝓐) ~ setPO(𝓑)) :=
+theorem iso_equin : ∀ 𝓐 𝓑, (𝓐 ≃O 𝓑) → (setPO(𝓐) ~ setPO(𝓑)) :=
   fun (𝓐 𝓑) =>
-    fun (h𝓐𝓑 : (𝓐 P≃O 𝓑)) =>
+    fun (h𝓐𝓑 : (𝓐 ≃O 𝓑)) =>
       Exists.elim h𝓐𝓑 (
         fun (f) =>
           fun (hf) =>
@@ -7208,11 +7219,21 @@ theorem iso_eq : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → ∀ x y ∈ setPO(
               )
 
 
-theorem iso_in₁ : ∀ 𝓐 𝓑 f x, (f PO_ISO 𝓐 To 𝓑) → (x ∈ setPO(𝓐)) → ((f⦅x⦆)) ∈ setPO(𝓑) :=
+theorem iso_in₀ : ∀ 𝓐 𝓑 f x, (f PO_ISO 𝓐 To 𝓑) → (x ∈ setPO(𝓐)) → ((f⦅x⦆)) ∈ setPO(𝓑) :=
   fun (𝓐 𝓑 f x) =>
     fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
       fun (hx : (x ∈ setPO(𝓐))) =>
         val_in_B f (setPO(𝓐)) (setPO(𝓑)) (And.left (And.left hf)) x hx
+
+
+theorem iso_in₁ : ∀ 𝓐 𝓑 f x, (f PO_ISO 𝓐 To 𝓑) → (x ∈ setPO(𝓐)) → ((x ∈ setPO(𝓐)) ↔ ((f⦅x⦆)) ∈ setPO(𝓑)) :=
+  fun (𝓐 𝓑 f x) =>
+    fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+      fun (hx : (x ∈ setPO(𝓐))) =>
+        let u := val_in_B f (setPO(𝓐)) (setPO(𝓑)) (And.left (And.left hf)) x hx
+        Iff.intro
+        (fun (_) => u)
+        (fun (_) => hx)
 
 
 theorem iso_in₂ : ∀ 𝓐 𝓑 T f x, (x ∈ setPO(𝓐)) → (f PO_ISO 𝓐 To 𝓑) → ((x ∈ T) ↔ (f⦅x⦆) ∈ f.[T]) :=
@@ -7256,15 +7277,17 @@ theorem iso_in₂ : ∀ 𝓐 𝓑 T f x, (x ∈ setPO(𝓐)) → (f PO_ISO 𝓐 
 
 
 theorem iso_R₂ : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → ∀ x y ∈ setPO(𝓐); (x . ≼(𝓐) . y) ↔ ((f⦅x⦆) . (≼(𝓑)) . (f⦅y⦆)) :=
-  fun (𝓐 𝓑 f) =>
-    fun (hf) =>
-      And.right hf
+  fun (_) =>
+    fun (_) =>
+      fun (_) =>
+        fun (hf) =>
+          And.right hf
 
 
 
 
 
-theorem iso_refl : ∀ 𝓐, (𝓐 P≃O 𝓐) :=
+theorem iso_refl : ∀ 𝓐, (𝓐 ≃O 𝓐) :=
   fun (𝓐) =>
     Exists.intro (id_ setPO(𝓐)) (
       And.intro (id_is_bij (setPO(𝓐))) (
@@ -7293,9 +7316,9 @@ theorem iso_refl : ∀ 𝓐, (𝓐 P≃O 𝓐) :=
 
 
 
-theorem iso_symm : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓐) :=
+theorem iso_symm : ∀ 𝓐 𝓑, (𝓐 ≃O 𝓑) → (𝓑 ≃O 𝓐) :=
   fun (𝓐 𝓑) =>
-    fun (h𝓐𝓑 : (𝓐 P≃O 𝓑)) =>
+    fun (h𝓐𝓑 : (𝓐 ≃O 𝓑)) =>
       Exists.elim h𝓐𝓑 (
         fun (f) =>
           fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
@@ -7337,7 +7360,7 @@ theorem iso_symm : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓐) :=
 
 
 
-theorem iso_trans :  ∀ 𝓐 𝓑 𝓒, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓒) → (𝓐 P≃O 𝓒) :=
+theorem iso_trans :  ∀ 𝓐 𝓑 𝓒, (𝓐 ≃O 𝓑) → (𝓑 ≃O 𝓒) → (𝓐 ≃O 𝓒) :=
   fun (𝓐 𝓑 𝓒) =>
     let A := setPO(𝓐)
     let B := setPO(𝓑)
@@ -7345,8 +7368,8 @@ theorem iso_trans :  ∀ 𝓐 𝓑 𝓒, (𝓐 P≃O 𝓑) → (𝓑 P≃O 𝓒)
     let LA := ≼(𝓐)
     let LB := ≼(𝓑)
     let LC := ≼(𝓒)
-    fun (h𝓐𝓑 : (𝓐 P≃O 𝓑)) =>
-      fun (h𝓑𝓒 : (𝓑 P≃O 𝓒)) =>
+    fun (h𝓐𝓑 : (𝓐 ≃O 𝓑)) =>
+      fun (h𝓑𝓒 : (𝓑 ≃O 𝓒)) =>
 
         Exists.elim h𝓐𝓑 (
         fun (f) =>
@@ -7401,7 +7424,7 @@ theorem iso_R₁ : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (PartOrd 𝓐) �
                       let u₀ := Iff.mp (And.left (part_ord_pair_prop 𝓐 h𝓐 x hx y hy)) hxy
                       let u₀₁ := Iff.mp (iso_R₂ 𝓐 𝓑 f hf x hx y hy) (And.left u₀)
 
-                      Iff.mpr (And.left (part_ord_pair_prop 𝓑 h𝓑 (f⦅x⦆) (iso_in₁ 𝓐 𝓑 f x hf hx) (f⦅y⦆) (iso_in₁ 𝓐 𝓑 f y hf hy))) (
+                      Iff.mpr (And.left (part_ord_pair_prop 𝓑 h𝓑 (f⦅x⦆) (iso_in₀ 𝓐 𝓑 f x hf hx) (f⦅y⦆) (iso_in₀ 𝓐 𝓑 f y hf hy))) (
                         And.intro (u₀₁) (
                           fun (hfxy : (f⦅x⦆) = (f⦅y⦆)) =>
                             let u₂ := Iff.mpr (iso_eq 𝓐 𝓑 f hf x hx y hy) hfxy
@@ -7412,7 +7435,7 @@ theorem iso_R₁ : ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (PartOrd 𝓐) �
                   )
                   (
                     fun (hfxy) =>
-                      let u₀ := Iff.mp (And.left (part_ord_pair_prop 𝓑 h𝓑 (f⦅x⦆) (iso_in₁ 𝓐 𝓑 f x hf hx) (f⦅y⦆) (iso_in₁ 𝓐 𝓑 f y hf hy))) hfxy
+                      let u₀ := Iff.mp (And.left (part_ord_pair_prop 𝓑 h𝓑 (f⦅x⦆) (iso_in₀ 𝓐 𝓑 f x hf hx) (f⦅y⦆) (iso_in₀ 𝓐 𝓑 f y hf hy))) hfxy
                       let u₀₁ := Iff.mpr (iso_R₂ 𝓐 𝓑 f hf x hx y hy) (And.left u₀)
                       Iff.mpr (And.left (part_ord_pair_prop 𝓐 h𝓐 x hx y hy)) (
                         And.intro (u₀₁) (
@@ -7576,8 +7599,138 @@ theorem poiso_iff_equiv (φ₁ φ₂ φ₃ φ₄ : Set → Prop) :
         )
 
 
-
 theorem poiso_all_equiv (φ₁ φ₂ : Set → Prop) :
+∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO 𝓐 To 𝓑) → (∀ x ∈ X; ((φ₁ x) ↔ (φ₂ (f⦅x⦆)))) → ((∀ x ∈ X; (φ₁ x)) ↔ (∀ x ∈ f.[X]; (φ₂ x))) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX) =>
+      fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+        let u₁ := bijection_inv_mp f setPO(𝓐) setPO(𝓑) (And.left hf)
+
+        let s := And.left hf
+        let t := And.left s
+        let r := And.left t
+        let k := And.left r
+
+
+
+        fun (hφ₁φ₂x : (∀ x ∈ X; ((φ₁ x) ↔ (φ₂ (f⦅x⦆))))) =>
+          Iff.intro
+          (
+            fun (hφ₁x) =>
+              fun (x) =>
+                fun (hx : x ∈ f.[X]) =>
+
+                  let v₁ := specification_set_subset (fun (t) => ∃ y ∈ X; (y . f . t)) (rng f) x hx
+                  let v₂ := rng_partial_function f (setPO(𝓐)) (setPO(𝓑)) r x v₁
+                  let v₀ := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) x v₂
+
+
+                  let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                  let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) x (v₂)
+                  let u₄ := eq_subst (fun (t) => t⦅x⦆ = (f⦅f⁻¹⦅x⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                  let u₅ := id_val_prop (setPO(𝓑)) x (v₂)
+                  let u₅ := Eq.trans (Eq.symm u₅) (u₄)
+
+                  let v₃ := Iff.mp (image_prop f X (x)) hx
+                  Exists.elim v₃ (
+                    fun (i) =>
+                      fun (hi) =>
+                        let v₄ := And.right hi
+                        let v₅ := Iff.mpr (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) t (f⁻¹⦅x⦆) x v₀) u₅
+                        let v₆ := And.left (And.right s) i (f⁻¹⦅x⦆) x v₄ v₅
+                        let v₇ := eq_subst (fun (m) => m ∈ X) (i) (f⁻¹⦅x⦆) (v₆) (And.left hi)
+
+                        let u := Iff.mp (hφ₁φ₂x (f⁻¹⦅x⦆) (v₇)) (
+                          hφ₁x (f⁻¹⦅x⦆) (v₇)
+                        )
+
+
+                        eq_subst (fun (m) => φ₂ m) (f⦅f⁻¹⦅x⦆⦆) x (Eq.symm u₅) (u)
+
+                  )
+
+
+
+          )
+          (
+            fun (hφ₂x) =>
+              fun (x) =>
+                fun (hx : x ∈ X) =>
+                  Iff.mpr (hφ₁φ₂x x hx) (
+                    hφ₂x (f⦅x⦆) (
+                      Iff.mp (iso_in₂ 𝓐 𝓑 X f x (hX x hx) (hf)) (hx)
+                    )
+                  )
+          )
+
+
+theorem poiso_exi_equiv (φ₁ φ₂ : Set → Prop) :
+∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO 𝓐 To 𝓑) → (∀ x ∈ X; ((φ₁ x) ↔ (φ₂ (f⦅x⦆)))) → ((∃ x ∈ X; (φ₁ x)) ↔ (∃ x ∈ f.[X]; (φ₂ x))) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
+        let u₁ := bijection_inv_mp f setPO(𝓐) setPO(𝓑) (And.left hf)
+
+        let s := And.left hf
+        let t := And.left s
+        let r := And.left t
+        let k := And.left r
+
+        fun (hφ₁φ₂x : (∀ x ∈ X; ((φ₁ x) ↔ (φ₂ (f⦅x⦆))))) =>
+          Iff.intro
+          (
+            fun(hφ₁x) =>
+              Exists.elim hφ₁x (
+                fun (x) =>
+                  fun (hx) =>
+                    Exists.intro ((f⦅x⦆)) (
+                      And.intro (Iff.mp (iso_in₂ 𝓐 𝓑 X f x (hX x (And.left hx)) hf) (And.left hx)) (
+                        Iff.mp (hφ₁φ₂x x (And.left hx)) (And.right hx)
+                      )
+                    )
+              )
+          )
+          (
+            fun (hφ₂x) =>
+              Exists.elim hφ₂x (
+                fun (x) =>
+                  fun (hx) =>
+                    Exists.intro (f⁻¹⦅x⦆) (
+                      let v₁ := specification_set_subset (fun (t) => ∃ y ∈ X; (y . f . t)) (rng f) x (And.left hx)
+                      let v₂ := rng_partial_function f (setPO(𝓐)) (setPO(𝓑)) r x v₁
+                      let v₀ := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) x v₂
+
+
+                      let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                      let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) x (v₂)
+                      let u₄ := eq_subst (fun (t) => t⦅x⦆ = (f⦅f⁻¹⦅x⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                      let u₅ := id_val_prop (setPO(𝓑)) x (v₂)
+                      let u₅ := Eq.trans (Eq.symm u₅) (u₄)
+
+                      let v₃ := Iff.mp (image_prop f X (x)) (And.left hx)
+
+                      Exists.elim v₃ (
+                        fun (i) =>
+                          fun (hi) =>
+                            let v₄ := And.right hi
+                            let v₅ := Iff.mpr (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) t (f⁻¹⦅x⦆) x v₀) u₅
+                            let v₆ := And.left (And.right s) i (f⁻¹⦅x⦆) x v₄ v₅
+                            let v₇ := eq_subst (fun (m) => m ∈ X) (i) (f⁻¹⦅x⦆) (v₆) (And.left hi)
+
+                            let u := Iff.mpr (hφ₁φ₂x (f⁻¹⦅x⦆) (v₇)) (
+                              eq_subst (fun (m) => φ₂ m) x (f⦅f⁻¹⦅x⦆⦆) (u₅) (And.right hx)
+                            )
+
+                            And.intro (v₇) (u)
+                      )
+                    )
+              )
+          )
+
+
+
+
+theorem poiso_allin_equiv (φ₁ φ₂ : Set → Prop) :
 ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (∀ x ∈ setPO(𝓐); ((φ₁ x) ↔ (φ₂ (f⦅x⦆)))) → ((∀ x ∈ setPO(𝓐); (φ₁ x)) ↔ (∀ x ∈ setPO(𝓑); (φ₂ x))) :=
   fun (𝓐 𝓑 f) =>
     fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
@@ -7622,7 +7775,7 @@ theorem poiso_all_equiv (φ₁ φ₂ : Set → Prop) :
 
 
 
-theorem posio_exi_equiv (φ₁ φ₂ : Set → Prop) :
+theorem posio_exiin_equiv (φ₁ φ₂ : Set → Prop) :
 ∀ 𝓐 𝓑 f, (f PO_ISO 𝓐 To 𝓑) → (∀ x ∈ setPO(𝓐); ((φ₁ x) ↔ (φ₂ (f⦅x⦆)))) → ((∃ x ∈ setPO(𝓐); (φ₁ x)) ↔ (∃ x ∈ setPO(𝓑); (φ₂ x))) :=
   fun (𝓐 𝓑 f) =>
     fun (hf : (f PO_ISO 𝓐 To 𝓑)) =>
@@ -7678,3 +7831,1175 @@ theorem posio_exi_equiv (φ₁ φ₂ : Set → Prop) :
 
             )
         )
+
+
+
+theorem poiso_minal : ∀ 𝓐 𝓑 f X x, (X ⊆ setPO(𝓐)) → (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((is_minimal 𝓐 X x) ↔ (is_minimal 𝓑 (f.[X]) (f⦅x⦆))) :=
+  fun (𝓐 𝓑 f X x) =>
+    fun (hX :  (X ⊆ setPO(𝓐))) =>
+      fun (hx : x ∈ setPO(𝓐)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ₁ := fun (x) => x ∈ X
+          let φ₂ := fun (x) => x ∈ f.[X]
+          let φ₃ := fun (x) => ∀ y ∈ X; ¬ (y . (≺(𝓐)) . x)
+          let φ₄ := fun (x) => ∀ y ∈ f.[X]; ¬(y . (≺(𝓑)) . x)
+          poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+
+            iso_in₂ 𝓐 𝓑 X f x hx (And.right (And.right hf))
+
+          ) (
+
+            let φ₅ := fun (y) => (¬ (y . (≺(𝓐)) . x))
+            let φ₆ := fun (y) =>  (¬ (y . (≺(𝓑)) . (f⦅x⦆)))
+
+            let φ₇ := fun (y) => (y . (≺(𝓐)) . x)
+            let φ₈ := fun (y) =>  (y . (≺(𝓑)) . (f⦅x⦆))
+
+
+            poiso_all_equiv φ₅ φ₆ 𝓐 𝓑 f X hX (And.right (And.right hf)) (
+              fun (y) =>
+                fun (hy : y ∈ X) =>
+                  poiso_not_equiv φ₇ φ₈ f y (
+                    iso_R₁ 𝓐 𝓑 f (And.right (And.right hf)) (And.left hf) (And.left (And.right hf)) y (hX y hy) x hx
+                  )
+            )
+          )
+
+
+theorem poiso_maxal : ∀ 𝓐 𝓑 f X x, (X ⊆ setPO(𝓐)) → (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((is_maximal 𝓐 X x) ↔ (is_maximal 𝓑 (f.[X]) (f⦅x⦆))) :=
+  fun (𝓐 𝓑 f X x) =>
+    fun (hX :  (X ⊆ setPO(𝓐))) =>
+      fun (hx : x ∈ setPO(𝓐)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ₁ := fun (x) => x ∈ X
+          let φ₂ := fun (x) => x ∈ f.[X]
+          let φ₃ := fun (x) => ∀ y ∈ X; ¬ (x . (≺(𝓐)) . y)
+          let φ₄ := fun (x) => ∀ y ∈ f.[X]; ¬(x . (≺(𝓑)) . y)
+          poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+
+            iso_in₂ 𝓐 𝓑 X f x hx (And.right (And.right hf))
+
+          ) (
+
+            let φ₅ := fun (y) => (¬ (x . (≺(𝓐)) . y))
+            let φ₆ := fun (y) =>  (¬ ((f⦅x⦆) . (≺(𝓑)) . y))
+
+            let φ₇ := fun (y) => (x . (≺(𝓐)) . y)
+            let φ₈ := fun (y) =>  ((f⦅x⦆) . (≺(𝓑)) . y)
+
+
+            poiso_all_equiv φ₅ φ₆ 𝓐 𝓑 f X hX (And.right (And.right hf)) (
+              fun (y) =>
+                fun (hy : y ∈ X) =>
+                  poiso_not_equiv φ₇ φ₈ f y (
+                    iso_R₁ 𝓐 𝓑 f (And.right (And.right hf)) (And.left hf) (And.left (And.right hf)) x hx y (hX y hy)
+                  )
+            )
+          )
+
+
+
+theorem poiso_minum : ∀ 𝓐 𝓑 f X x, (X ⊆ setPO(𝓐)) → (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((is_minimum 𝓐 X x) ↔ (is_minimum 𝓑 (f.[X]) (f⦅x⦆))) :=
+  fun (𝓐 𝓑 f X x) =>
+    fun (hX :  (X ⊆ setPO(𝓐))) =>
+      fun (hx : x ∈ setPO(𝓐)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ₁ := fun (x) => x ∈ X
+          let φ₂ := fun (x) => x ∈ f.[X]
+          let φ₃ := fun (x) => ∀ y ∈ X; (x . (≼(𝓐)) . y)
+          let φ₄ := fun (x) => ∀ y ∈ f.[X]; (x . (≼(𝓑)) . y)
+          poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+
+            iso_in₂ 𝓐 𝓑 X f x hx (And.right (And.right hf))
+
+          ) (
+
+            let φ₅ := fun (y) => (x . (≼(𝓐)) . y)
+            let φ₆ := fun (y) =>  ((f⦅x⦆) . (≼(𝓑)) . (y))
+
+
+
+            poiso_all_equiv φ₅ φ₆ 𝓐 𝓑 f X hX (And.right (And.right hf)) (
+              fun (y) =>
+                fun (hy : y ∈ X) =>
+                  iso_R₂ 𝓐 𝓑 f (And.right (And.right hf)) x hx y (
+                    hX y (hy)
+                  )
+            )
+          )
+
+
+theorem poiso_maxum : ∀ 𝓐 𝓑 f X x, (X ⊆ setPO(𝓐)) → (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((is_maximum 𝓐 X x) ↔ (is_maximum 𝓑 (f.[X]) (f⦅x⦆))) :=
+  fun (𝓐 𝓑 f X x) =>
+    fun (hX :  (X ⊆ setPO(𝓐))) =>
+      fun (hx : x ∈ setPO(𝓐)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ₁ := fun (x) => x ∈ X
+          let φ₂ := fun (x) => x ∈ f.[X]
+          let φ₃ := fun (x) => ∀ y ∈ X; (y . (≼(𝓐)) . x)
+          let φ₄ := fun (x) => ∀ y ∈ f.[X]; (y . (≼(𝓑)) . x)
+          poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+
+            iso_in₂ 𝓐 𝓑 X f x hx (And.right (And.right hf))
+
+          ) (
+
+            let φ₅ := fun (y) => (y . (≼(𝓐)) . x)
+            let φ₆ := fun (y) =>  (y . (≼(𝓑)) . (f⦅x⦆))
+
+
+
+            poiso_all_equiv φ₅ φ₆ 𝓐 𝓑 f X hX (And.right (And.right hf)) (
+              fun (y) =>
+                fun (hy : y ∈ X) =>
+                  iso_R₂ 𝓐 𝓑 f (And.right (And.right hf)) y (
+                    hX y (hy)
+                  ) x hx
+            )
+          )
+
+
+theorem poiso_lowbou : ∀ 𝓐 𝓑 f X x, (X ⊆ setPO(𝓐)) → (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((is_lower_bound 𝓐 X x) ↔ (is_lower_bound 𝓑 (f.[X]) (f⦅x⦆)) ) :=
+  fun (𝓐 𝓑 f X x) =>
+    fun (hX :  (X ⊆ setPO(𝓐))) =>
+      fun (hx : x ∈ setPO(𝓐)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ₁ := fun (x) => x ∈ setPO(𝓐)
+            let φ₂ := fun (x) => x ∈ setPO(𝓑)
+            let φ₃ := fun (x) => ∀ y ∈ X; (x . (≼(𝓐)) . y)
+            let φ₄ := fun (x) => ∀ y ∈ f.[X]; (x . (≼(𝓑)) . y)
+            poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+
+              iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx
+
+            ) (
+
+              let φ₅ := fun (y) => (x . (≼(𝓐)) . y)
+              let φ₆ := fun (y) =>  ((f⦅x⦆) . (≼(𝓑)) . (y))
+
+
+
+              poiso_all_equiv φ₅ φ₆ 𝓐 𝓑 f X hX (And.right (And.right hf)) (
+                fun (y) =>
+                  fun (hy : y ∈ X) =>
+                    iso_R₂ 𝓐 𝓑 f (And.right (And.right hf)) x hx y (
+                      hX y (hy)
+                    )
+              )
+            )
+
+
+
+theorem poiso_uppbou : ∀ 𝓐 𝓑 f X x, (X ⊆ setPO(𝓐)) → (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((is_upper_bound 𝓐 X x) ↔ (is_upper_bound 𝓑 (f.[X]) (f⦅x⦆)) ) :=
+  fun (𝓐 𝓑 f X x) =>
+    fun (hX :  (X ⊆ setPO(𝓐))) =>
+      fun (hx : x ∈ setPO(𝓐)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ₁ := fun (x) => x ∈ setPO(𝓐)
+            let φ₂ := fun (x) => x ∈ setPO(𝓑)
+            let φ₃ := fun (x) => ∀ y ∈ X; (y . (≼(𝓐)) . x)
+            let φ₄ := fun (x) => ∀ y ∈ f.[X]; (y . (≼(𝓑)) . x)
+            poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+
+              iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx
+
+            ) (
+
+              let φ₅ := fun (y) => (y . (≼(𝓐)) . x)
+              let φ₆ := fun (y) =>  (y . (≼(𝓑)) . ((f⦅x⦆)))
+
+
+
+              poiso_all_equiv φ₅ φ₆ 𝓐 𝓑 f X hX (And.right (And.right hf)) (
+                fun (y) =>
+                  fun (hy : y ∈ X) =>
+                    iso_R₂ 𝓐 𝓑 f (And.right (And.right hf)) y (
+                      hX y (hy)
+                    ) x hx
+              )
+            )
+
+
+theorem minexi_constr : ∀ 𝓐 X, (X ⊆ setPO(𝓐)) → ((𝓐 MinExi X) ↔ (∃ x ∈ setPO(𝓐); is_minimum 𝓐 X x)) :=
+  fun (_) =>
+    fun (_) =>
+      fun (hX) =>
+        Iff.intro
+        (
+          fun (hxE) =>
+            Exists.elim hxE (
+              fun (x) =>
+                fun (hx) =>
+                  Exists.intro x (And.intro (hX x (And.left hx)) (hx))
+            )
+        )
+        (
+          fun (hxA) =>
+            Exists.elim hxA (
+              fun (x) =>
+                fun (hx) =>
+                  Exists.intro x (And.right hx)
+            )
+        )
+
+
+theorem maxexi_constr : ∀ 𝓐 X, (X ⊆ setPO(𝓐)) → ((𝓐 MaxExi X) ↔ (∃ x ∈ setPO(𝓐); is_maximum 𝓐 X x)) :=
+   fun (_) =>
+    fun (_) =>
+      fun (hX) =>
+        Iff.intro
+        (
+          fun (hxE) =>
+            Exists.elim hxE (
+              fun (x) =>
+                fun (hx) =>
+                  Exists.intro x (And.intro (hX x (And.left hx)) (hx))
+            )
+        )
+        (
+          fun (hxA) =>
+            Exists.elim hxA (
+              fun (x) =>
+                fun (hx) =>
+                  Exists.intro x (And.right hx)
+            )
+        )
+
+
+theorem poiso_minexi : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((𝓐 MinExi X) ↔ (𝓑 MinExi f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let hpoiso := And.right (And.right hf)
+          let hbij := And.left hpoiso
+          let hfunc := And.left hbij
+          let hpfunc := And.left hfunc
+          let φ₁ := fun (x) => is_minimum 𝓐 X x
+          let φ₂ := fun (x) => is_minimum 𝓑 (f.[X]) (x)
+          let u₀ := specification_set_subset (fun (t) => ∃ s ∈ X; (s . f . t)) (rng f)
+          let u₁ := subset_trans (f.[X]) (rng f) (setPO(𝓑)) u₀ (rng_partial_function f setPO(𝓐) setPO(𝓑) (hpfunc))
+          let u := posio_exiin_equiv φ₁ φ₂ 𝓐 𝓑 f (hpoiso) (
+            fun (y) =>
+              fun (hy : y ∈ setPO(𝓐)) =>
+                poiso_minum 𝓐 𝓑 f X y hX hy (hf)
+          )
+          Iff.intro
+          (
+            fun (hexi₁) =>
+              Iff.mpr (minexi_constr 𝓑 (f.[X]) u₁) (
+                Iff.mp (u) (
+                  Iff.mp (minexi_constr 𝓐 X hX) (
+                    hexi₁
+                  )
+                )
+              )
+          )
+          (
+            fun (hexi₁) =>
+              Iff.mpr (minexi_constr 𝓐 (X) hX) (
+                Iff.mpr (u) (
+                  Iff.mp (minexi_constr 𝓑 (f.[X]) u₁) (
+                    hexi₁
+                  )
+                )
+              )
+          )
+
+
+
+
+theorem poiso_maxexi : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((𝓐 MaxExi X) ↔ (𝓑 MaxExi f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let hpoiso := And.right (And.right hf)
+          let hbij := And.left hpoiso
+          let hfunc := And.left hbij
+          let hpfunc := And.left hfunc
+          let φ₁ := fun (x) => is_maximum 𝓐 X x
+          let φ₂ := fun (x) => is_maximum 𝓑 (f.[X]) (x)
+          let u₀ := specification_set_subset (fun (t) => ∃ s ∈ X; (s . f . t)) (rng f)
+          let u₁ := subset_trans (f.[X]) (rng f) (setPO(𝓑)) u₀ (rng_partial_function f setPO(𝓐) setPO(𝓑) (hpfunc))
+          let u := posio_exiin_equiv φ₁ φ₂ 𝓐 𝓑 f (hpoiso) (
+            fun (y) =>
+              fun (hy : y ∈ setPO(𝓐)) =>
+                poiso_maxum 𝓐 𝓑 f X y hX hy (hf)
+          )
+          Iff.intro
+          (
+            fun (hexi₁) =>
+              Iff.mpr (maxexi_constr 𝓑 (f.[X]) u₁) (
+                Iff.mp (u) (
+                  Iff.mp (maxexi_constr 𝓐 X hX) (
+                    hexi₁
+                  )
+                )
+              )
+          )
+          (
+            fun (hexi₁) =>
+              Iff.mpr (maxexi_constr 𝓐 (X) hX) (
+                Iff.mpr (u) (
+                  Iff.mp (maxexi_constr 𝓑 (f.[X]) u₁) (
+                    hexi₁
+                  )
+                )
+              )
+          )
+
+
+
+theorem poiso_subs_eq (φ : Set → Set → Set → Prop) (ψ : Set → Set → Set) :
+∀ 𝓐 𝓑 f, (f PO_ISO_PO 𝓐 To 𝓑) → (∀ 𝓧 X x, (x ∈ ψ 𝓧 X ↔ φ 𝓧 X x)) →
+(∀ 𝓧 X, (X ⊆ setPO(𝓧)) → (ψ 𝓧 X) ⊆ setPO(𝓧)) →
+(∀ X, (∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 X x) ↔ (φ 𝓑 (f.[X]) (f⦅x⦆)))) → (f.[ψ 𝓐 X] = ψ 𝓑 (f.[X]))) :=
+  fun (𝓐 𝓑 f) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      let hff := And.right (And.right hf)
+      let u₁ := bijection_inv_mp f setPO(𝓐) setPO(𝓑) (And.left hff)
+      let s := And.left hff
+      let t := And.left s
+      let r := And.left t
+      let k := And.left r
+      fun (hψφ : ((∀ 𝓧 X x, (x ∈ ψ 𝓧 X ↔ φ 𝓧 X x)))) =>
+        fun (hsub : ((∀ 𝓧 X, (X ⊆ setPO(𝓧)) → (ψ 𝓧 X) ⊆ setPO(𝓧)) )) =>
+          fun (X) =>
+            fun (hψeq : (∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 X x) ↔ (φ 𝓑 (f.[X]) (f⦅x⦆))))) =>
+                  extensionality (f.[ψ 𝓐 X]) (ψ 𝓑 (f.[X])) (
+                    fun (x) =>
+                      Iff.intro
+                      (
+                        fun (hx : x ∈ (f.[ψ 𝓐 X])) =>
+
+                          let M := ψ 𝓐 X
+
+                          let hxB := specification_set_subset (fun (t) => ∃ s ∈ M; (s . f . t)) (rng f)
+                          let hxB₁ := subset_trans (f.[M]) (rng f) (setPO(𝓑)) (hxB) (rng_partial_function f setPO(𝓐) setPO(𝓑) (r)) x hx
+
+
+                          let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                          let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) x (hxB₁)
+                          let u₄ := eq_subst (fun (t) => t⦅x⦆ = (f⦅f⁻¹⦅x⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                          let u₅ := id_val_prop (setPO(𝓑)) x (hxB₁)
+                          let u₆ := Eq.trans (Eq.symm u₅) (u₄)
+
+                          Iff.mpr (hψφ 𝓑 (f.[X]) x) (
+                            let u₇ := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) x (hxB₁)
+                            let u := Iff.mp (hψeq (f⁻¹⦅x⦆) (u₇)) (
+                              Iff.mp (hψφ 𝓐 X (f⁻¹⦅x⦆)) (
+                                let u₈ := Iff.mp (image_prop f M (x)) hx
+                                Exists.elim u₈ (
+                                  fun (i) =>
+                                    fun (hi) =>
+
+                                      let v₄ := And.right hi
+                                      let v₅ := Iff.mpr (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) t (f⁻¹⦅x⦆) x u₇) u₆
+                                      let v₆ := And.left (And.right s) i (f⁻¹⦅x⦆) x v₄ v₅
+                                      eq_subst (fun (m) => m ∈ M) (i) (f⁻¹⦅x⦆) (v₆) (And.left hi)
+                                )
+
+
+                              )
+                            )
+
+                            eq_subst (fun (m) => φ 𝓑 (f.[X]) m) (f⦅f⁻¹⦅x⦆⦆) x (Eq.symm u₆) u
+                          )
+                      )
+                      (
+                        fun (hx : x ∈ ψ 𝓑 (f.[X])) =>
+                          let M := ψ 𝓐 X
+                          Iff.mpr (image_prop f M x) (
+                            Exists.intro (f⁻¹⦅x⦆) (
+
+                              let hxB₀ := specification_set_subset (fun (t) => ∃ s ∈ X; (s . f . t)) (rng f)
+                              let hxB₁ := subset_trans (f.[X]) (rng f) (setPO(𝓑)) (hxB₀) (rng_partial_function f setPO(𝓐) setPO(𝓑) (r))
+
+                              let hxB₂ := hsub 𝓑 (f.[X]) (hxB₁) x hx
+
+
+                              let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                              let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) x (hxB₂)
+                              let u₄ := eq_subst (fun (t) => t⦅x⦆ = (f⦅f⁻¹⦅x⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                              let u₅ := id_val_prop (setPO(𝓑)) x (hxB₂)
+                              let u₆ := Eq.trans (Eq.symm u₅) (u₄)
+                              let u₇ := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) x (hxB₂)
+                              let u₈ := Iff.mpr (function_equal_value_prop f (setPO(𝓐)) setPO(𝓑) t (f⁻¹⦅x⦆) x u₇) u₆
+
+                              And.intro (
+
+                                Iff.mpr (hψφ 𝓐 X (f⁻¹⦅x⦆)) (
+                                  Iff.mpr (hψeq (f⁻¹⦅x⦆) u₇) (
+                                    eq_subst (fun (m) => φ 𝓑 (f.[X]) m) x (f⦅f⁻¹⦅x⦆⦆) (u₆) (
+                                      Iff.mp (hψφ 𝓑 (f.[X]) x) (
+                                        hx
+                                      )
+                                    )
+                                  )
+                                )
+
+                              ) (u₈)
+
+                            )
+                          )
+                      )
+                  )
+
+
+theorem poiso_minset : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → (f.[min_set 𝓐 X] = min_set 𝓑 (f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+        let φ := fun (𝓐) => fun (X) => fun (x) => is_minimal 𝓐 X x
+        let ψ := fun (𝓐) => fun (X) => min_set 𝓐 X
+        let u := fun (𝓧) => fun (X) => fun (hX : X ⊆ setPO(𝓧)) => subset_trans (ψ 𝓧 X) (X) (setPO(𝓧)) (specification_set_subset (fun (t) => φ 𝓧 X t) (X)) (hX)
+        let v := fun (x) => fun (hx : x ∈ setPO(𝓐)) => poiso_minal 𝓐 𝓑 f X x hX hx hf
+
+        poiso_subs_eq φ ψ 𝓐 𝓑 f hf (min_set_is_min_set) (u) X v
+
+
+theorem poiso_maxset : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → (f.[max_set 𝓐 X] = max_set 𝓑 (f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+        let φ := fun (𝓐) => fun (X) => fun (x) => is_maximal 𝓐 X x
+        let ψ := fun (𝓐) => fun (X) => max_set 𝓐 X
+        let u := fun (𝓧) => fun (X) => fun (hX : X ⊆ setPO(𝓧)) => subset_trans (ψ 𝓧 X) (X) (setPO(𝓧)) (specification_set_subset (fun (t) => φ 𝓧 X t) (X)) (hX)
+        let v := fun (x) => fun (hx : x ∈ setPO(𝓐)) => poiso_maxal 𝓐 𝓑 f X x hX hx hf
+
+        poiso_subs_eq φ ψ 𝓐 𝓑 f hf (max_set_is_max_set) (u) X v
+
+theorem poiso_lowset : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → (f.[𝓐 ▾ X] = 𝓑 ▾ (f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+        let φ := fun (𝓐) => fun (X) => fun (x) => is_lower_bound 𝓐 X x
+        let ψ := fun (𝓐) => fun (X) => 𝓐 ▾ X
+        let u := fun (𝓧) => fun (X) => fun (_ : X ⊆ setPO(𝓧)) => specification_set_subset (fun (t) => φ 𝓧 X t) (setPO(𝓧))
+        let v := fun (x) => fun (hx : x ∈ setPO(𝓐)) => poiso_lowbou 𝓐 𝓑 f X x hX hx hf
+
+        poiso_subs_eq φ ψ 𝓐 𝓑 f hf (low_bou_set_is_low_bou) (u) X (v)
+
+
+theorem poiso_uppset : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → (f.[𝓐 ▴ X] = 𝓑 ▴ (f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+        let φ := fun (𝓐) => fun (X) => fun (x) => is_upper_bound 𝓐 X x
+        let ψ := fun (𝓐) => fun (X) => 𝓐 ▴ X
+        let u := fun (𝓧) => fun (X) => fun (_ : X ⊆ setPO(𝓧)) => specification_set_subset (fun (t) => φ 𝓧 X t) (setPO(𝓧))
+        let v := fun (x) => fun (hx : x ∈ setPO(𝓐)) => poiso_uppbou 𝓐 𝓑 f X x hX hx hf
+
+        poiso_subs_eq φ ψ 𝓐 𝓑 f hf (upp_bou_set_is_upp_bou) (u) X (v)
+
+
+
+theorem poiso_sup : ∀ 𝓐 𝓑 f X x, (X ⊆ setPO(𝓐)) → (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((is_supremum 𝓐 X x) ↔ (is_supremum 𝓑 (f.[X]) (f⦅x⦆))) :=
+  fun (𝓐 𝓑 f X x) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hx : (x ∈ setPO(𝓐))) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let u₀ := specification_set_subset (fun (t) => is_upper_bound 𝓐 X t) (setPO(𝓐))
+          let u := poiso_minum 𝓐 𝓑 f (𝓐 ▴ X) x (u₀) hx hf
+          let u₁ := poiso_uppset 𝓐 𝓑 f X hX hf
+          eq_subst (fun (t) => (is_minimum (𝓐) (𝓐 ▴ X) x) ↔ (is_minimum 𝓑 (t) (f⦅x⦆))) (f.[𝓐 ▴ X]) (𝓑 ▴ (f.[X])) (u₁) (u)
+
+
+theorem poiso_inf : ∀ 𝓐 𝓑 f X x, (X ⊆ setPO(𝓐)) → (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((is_infimum 𝓐 X x) ↔ (is_infimum 𝓑 (f.[X]) (f⦅x⦆))) :=
+  fun (𝓐 𝓑 f X x) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hx : (x ∈ setPO(𝓐))) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let u₀ := specification_set_subset (fun (t) => is_lower_bound 𝓐 X t) (setPO(𝓐))
+          let u := poiso_maxum 𝓐 𝓑 f (𝓐 ▾ X) x (u₀) hx hf
+          let u₁ := poiso_lowset 𝓐 𝓑 f X hX hf
+          eq_subst (fun (t) => (is_maximum (𝓐) (𝓐 ▾ X) x) ↔ (is_maximum 𝓑 (t) (f⦅x⦆))) (f.[𝓐 ▾ X]) (𝓑 ▾ (f.[X])) (u₁) (u)
+
+
+theorem supexi_constr : ∀ 𝓐 X, ((𝓐 SuprExi X) ↔ (∃ x ∈ setPO(𝓐); is_supremum 𝓐 X x)) :=
+  fun (𝓐) =>
+    fun (X) =>
+      Iff.intro
+      (
+        fun (hxE) =>
+          Exists.elim hxE (
+            fun (x) =>
+              fun (hx) =>
+                let u₁ := And.left hx
+                let u₂ := And.left (Iff.mp (upp_bou_set_is_upp_bou 𝓐 X x) u₁)
+                Exists.intro x (And.intro (u₂) (hx))
+          )
+      )
+      (
+        fun (hxA) =>
+          Exists.elim hxA (
+            fun (x) =>
+              fun (hx) =>
+                Exists.intro x (And.right hx)
+          )
+      )
+
+
+theorem infexi_constr : ∀ 𝓐 X, ((𝓐 InfmExi X) ↔ (∃ x ∈ setPO(𝓐); is_infimum 𝓐 X x)) :=
+   fun (𝓐) =>
+    fun (X) =>
+      Iff.intro
+      (
+        fun (hxE) =>
+          Exists.elim hxE (
+            fun (x) =>
+              fun (hx) =>
+                let u₁ := And.left hx
+                let u₂ := And.left (Iff.mp (low_bou_set_is_low_bou 𝓐 X x) u₁)
+                Exists.intro x (And.intro (u₂) (hx))
+          )
+      )
+      (
+        fun (hxA) =>
+          Exists.elim hxA (
+            fun (x) =>
+              fun (hx) =>
+                Exists.intro x (And.right hx)
+          )
+      )
+
+
+theorem poiso_supexi : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((𝓐 SuprExi X) ↔ (𝓑 SuprExi (f.[X]))) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+        let hpoiso := And.right (And.right hf)
+        let φ₁ := fun (x) => is_supremum 𝓐 X x
+        let φ₂ := fun (x) => is_supremum 𝓑 (f.[X]) (x)
+        let u := posio_exiin_equiv φ₁ φ₂ 𝓐 𝓑 f (hpoiso) (
+          fun (y) =>
+            fun (hy : y ∈ setPO(𝓐)) =>
+              poiso_sup 𝓐 𝓑 f X y hX hy (hf)
+        )
+        Iff.intro
+          (
+            fun (hexi₁) =>
+              Iff.mpr (supexi_constr 𝓑 (f.[X])) (
+                Iff.mp (u) (
+                  Iff.mp (supexi_constr 𝓐 X) (
+                    hexi₁
+                  )
+                )
+              )
+          )
+          (
+            fun (hexi₁) =>
+              Iff.mpr (supexi_constr 𝓐 (X)) (
+                Iff.mpr (u) (
+                  Iff.mp (supexi_constr 𝓑 (f.[X])) (
+                    hexi₁
+                  )
+                )
+              )
+          )
+
+
+theorem poiso_infexi : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((𝓐 InfmExi X) ↔ (𝓑 InfmExi (f.[X]))) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+        let hpoiso := And.right (And.right hf)
+        let φ₁ := fun (x) => is_infimum 𝓐 X x
+        let φ₂ := fun (x) => is_infimum 𝓑 (f.[X]) (x)
+        let u := posio_exiin_equiv φ₁ φ₂ 𝓐 𝓑 f (hpoiso) (
+          fun (y) =>
+            fun (hy : y ∈ setPO(𝓐)) =>
+              poiso_inf 𝓐 𝓑 f X y hX hy (hf)
+        )
+        Iff.intro
+          (
+            fun (hexi₁) =>
+              Iff.mpr (infexi_constr 𝓑 (f.[X])) (
+                Iff.mp (u) (
+                  Iff.mp (infexi_constr 𝓐 X) (
+                    hexi₁
+                  )
+                )
+              )
+          )
+          (
+            fun (hexi₁) =>
+              Iff.mpr (infexi_constr 𝓐 (X)) (
+                Iff.mpr (u) (
+                  Iff.mp (infexi_constr 𝓑 (f.[X])) (
+                    hexi₁
+                  )
+                )
+              )
+          )
+
+
+
+theorem poiso_interv_eq (φ : Set → Set → Set → Set → Prop) (ψ : Set → Set → Set → Set)
+ : ∀ 𝓐 𝓑 f, (f PO_ISO_PO 𝓐 To 𝓑) → (∀ 𝓧 x, ∀ a b, (x ∈ ψ 𝓧 a b ↔ φ 𝓧 a b x)) →
+ (∀ 𝓧 a b, (ψ 𝓧 a b) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a b x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅b⦆) (f⦅x⦆)))) → (
+  f.[ψ 𝓐 a b] = ψ 𝓑 (f⦅a⦆) (f⦅b⦆)
+ )) :=
+  fun (𝓐 𝓑 f) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      let hff := And.right (And.right hf)
+      let u₁ := bijection_inv_mp f setPO(𝓐) setPO(𝓑) (And.left hff)
+      let s := And.left hff
+      let t := And.left s
+      let r := And.left t
+      let k := And.left r
+      fun (hab : (∀ 𝓧 x, ∀ a b, (x ∈ ψ 𝓧 a b ↔ φ 𝓧 a b x)) ) =>
+        fun (h𝓧 :  (∀ 𝓧 a b, (ψ 𝓧 a b) ⊆ setPO(𝓧))) =>
+          fun (hφ : (∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a b x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅b⦆) (f⦅x⦆))))) =>
+                extensionality (f.[ψ 𝓐 a b]) (ψ 𝓑 (f⦅a⦆) (f⦅b⦆)) (
+                  fun (y) =>
+                    Iff.intro
+                    (
+                      fun (hy : y ∈ (f.[ψ 𝓐 a b])) =>
+                        Iff.mpr (hab 𝓑 y (f⦅a⦆) (f⦅b⦆)) (
+
+                          let M := ψ 𝓐 a b
+
+                          let hyB := specification_set_subset (fun (t) => ∃ s ∈ M; (s . f . t)) (rng f)
+                          let hyB₁ := subset_trans (f.[M]) (rng f) (setPO(𝓑)) (hyB) (rng_partial_function f setPO(𝓐) setPO(𝓑) (r)) y (hy)
+                          let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                          let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) y (hyB₁)
+                          let u₄ := eq_subst (fun (t) => t⦅y⦆ = (f⦅f⁻¹⦅y⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                          let u₅ := id_val_prop (setPO(𝓑)) y (hyB₁)
+                          let u₆ := Eq.trans (Eq.symm u₅) (u₄)
+                          let u₇ := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) y (hyB₁)
+
+                          let u := Iff.mp (hφ (f⁻¹⦅y⦆) (u₇)) (
+
+                            Iff.mp (hab 𝓐 (f⁻¹⦅y⦆) a b) (
+
+                              let u₀ := Iff.mp (image_prop f M y) hy
+
+                              Exists.elim u₀ (
+                                fun (i) =>
+                                  fun (hi) =>
+
+                                    eq_subst (fun (m) => m ∈ M) (i) (f⁻¹⦅y⦆) (
+
+                                      let u₈ := And.right hi
+                                      let u₉ := Iff.mpr (function_equal_value_prop f (setPO(𝓐)) setPO(𝓑) t (f⁻¹⦅y⦆) y u₇) (u₆)
+                                      And.left (And.right s) i (f⁻¹⦅y⦆) y u₈ u₉
+
+
+
+
+                                    ) (And.left hi)
+                              )
+                            )
+
+
+                          )
+
+                          eq_subst (fun (m) => φ 𝓑 (f⦅a⦆) (f⦅b⦆) m) (f⦅f⁻¹⦅y⦆⦆) (y) (Eq.symm u₆) (u)
+                        )
+                    )
+                    (
+                      fun (hy : y ∈ (ψ 𝓑 (f⦅a⦆) (f⦅b⦆))) =>
+                        let M := ψ 𝓐 a b
+                        let hyB₁ := h𝓧 𝓑 (f⦅a⦆) (f⦅b⦆) y hy
+                        let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                        let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) y (hyB₁)
+                        let u₄ := eq_subst (fun (t) => t⦅y⦆ = (f⦅f⁻¹⦅y⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                        let u₅ := id_val_prop (setPO(𝓑)) y (hyB₁)
+                        let u₆ := Eq.trans (Eq.symm u₅) (u₄)
+                        let u₇ := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) y (hyB₁)
+                        let u₉ := Iff.mpr (function_equal_value_prop f (setPO(𝓐)) setPO(𝓑) t (f⁻¹⦅y⦆) y u₇) (u₆)
+                        Iff.mpr (image_prop f M y) (
+                          Exists.intro (f⁻¹⦅y⦆) (
+                            And.intro (
+                              Iff.mpr (hab 𝓐 (f⁻¹⦅y⦆) a b) (
+                                Iff.mpr (hφ (f⁻¹⦅y⦆) u₇) (
+                                  eq_subst (fun (m) => φ 𝓑 (f⦅a⦆) (f⦅b⦆) m) (y) (f⦅f⁻¹⦅y⦆⦆) u₆ (
+                                    Iff.mp (hab 𝓑 y (f⦅a⦆) (f⦅b⦆)) (
+                                      hy
+                                    )
+                                  )
+                                )
+                              )
+
+                            ) (u₉)
+                          )
+                        )
+                    )
+                )
+
+
+
+
+theorem poiso_interv_eq₂ (φ : Set → Set → Set → Prop) (ψ : Set → Set → Set)
+ : ∀ 𝓐 𝓑 f, (f PO_ISO_PO 𝓐 To 𝓑) → (∀ 𝓧 x, ∀ a, (x ∈ ψ 𝓧 a ↔ φ 𝓧 a x)) →
+ (∀ 𝓧 a, (ψ 𝓧 a) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅x⦆)))) → (
+  f.[ψ 𝓐 a] = ψ 𝓑 (f⦅a⦆)
+ )) :=
+  fun (𝓐 𝓑 f) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      let hff := And.right (And.right hf)
+      let u₁ := bijection_inv_mp f setPO(𝓐) setPO(𝓑) (And.left hff)
+      let s := And.left hff
+      let t := And.left s
+      let r := And.left t
+      let k := And.left r
+      fun (hab : (∀ 𝓧 x, ∀ a, (x ∈ ψ 𝓧 a ↔ φ 𝓧 a x)) ) =>
+        fun (h𝓧 :  (∀ 𝓧 a, (ψ 𝓧 a) ⊆ setPO(𝓧))) =>
+          fun (hφ : (∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅x⦆))))) =>
+                extensionality (f.[ψ 𝓐 a]) (ψ 𝓑 (f⦅a⦆)) (
+                  fun (y) =>
+                    Iff.intro
+                    (
+                      fun (hy : y ∈ (f.[ψ 𝓐 a])) =>
+                        Iff.mpr (hab 𝓑 y (f⦅a⦆)) (
+
+                          let M := ψ 𝓐 a
+
+                          let hyB := specification_set_subset (fun (t) => ∃ s ∈ M; (s . f . t)) (rng f)
+                          let hyB₁ := subset_trans (f.[M]) (rng f) (setPO(𝓑)) (hyB) (rng_partial_function f setPO(𝓐) setPO(𝓑) (r)) y (hy)
+                          let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                          let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) y (hyB₁)
+                          let u₄ := eq_subst (fun (t) => t⦅y⦆ = (f⦅f⁻¹⦅y⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                          let u₅ := id_val_prop (setPO(𝓑)) y (hyB₁)
+                          let u₆ := Eq.trans (Eq.symm u₅) (u₄)
+                          let u₇ := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) y (hyB₁)
+
+                          let u := Iff.mp (hφ (f⁻¹⦅y⦆) (u₇)) (
+
+                            Iff.mp (hab 𝓐 (f⁻¹⦅y⦆) a) (
+
+                              let u₀ := Iff.mp (image_prop f M y) hy
+
+                              Exists.elim u₀ (
+                                fun (i) =>
+                                  fun (hi) =>
+
+                                    eq_subst (fun (m) => m ∈ M) (i) (f⁻¹⦅y⦆) (
+
+                                      let u₈ := And.right hi
+                                      let u₉ := Iff.mpr (function_equal_value_prop f (setPO(𝓐)) setPO(𝓑) t (f⁻¹⦅y⦆) y u₇) (u₆)
+                                      And.left (And.right s) i (f⁻¹⦅y⦆) y u₈ u₉
+
+
+
+
+                                    ) (And.left hi)
+                              )
+                            )
+
+
+                          )
+
+                          eq_subst (fun (m) => φ 𝓑 (f⦅a⦆) m) (f⦅f⁻¹⦅y⦆⦆) (y) (Eq.symm u₆) (u)
+                        )
+                    )
+                    (
+                      fun (hy : y ∈ (ψ 𝓑 (f⦅a⦆))) =>
+                        let M := ψ 𝓐 a
+                        let hyB₁ := h𝓧 𝓑 (f⦅a⦆) y hy
+                        let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
+                        let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) y (hyB₁)
+                        let u₄ := eq_subst (fun (t) => t⦅y⦆ = (f⦅f⁻¹⦅y⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
+                        let u₅ := id_val_prop (setPO(𝓑)) y (hyB₁)
+                        let u₆ := Eq.trans (Eq.symm u₅) (u₄)
+                        let u₇ := val_in_B (f⁻¹) (setPO(𝓑)) (setPO(𝓐)) (And.left u₁) y (hyB₁)
+                        let u₉ := Iff.mpr (function_equal_value_prop f (setPO(𝓐)) setPO(𝓑) t (f⁻¹⦅y⦆) y u₇) (u₆)
+                        Iff.mpr (image_prop f M y) (
+                          Exists.intro (f⁻¹⦅y⦆) (
+                            And.intro (
+                              Iff.mpr (hab 𝓐 (f⁻¹⦅y⦆) a) (
+                                Iff.mpr (hφ (f⁻¹⦅y⦆) u₇) (
+                                  eq_subst (fun (m) => φ 𝓑 (f⦅a⦆) m) (y) (f⦅f⁻¹⦅y⦆⦆) u₆ (
+                                    Iff.mp (hab 𝓑 y (f⦅a⦆)) (
+                                      hy
+                                    )
+                                  )
+                                )
+                              )
+
+                            ) (u₉)
+                          )
+                        )
+                    )
+                )
+
+
+theorem poiso_lro : ∀ 𝓐 𝓑 f a b, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ setPO(𝓐)) → (b ∈ setPO(𝓐)) → (f.[⦗ a ; b ⦘ of 𝓐] = ⦗ f⦅a⦆ ; f⦅b⦆ ⦘ of 𝓑) :=
+  fun (𝓐 𝓑 f a b) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      fun (ha) =>
+        fun (hb) =>
+          let φ := fun (𝓐) => fun (a) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≺(𝓐)) . x) ∧ (x . (≺(𝓐)) . b))
+          let ψ := fun (𝓐) => fun (a) => fun (b) => ⦗ a ; b ⦘ of 𝓐
+
+          poiso_interv_eq φ ψ 𝓐 𝓑 f hf (
+            fun (𝓧 x a b) =>
+              spec_is_spec (fun (m) => (a . (≺(𝓧)) . m) ∧ (m . (≺(𝓧)) . b)) (setPO(𝓧)) x
+          ) (lro_sub_all) (
+            fun (x) =>
+              fun (hx : (x ∈ setPO(𝓐))) =>
+                let φ₁ := fun (x) => (x ∈ setPO(𝓐))
+                let φ₂ := fun (x) => (x ∈ setPO(𝓑))
+                let φ₃ := fun (x) => (a . (≺(𝓐)) . x) ∧ (x . (≺(𝓐)) . b)
+                let φ₄ := fun (x) => ((f⦅a⦆) . (≺(𝓑)) . x) ∧ (x . (≺(𝓑)) . (f⦅b⦆ ))
+                poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx) (
+                  let φ₁ := fun (x) => (a . (≺(𝓐)) . x)
+                  let φ₂ := fun (x) => ((f⦅a⦆)  . (≺(𝓑)) . x)
+                  let φ₃ := fun (x) => (x . (≺(𝓐)) . b)
+                  let φ₄ := fun (x) => (x  . (≺(𝓑)) . (f⦅b⦆))
+                  poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+                    iso_R₁ 𝓐 𝓑 f (And.right (And.right hf)) (And.left hf) (And.left (And.right hf)) a ha x hx
+                  ) (
+                    iso_R₁ 𝓐 𝓑 f (And.right (And.right hf)) (And.left hf) (And.left (And.right hf)) x hx b hb
+                  )
+                )
+          )
+
+
+
+theorem poiso_lcro : ∀ 𝓐 𝓑 f a b, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ setPO(𝓐)) → (b ∈ setPO(𝓐)) → (f.[⟦ a ; b ⦘ of 𝓐] = ⟦ f⦅a⦆ ; f⦅b⦆ ⦘ of 𝓑) :=
+  fun (𝓐 𝓑 f a b) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      fun (ha) =>
+        fun (hb) =>
+          let φ := fun (𝓐) => fun (a) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≼(𝓐)) . x) ∧ (x . (≺(𝓐)) . b))
+          let ψ := fun (𝓐) => fun (a) => fun (b) => ⟦ a ; b ⦘ of 𝓐
+
+          poiso_interv_eq φ ψ 𝓐 𝓑 f hf (
+            fun (𝓧 x a b) =>
+              spec_is_spec (fun (m) => (a . (≼(𝓧)) . m) ∧ (m . (≺(𝓧)) . b)) (setPO(𝓧)) x
+          ) (lcro_sub_all) (
+            fun (x) =>
+              fun (hx : (x ∈ setPO(𝓐))) =>
+                let φ₁ := fun (x) => (x ∈ setPO(𝓐))
+                let φ₂ := fun (x) => (x ∈ setPO(𝓑))
+                let φ₃ := fun (x) => (a . (≼(𝓐)) . x) ∧ (x . (≺(𝓐)) . b)
+                let φ₄ := fun (x) => ((f⦅a⦆) . (≼(𝓑)) . x) ∧ (x . (≺(𝓑)) . (f⦅b⦆ ))
+                poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx) (
+                  let φ₁ := fun (x) => (a . (≼(𝓐)) . x)
+                  let φ₂ := fun (x) => ((f⦅a⦆)  . (≼(𝓑)) . x)
+                  let φ₃ := fun (x) => (x . (≺(𝓐)) . b)
+                  let φ₄ := fun (x) => (x  . (≺(𝓑)) . (f⦅b⦆))
+                  poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+                    iso_R₂ 𝓐 𝓑 f (And.right (And.right hf)) a ha x hx
+                  ) (
+                    iso_R₁ 𝓐 𝓑 f (And.right (And.right hf)) (And.left hf) (And.left (And.right hf)) x hx b hb
+                  )
+                )
+          )
+
+theorem poiso_locr : ∀ 𝓐 𝓑 f a b, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ setPO(𝓐)) → (b ∈ setPO(𝓐)) → (f.[⦗ a ; b ⟧ of 𝓐] = ⦗ f⦅a⦆ ; f⦅b⦆ ⟧ of 𝓑) :=
+  fun (𝓐 𝓑 f a b) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      fun (ha) =>
+        fun (hb) =>
+          let φ := fun (𝓐) => fun (a) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≺(𝓐)) . x) ∧ (x . (≼(𝓐)) . b))
+          let ψ := fun (𝓐) => fun (a) => fun (b) => ⦗ a ; b ⟧ of 𝓐
+
+          poiso_interv_eq φ ψ 𝓐 𝓑 f hf (
+            fun (𝓧 x a b) =>
+              spec_is_spec (fun (m) => (a . (≺(𝓧)) . m) ∧ (m . (≼(𝓧)) . b)) (setPO(𝓧)) x
+          ) (lorc_sub_all) (
+            fun (x) =>
+              fun (hx : (x ∈ setPO(𝓐))) =>
+                let φ₁ := fun (x) => (x ∈ setPO(𝓐))
+                let φ₂ := fun (x) => (x ∈ setPO(𝓑))
+                let φ₃ := fun (x) => (a . (≺(𝓐)) . x) ∧ (x . (≼(𝓐)) . b)
+                let φ₄ := fun (x) => ((f⦅a⦆) . (≺(𝓑)) . x) ∧ (x . (≼(𝓑)) . (f⦅b⦆ ))
+                poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx) (
+                  let φ₁ := fun (x) => (a . (≺(𝓐)) . x)
+                  let φ₂ := fun (x) => ((f⦅a⦆)  . (≺(𝓑)) . x)
+                  let φ₃ := fun (x) => (x . (≼(𝓐)) . b)
+                  let φ₄ := fun (x) => (x  . (≼(𝓑)) . (f⦅b⦆))
+                  poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+                    iso_R₁ 𝓐 𝓑 f (And.right (And.right hf)) (And.left hf) (And.left (And.right hf)) a ha x hx
+                  ) (
+                    iso_R₂ 𝓐 𝓑 f (And.right (And.right hf))  x hx b hb
+                  )
+                )
+          )
+
+theorem poiso_lrc : ∀ 𝓐 𝓑 f a b, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ setPO(𝓐)) → (b ∈ setPO(𝓐)) → (f.[⟦ a ; b ⟧ of 𝓐] = ⟦ f⦅a⦆ ; f⦅b⦆ ⟧ of 𝓑) :=
+  fun (𝓐 𝓑 f a b) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      fun (ha) =>
+        fun (hb) =>
+          let φ := fun (𝓐) => fun (a) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≼(𝓐)) . x) ∧ (x . (≼(𝓐)) . b))
+          let ψ := fun (𝓐) => fun (a) => fun (b) =>  ⟦ a ; b ⟧ of 𝓐
+
+          poiso_interv_eq φ ψ 𝓐 𝓑 f hf (
+            fun (𝓧 x a b) =>
+              spec_is_spec (fun (m) => (a . (≼(𝓧)) . m) ∧ (m . (≼(𝓧)) . b)) (setPO(𝓧)) x
+          ) (lrc_sub_all) (
+            fun (x) =>
+              fun (hx : (x ∈ setPO(𝓐))) =>
+                let φ₁ := fun (x) => (x ∈ setPO(𝓐))
+                let φ₂ := fun (x) => (x ∈ setPO(𝓑))
+                let φ₃ := fun (x) => (a . (≼(𝓐)) . x) ∧ (x . (≼(𝓐)) . b)
+                let φ₄ := fun (x) => ((f⦅a⦆) . (≼(𝓑)) . x) ∧ (x . (≼(𝓑)) . (f⦅b⦆ ))
+                poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx) (
+                  let φ₁ := fun (x) => (a . (≼(𝓐)) . x)
+                  let φ₂ := fun (x) => ((f⦅a⦆)  . (≼(𝓑)) . x)
+                  let φ₃ := fun (x) => (x . (≼(𝓐)) . b)
+                  let φ₄ := fun (x) => (x  . (≼(𝓑)) . (f⦅b⦆))
+                  poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (
+                    iso_R₂ 𝓐 𝓑 f (And.right (And.right hf))  a ha x hx
+                  ) (
+                    iso_R₂ 𝓐 𝓑 f (And.right (And.right hf))  x hx b hb
+                  )
+                )
+          )
+
+theorem poiso_lc : ∀ 𝓐 𝓑 f a, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ setPO(𝓐)) → (f.[⟦ a ; +∞ ⦘ of 𝓐] = ⟦ f⦅a⦆ ; +∞ ⦘ of 𝓑) :=
+  fun (𝓐 𝓑 f a) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      fun (ha) =>
+        let φ := fun (𝓐) => fun (a) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≼(𝓐)) . x))
+          let ψ := fun (𝓐) => fun (a) => ⟦ a ; +∞ ⦘ of 𝓐
+
+          poiso_interv_eq₂ φ ψ 𝓐 𝓑 f hf (
+            fun (𝓧 x a) =>
+              spec_is_spec (fun (m) => (a . (≼(𝓧)) . m)) (setPO(𝓧)) x
+          ) (lc_sub_all) (
+            fun (x) =>
+              fun (hx : (x ∈ setPO(𝓐))) =>
+                let φ₁ := fun (x) => (x ∈ setPO(𝓐))
+                let φ₂ := fun (x) => (x ∈ setPO(𝓑))
+                let φ₃ := fun (x) => (a . (≼(𝓐)) . x)
+                let φ₄ := fun (x) => ((f⦅a⦆) . (≼(𝓑)) . x)
+                poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx) (
+                    iso_R₂ 𝓐 𝓑 f (And.right (And.right hf))  a ha x hx
+                )
+
+          )
+
+
+
+
+
+theorem poiso_rc : ∀ 𝓐 𝓑 f b, (f PO_ISO_PO 𝓐 To 𝓑) → (b ∈ setPO(𝓐)) → (f.[ ⦗ -∞ ; b ⟧ of 𝓐] = ⦗  -∞  ; f⦅b⦆ ⟧ of 𝓑) :=
+  fun (𝓐 𝓑 f b) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      fun (hb) =>
+        let φ := fun (𝓐) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((x . (≼(𝓐)) . b))
+          let ψ := fun (𝓐) => fun (b) => ⦗ -∞ ; b ⟧ of 𝓐
+
+          poiso_interv_eq₂ φ ψ 𝓐 𝓑 f hf (
+            fun (𝓧 x b) =>
+              spec_is_spec (fun (m) => (m . (≼(𝓧)) . b)) (setPO(𝓧)) x
+          ) (rc_sub_all) (
+            fun (x) =>
+              fun (hx : (x ∈ setPO(𝓐))) =>
+                let φ₁ := fun (x) => (x ∈ setPO(𝓐))
+                let φ₂ := fun (x) => (x ∈ setPO(𝓑))
+                let φ₃ := fun (x) => (x . (≼(𝓐)) . b)
+                let φ₄ := fun (x) => (x . (≼(𝓑)) . (f⦅b⦆))
+                poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx) (
+                    iso_R₂ 𝓐 𝓑 f (And.right (And.right hf)) x hx b hb
+                )
+
+          )
+
+theorem poiso_lo : ∀ 𝓐 𝓑 f a, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ setPO(𝓐)) → (f.[ ⦗  a ; +∞ ⦘ of 𝓐] = ⦗ f⦅a⦆ ; +∞ ⦘ of 𝓑) :=
+  fun (𝓐 𝓑 f a) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      fun (ha) =>
+        let φ := fun (𝓐) => fun (a) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≺(𝓐)) . x))
+          let ψ := fun (𝓐) => fun (a) => ⦗ a ; +∞ ⦘ of 𝓐
+
+          poiso_interv_eq₂ φ ψ 𝓐 𝓑 f hf (
+            fun (𝓧 x a) =>
+              spec_is_spec (fun (m) => (a . (≺(𝓧)) . m)) (setPO(𝓧)) x
+          ) (lo_sub_all) (
+            fun (x) =>
+              fun (hx : (x ∈ setPO(𝓐))) =>
+                let φ₁ := fun (x) => (x ∈ setPO(𝓐))
+                let φ₂ := fun (x) => (x ∈ setPO(𝓑))
+                let φ₃ := fun (x) => (a . (≺(𝓐)) . x)
+                let φ₄ := fun (x) => ((f⦅a⦆) . (≺(𝓑)) . x)
+                poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx) (
+                    iso_R₁ 𝓐 𝓑 f (And.right (And.right hf)) (And.left hf) (And.left (And.right hf)) a ha x hx
+                )
+
+          )
+
+theorem poiso_ro : ∀ 𝓐 𝓑 f b, (f PO_ISO_PO 𝓐 To 𝓑) → (b ∈ setPO(𝓐)) → (f.[⦗ -∞ ; b ⦘ of 𝓐] = ⦗ -∞ ; f⦅b⦆ ⦘ of 𝓑) :=
+  fun (𝓐 𝓑 f b) =>
+    fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+      fun (hb) =>
+        let φ := fun (𝓐) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((x . (≺(𝓐)) . b))
+          let ψ := fun (𝓐) => fun (b) => ⦗ -∞ ; b ⦘ of 𝓐
+
+          poiso_interv_eq₂ φ ψ 𝓐 𝓑 f hf (
+            fun (𝓧 x b) =>
+              spec_is_spec (fun (m) => (m . (≺(𝓧)) . b)) (setPO(𝓧)) x
+          ) (ro_sub_all) (
+            fun (x) =>
+              fun (hx : (x ∈ setPO(𝓐))) =>
+                let φ₁ := fun (x) => (x ∈ setPO(𝓐))
+                let φ₂ := fun (x) => (x ∈ setPO(𝓑))
+                let φ₃ := fun (x) => (x . (≺(𝓐)) . b)
+                let φ₄ := fun (x) => (x . (≺(𝓑)) . (f⦅b⦆))
+                poiso_and_equiv φ₁ φ₂ φ₃ φ₄ f x (iso_in₁ 𝓐 𝓑 f x (And.right (And.right hf)) hx) (
+                    iso_R₁ 𝓐 𝓑 f (And.right (And.right hf)) (And.left hf) (And.left (And.right hf)) x hx b hb
+                )
+
+          )
+
+theorem poiso_full : ∀ 𝓐 𝓑 f, (f PO_ISO_PO 𝓐 To 𝓑) → (f.[⦗ -∞ ; +∞  ⦘ of 𝓐] = ⦗ -∞ ; +∞  ⦘ of 𝓑) :=
+  fun (𝓐 𝓑 f) =>
+    fun (hf) =>
+      let hff := And.right (And.right hf)
+      let hbij := And.left hff
+      let hfunc := And.left hbij
+      let hpfunc := And.left hfunc
+      let hbinrel := And.left hpfunc
+      let hbrel := And.left (prop_then_binary_relation (setPO(𝓐)) (setPO(𝓑)) f hbinrel)
+      eq_subst (fun (t) => f.[t] = ⦗ -∞ ; +∞  ⦘ of 𝓑) (⦗ -∞ ; +∞  ⦘ of 𝓐) (setPO(𝓐)) (f_eq_all 𝓐) (
+        eq_subst (fun (t) => f.[setPO(𝓐)] = t) (⦗ -∞ ; +∞  ⦘ of 𝓑) (setPO(𝓑)) (f_eq_all 𝓑) (
+          let u₂ := Iff.mp (func_surj_crit setPO(𝓐) setPO(𝓑) f hfunc) (And.intro hfunc (And.right (And.right hbij)))
+          let u₃ := rng_is_rel_image f hbrel
+          let u₄ := Eq.trans (Eq.symm u₃) u₂
+          let u₅ := dom_function f setPO(𝓐) setPO(𝓑) hfunc
+          eq_subst (fun (m) => f.[m] = setPO(𝓑)) (dom f) (setPO(𝓐)) (Eq.symm u₅) (u₄)
+
+        )
+      )
+
+
+
+theorem poiso_elconstr  (φ : Set → Set → Set → Prop ) (ψ : Set → Set → Set) (cond : Set → Set → Prop)  :
+∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) →
+(cond 𝓐 X) →
+(cond 𝓑 (f.[X])) →
+(f PO_ISO_PO 𝓐 To 𝓑) →
+(∀ 𝓧 X, (X ⊆ setPO(𝓧)) → (PartOrd 𝓧) → (cond 𝓧 X) → ψ 𝓧 X ∈ setPO(𝓧)) →
+(∀ 𝓧 X t, (PartOrd 𝓧) → (cond 𝓧 X) →  ((φ 𝓧 X (t) ↔ (t = ψ 𝓧 X)))) →
+(∀ X x, (X ⊆ setPO(𝓐)) → (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((φ 𝓐 X x) ↔ (φ 𝓑 (f.[X]) (f⦅x⦆)))) →
+(f⦅ψ 𝓐 X⦆ = ψ 𝓑 (f.[X])) :=
+
+fun (𝓐 𝓑 f X) =>
+  fun (hX : (X ⊆ setPO(𝓐))) =>
+    fun (hcondX) =>
+      fun (hcondfX) =>
+        fun (hf) =>
+          fun (hin : ∀ 𝓧 X, (X ⊆ setPO(𝓧)) → (PartOrd 𝓧) → (cond 𝓧 X) → ψ 𝓧 X ∈ setPO(𝓧)) =>
+            fun (hφψ : (∀ 𝓧 X t, (PartOrd 𝓧) → (cond 𝓧 X) →  ((φ 𝓧 X (t) ↔ (t = ψ 𝓧 X))))) =>
+              fun (h𝓐𝓑 : (∀ X x, (X ⊆ setPO(𝓐)) →
+              (x ∈ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((φ 𝓐 X x) ↔ (φ 𝓑 (f.[X]) (f⦅x⦆))))) =>
+                let el := ψ 𝓐 X
+                let elA := hin 𝓐 X hX (And.left hf) hcondX
+                let u₁ := Iff.mpr (hφψ 𝓐 X el (And.left hf) hcondX) (Eq.refl el)
+                let u₂ := Iff.mp (h𝓐𝓑 X el hX elA hf) u₁
+                Iff.mp (hφψ 𝓑 (f.[X]) (f⦅el⦆) (And.left (And.right hf)) (hcondfX)) u₂
+
+
+theorem poiso_minumel : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (𝓐 MinExi X) → (f PO_ISO_PO 𝓐 To 𝓑) → (f⦅𝓐 Min X⦆ = 𝓑 Min (f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hXexi : (𝓐 MinExi X)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ := fun (𝓐) => fun (X) => fun(x) => is_minimum 𝓐 X x
+          let ψ := fun (𝓐) => fun (X) => 𝓐 Min X
+          let cond := fun (𝓐) => fun (X) => 𝓐 MinExi X
+          let u := fun (𝓧) =>
+                      fun (Y) =>
+                        fun (hY : Y ⊆ setPO(𝓧)) =>
+                          fun (h𝓧 : PartOrd 𝓧) =>
+                            fun (hYexi : 𝓧 MinExi Y) =>
+                              let v₁ := And.left (min_po_prop 𝓧 Y h𝓧 hYexi)
+                              let v := hY (ψ 𝓧 Y) v₁
+                              v
+          let hfXexi := Iff.mp (poiso_minexi 𝓐 𝓑 f X hX hf) hXexi
+          poiso_elconstr φ ψ cond 𝓐 𝓑 f X hX hXexi hfXexi hf (u) (min_po_crit) (poiso_minum 𝓐 𝓑 f)
+
+
+
+theorem poiso_maxumel : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (𝓐 MaxExi X) → (f PO_ISO_PO 𝓐 To 𝓑) → (f⦅𝓐 Max X⦆ = 𝓑 Max (f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hXexi : (𝓐 MaxExi X)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ := fun (𝓐) => fun (X) => fun(x) => is_maximum 𝓐 X x
+          let ψ := fun (𝓐) => fun (X) => 𝓐 Max X
+          let cond := fun (𝓐) => fun (X) => 𝓐 MaxExi X
+          let u := fun (𝓧) =>
+                      fun (Y) =>
+                        fun (hY : Y ⊆ setPO(𝓧)) =>
+                          fun (h𝓧 : PartOrd 𝓧) =>
+                            fun (hYexi : 𝓧 MaxExi Y) =>
+                              let v₁ := And.left (max_po_prop 𝓧 Y h𝓧 hYexi)
+                              let v := hY (ψ 𝓧 Y) v₁
+                              v
+          let hfXexi := Iff.mp (poiso_maxexi 𝓐 𝓑 f X hX hf) hXexi
+          poiso_elconstr φ ψ cond 𝓐 𝓑 f X hX hXexi hfXexi hf (u) (max_po_crit) (poiso_maxum 𝓐 𝓑 f)
+
+
+theorem poiso_supel : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (𝓐 SuprExi X) → (f PO_ISO_PO 𝓐 To 𝓑) → (f⦅𝓐 Supr X⦆ = 𝓑 Supr (f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hXexi : (𝓐 SuprExi X)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ := fun (𝓐) => fun (X) => fun(x) => is_supremum 𝓐 X x
+          let ψ := fun (𝓐) => fun (X) => 𝓐 Supr X
+          let cond := fun (𝓐) => fun (X) => 𝓐 SuprExi X
+          let u := fun (𝓧) =>
+                      fun (Y) =>
+                        fun (_ : Y ⊆ setPO(𝓧)) =>
+                          fun (h𝓧 : PartOrd 𝓧) =>
+                            fun (hYexi : 𝓧 SuprExi Y) =>
+                              let v₁ := And.left (supr_po_prop 𝓧 Y h𝓧 hYexi)
+                              And.left (Iff.mp (upp_bou_set_is_upp_bou 𝓧 Y (ψ 𝓧 Y)) v₁)
+
+          let hfXexi := Iff.mp (poiso_supexi 𝓐 𝓑 f X hX hf) hXexi
+          poiso_elconstr φ ψ cond 𝓐 𝓑 f X hX hXexi hfXexi hf (u) (supr_po_crit) (poiso_sup 𝓐 𝓑 f)
+
+
+theorem poiso_infel : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X) → (f PO_ISO_PO 𝓐 To 𝓑) → (f⦅𝓐 Infm X⦆ = 𝓑 Infm (f.[X])) :=
+  fun (𝓐 𝓑 f X) =>
+    fun (hX : (X ⊆ setPO(𝓐))) =>
+      fun (hXexi : (𝓐 InfmExi X)) =>
+        fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
+          let φ := fun (𝓐) => fun (X) => fun(x) => is_infimum 𝓐 X x
+          let ψ := fun (𝓐) => fun (X) => 𝓐 Infm X
+          let cond := fun (𝓐) => fun (X) => 𝓐 InfmExi X
+          let u := fun (𝓧) =>
+                      fun (Y) =>
+                        fun (_ : Y ⊆ setPO(𝓧)) =>
+                          fun (h𝓧 : PartOrd 𝓧) =>
+                            fun (hYexi : 𝓧 InfmExi Y) =>
+                              let v₁ := And.left (inf_po_prop 𝓧 Y h𝓧 hYexi)
+                              And.left (Iff.mp (low_bou_set_is_low_bou 𝓧 Y (ψ 𝓧 Y)) v₁)
+
+          let hfXexi := Iff.mp (poiso_infexi 𝓐 𝓑 f X hX hf) hXexi
+          poiso_elconstr φ ψ cond 𝓐 𝓑 f X hX hXexi hfXexi hf (u) (infm_po_crit) (poiso_inf 𝓐 𝓑 f)
+
+
+theorem poiso_if_then_iff (φ : Set → Prop) :
+(∀ 𝓐 𝓑, (𝓐 ≃O 𝓑) → (φ 𝓐) → (φ 𝓑)) → (∀ 𝓐 𝓑, (𝓐 ≃O 𝓑) → ((φ 𝓐) ↔ (φ 𝓑))) :=
+  fun (hprop) =>
+    fun (𝓐 𝓑) =>
+      fun (h𝓐𝓑) =>
+        let symmiso := iso_symm 𝓐 𝓑 h𝓐𝓑
+        Iff.intro
+        (
+          fun (hφ𝓐) =>
+            hprop 𝓐 𝓑 h𝓐𝓑 hφ𝓐
+        )
+        (
+          fun (hφ𝓑) =>
+            hprop 𝓑 𝓐 (symmiso) hφ𝓑
+        )
+
+
+-- TO DO: prove the following theorems
+
+theorem poiso_latt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((Latt 𝓐) ↔ (Latt 𝓑)) :=
+  fun (𝓐 𝓑) =>
+    fun (h𝓐𝓑 : 𝓐 P≃O 𝓑) =>
+      sorry
+
+
+theorem poiso_complatt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((CompLatt 𝓐) ↔ (CompLatt 𝓑)) := sorry
+theorem poiso_linord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((LinOrd 𝓐) ↔ (LinOrd 𝓑)) := sorry
+theorem poiso_welord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((WellOrd 𝓐) ↔ (WellOrd 𝓑)) := sorry
