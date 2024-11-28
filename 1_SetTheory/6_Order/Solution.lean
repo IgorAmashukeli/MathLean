@@ -8994,9 +8994,6 @@ theorem poiso_if_then_iff (φ : Set → Prop) :
 
 -- TO DO: prove the following theorems
 
-theorem poiso_subs : ∀ 𝓐 𝓑 X, (X ⊆ setPO(𝓐)) → (f P≃O 𝓑) → (𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X])) := sorry
-
-theorem poiso_card : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartPO 𝓒) P≃O (𝓑 CartPO 𝓓)) := sorry
 
 theorem poiso_latt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((Latt 𝓐) ↔ (Latt 𝓑)) :=
   fun (𝓐 𝓑) =>
@@ -9186,3 +9183,9 @@ theorem poiso_linord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((LinOrd 𝓐) ↔ (
 
 
 theorem poiso_welord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((WellOrd 𝓐) ↔ (WellOrd 𝓑)) := sorry
+
+
+theorem poiso_inv : ∀ 𝓐, (𝓐 P≃O 𝓑) → ((inv_PO 𝓐) P≃O (inv_PO 𝓑)) := sorry
+theorem poiso_subs : ∀ 𝓐 𝓑 X, (X ⊆ setPO(𝓐)) → (f P≃O 𝓑) → (𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X])) := sorry
+theorem poiso_inter : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 InterPO 𝓒) P≃O (𝓑 InterPO 𝓓)) := sorry
+theorem poiso_card : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartPO 𝓒) P≃O (𝓑 CartPO 𝓓)) := sorry

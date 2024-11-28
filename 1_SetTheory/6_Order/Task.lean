@@ -810,16 +810,24 @@ theorem poiso_supel : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (𝓐 SuprExi X
 theorem poiso_infel : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X) → (f PO_ISO_PO 𝓐 To 𝓑) → (f⦅𝓐 Infm X⦆ = 𝓑 Infm (f.[X])) := sorry
 
 
-
--- 43 ) Properties about partial order itself also doesn't change through isomorphism
+-- 43) Properties about isomorphic partial orders can be proved in one side only due to the symmetry of isommorphism
 
 
 theorem poiso_if_then_iff (φ : Set → Prop) :
 (∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (φ 𝓐) → (φ 𝓑)) → (∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((φ 𝓐) ↔ (φ 𝓑))) := sorry
 
-theorem poiso_subs : ∀ 𝓐 𝓑 X, (X ⊆ setPO(𝓐)) → (f P≃O 𝓑) → (𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X])) := sorry
-theorem poiso_card : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartPO 𝓒) P≃O (𝓑 CartPO 𝓓)) := sorry
+
+-- 44 ) Properties about partial order itself also doesn't change through isomorphism
+
 theorem poiso_latt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((Latt 𝓐) ↔ (Latt 𝓑)) := sorry
 theorem poiso_complatt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((CompLatt 𝓐) ↔ (CompLatt 𝓑)) := sorry
 theorem poiso_linord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((LinOrd 𝓐) ↔ (LinOrd 𝓑)) := sorry
 theorem poiso_welord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((WellOrd 𝓐) ↔ (WellOrd 𝓑)) := sorry
+
+
+-- 43) Partial order isomorphism translates throug different partial order constructions
+
+theorem poiso_inv : ∀ 𝓐, (𝓐 P≃O 𝓑) → ((inv_PO 𝓐) P≃O (inv_PO 𝓑)) := sorry
+theorem poiso_subs : ∀ 𝓐 𝓑 X, (X ⊆ setPO(𝓐)) → (f P≃O 𝓑) → (𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X])) := sorry
+theorem poiso_inter : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 InterPO 𝓒) P≃O (𝓑 InterPO 𝓓)) := sorry
+theorem poiso_card : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartPO 𝓒) P≃O (𝓑 CartPO 𝓓)) := sorry
