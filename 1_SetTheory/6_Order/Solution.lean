@@ -8994,12 +8994,195 @@ theorem poiso_if_then_iff (φ : Set → Prop) :
 
 -- TO DO: prove the following theorems
 
+theorem poiso_subs : ∀ 𝓐 𝓑 X, (X ⊆ setPO(𝓐)) → (f P≃O 𝓑) → (𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X])) := sorry
+
+theorem poiso_card : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartPO 𝓒) P≃O (𝓑 CartPO 𝓓)) := sorry
+
 theorem poiso_latt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((Latt 𝓐) ↔ (Latt 𝓑)) :=
   fun (𝓐 𝓑) =>
     fun (h𝓐𝓑 : 𝓐 P≃O 𝓑) =>
-      sorry
+      let po𝓐 := And.left h𝓐𝓑
+      let po𝓑 := And.left (And.right h𝓐𝓑)
+      let iso := And.right (And.right h𝓐𝓑)
+
+      Exists.elim iso (
+        fun (f) =>
+          fun (hf) =>
+            let hfunc := And.left (And.left hf)
+            let φ₃ := (∀ x y ∈ (setPO(𝓐)); (𝓐 SuprExi ({x, y})) ∧ (𝓐 InfmExi ({x, y})))
+            let φ₄ := (∀ x y ∈ (setPO(𝓑)); (𝓑 SuprExi ({x, y})) ∧ (𝓑 InfmExi ({x, y})))
+            let φ₅ := fun (x) => (∀ y ∈ (setPO(𝓐)); (𝓐 SuprExi ({x, y})) ∧ (𝓐 InfmExi ({x, y})))
+            let φ₆ := fun (x) => (∀ y ∈ (setPO(𝓑)); (𝓑 SuprExi ({x, y})) ∧ (𝓑 InfmExi ({x, y})))
+            let u : φ₃ ↔ φ₄ := poiso_allin_equiv φ₅ φ₆ 𝓐 𝓑 f hf (
+              fun (x) =>
+                fun (hx : x ∈ setPO(𝓐)) =>
+                  let φ₇ := fun (y) => (𝓐 SuprExi ({x, y})) ∧ (𝓐 InfmExi ({x, y}))
+                  let φ₈ := fun (y) => (𝓑 SuprExi ({(f⦅x⦆), y})) ∧ (𝓑 InfmExi ({(f⦅x⦆), y}))
+
+                  poiso_allin_equiv φ₇ φ₈ 𝓐 𝓑 f hf (
+                    fun (y) =>
+                      fun (hy : y ∈ setPO(𝓐)) =>
+
+                      let φ₉ := fun (y) => (𝓐 SuprExi ({x, y}))
+                      let φ₁₀ := fun (y) => (𝓑 SuprExi ({(f⦅x⦆), y}))
+                      let φ₁₁ := fun (y) => (𝓐 InfmExi ({x, y}))
+                      let φ₁₂ := fun (y) => (𝓑 InfmExi ({(f⦅x⦆), y}))
+
+                      let u₀ := fun (t) =>
+                        fun (ht : t ∈ {x, y}) =>
+                          Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair x y t) ht)
+                          (
+                            fun (htx : t = x) =>
+                              eq_subst (fun (m) => m ∈ setPO(𝓐)) x t (Eq.symm htx) (hx)
+                          )
+                          (
+                            fun (hty : t = y) =>
+                              eq_subst (fun (m) => m ∈ setPO(𝓐)) y t (Eq.symm hty) (hy)
+                          )
+
+                      let u₁ := extensionality (f.[{x, y}]) ({(f⦅x⦆), (f⦅y⦆)}) (
+                        fun (t) =>
+                          Iff.intro
+                          (
+                            fun (ht : t ∈ (f.[{x, y}])) =>
+                              let u := Iff.mp (image_prop f {x, y} t) ht
+                              Exists.elim u (
+                                fun (s) =>
+                                  fun (hs) =>
+                                    Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair x y s) (And.left hs))
+                                    (
+                                      fun (hsx : s = x) =>
+                                        let u₁ := And.right hs
+                                        let u₂ := eq_subst (fun (m) => (m . f . t)) s x (hsx) u₁
+                                        let u₃ := Iff.mp (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) hfunc x t hx) u₂
+                                        eq_subst (fun (m) => m ∈ {(f⦅x⦆), (f⦅y⦆)}) (f⦅x⦆) t (Eq.symm u₃) (
+                                          left_unordered_pair (f⦅x⦆) (f⦅y⦆)
+                                        )
+                                    )
+                                    (
+                                      fun (hsy : s = y) =>
+                                        let u₁ := And.right hs
+                                        let u₂ := eq_subst (fun (m) => (m . f . t)) s y (hsy) u₁
+                                        let u₃ := Iff.mp (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) hfunc y t hy) u₂
+                                        eq_subst (fun (m) => m ∈ {(f⦅x⦆), (f⦅y⦆)}) (f⦅y⦆) t (Eq.symm u₃) (
+                                          right_unordered_pair (f⦅x⦆) (f⦅y⦆)
+                                        )
+                                    )
+                              )
+                          )
+                          (
+                            fun (ht : t ∈ {(f⦅x⦆), (f⦅y⦆)}) =>
+
+                             Iff.mpr ( image_prop f {x, y} t) (
+
+                              Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair (f⦅x⦆) (f⦅y⦆) t) (ht))
+                              (
+                                fun (ht : t = (f⦅x⦆)) =>
+                                  Exists.intro x (And.intro (left_unordered_pair x y) (
+                                    eq_subst (fun (m) => (x, m) ∈ f) (f⦅x⦆) t (Eq.symm ht) (
+                                      Iff.mpr (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) hfunc x (f⦅x⦆) hx) (
+                                        Eq.refl (f⦅x⦆)
+                                      )
+                                    )
+                                  ))
+                              )
+                              (
+                                fun (ht : t = (f⦅y⦆)) =>
+                                  Exists.intro y (And.intro (right_unordered_pair x y) (
+                                    eq_subst (fun (m) => (y, m) ∈ f) (f⦅y⦆) t (Eq.symm ht) (
+                                      Iff.mpr (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) hfunc y (f⦅y⦆) hy) (
+                                        Eq.refl (f⦅y⦆)
+                                      )
+                                    )
+                                  ))
+                              )
+
+
+
+
+                             )
+                          )
+                      )
+
+                      poiso_and_equiv φ₉ φ₁₀ φ₁₁ φ₁₂ f y (
+                        let u₂ := poiso_supexi 𝓐 𝓑 f {x, y} (u₀) (And.intro (po𝓐) (And.intro po𝓑 hf))
+
+                        eq_subst (fun (t) => (𝓐 SuprExi {x, y}) ↔ (𝓑 SuprExi t)) (f.[{x, y}]) ({(f⦅x⦆), (f⦅y⦆)}) (u₁) (u₂)
+                      )
+                      (
+                        let u₂ := poiso_infexi 𝓐 𝓑 f {x, y} (u₀) (And.intro (po𝓐) (And.intro po𝓑 hf))
+
+                        eq_subst (fun (t) => (𝓐 InfmExi {x, y}) ↔ (𝓑 InfmExi t)) (f.[{x, y}]) ({(f⦅x⦆), (f⦅y⦆)}) (u₁) (u₂)
+                      )
+                  )
+            )
+
+            Iff.intro (
+              fun (hφ₁φ₃) =>
+                And.intro (po𝓑) (Iff.mp (u) (And.right hφ₁φ₃))
+            ) (
+              fun (hφ₂φ₄) =>
+                And.intro (po𝓐) (Iff.mpr (u) (And.right hφ₂φ₄))
+            )
+      )
 
 
 theorem poiso_complatt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((CompLatt 𝓐) ↔ (CompLatt 𝓑)) := sorry
-theorem poiso_linord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((LinOrd 𝓐) ↔ (LinOrd 𝓑)) := sorry
+
+
+theorem poiso_linord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((LinOrd 𝓐) ↔ (LinOrd 𝓑)) :=
+  fun (𝓐 𝓑) =>
+    fun (h𝓐𝓑 : 𝓐 P≃O 𝓑) =>
+      let po𝓐 := And.left h𝓐𝓑
+      let po𝓑 := And.left (And.right h𝓐𝓑)
+      let iso := And.right (And.right h𝓐𝓑)
+
+      Exists.elim iso (
+        fun (f) =>
+          fun (hf) =>
+            let φ₃ := ∀ x y ∈ (setPO(𝓐)); ((x . (≼(𝓐)) . y) ∨ (y . (≼(𝓐)) . x))
+            let φ₄ := ∀ x y ∈ (setPO(𝓑)); ((x . (≼(𝓑)) . y) ∨ (y . (≼(𝓑)) . x))
+            let φ₅ := fun (x) => ∀ y ∈ setPO(𝓐); ((x . (≼(𝓐)) . y) ∨ (y . (≼(𝓐)) . x))
+            let φ₆ := fun (x) => ∀ y ∈ setPO(𝓑); ((x . (≼(𝓑)) . y) ∨ (y . (≼(𝓑)) . x))
+
+            let u : φ₃ ↔ φ₄ := poiso_allin_equiv φ₅ φ₆ 𝓐 𝓑 f hf (
+              fun (x) =>
+                fun (hx : x ∈ setPO(𝓐)) =>
+                  let φ₇ := fun (y) => (x . (≼(𝓐)) . y) ∨ (y . (≼(𝓐)) . x)
+                  let φ₈ := fun (y) => ((f⦅x⦆) . (≼(𝓑)) . y) ∨ (y . (≼(𝓑)) . (f⦅x⦆))
+
+                  poiso_allin_equiv φ₇ φ₈ 𝓐 𝓑 f hf (
+                    fun (y) =>
+                      fun (hy : y ∈ setPO(𝓐)) =>
+
+                      let φ₉ := fun (y) => (x . (≼(𝓐)) . y)
+                      let φ₁₀ := fun (y) => ((f⦅x⦆) . (≼(𝓑)) . y)
+                      let φ₁₁ := fun (y) => (y . (≼(𝓐)) . x)
+                      let φ₁₂ := fun (y) => (y . (≼(𝓑)) . (f⦅x⦆))
+
+                      poiso_or_equiv φ₉ φ₁₀ φ₁₁ φ₁₂ f y (
+                        iso_R₂ 𝓐 𝓑 f hf x hx y hy
+                      ) (
+                        iso_R₂ 𝓐 𝓑 f hf y hy x hx
+                      )
+
+                  )
+            )
+
+            Iff.intro (
+              fun (hφ₁φ₃) =>
+                And.intro (po𝓑) (Iff.mp (u) (And.right hφ₁φ₃))
+            ) (
+              fun (hφ₂φ₄) =>
+                And.intro (po𝓐) (Iff.mpr (u) (And.right hφ₂φ₄))
+            )
+
+
+
+      )
+
+
+
+
+
 theorem poiso_welord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((WellOrd 𝓐) ↔ (WellOrd 𝓑)) := sorry

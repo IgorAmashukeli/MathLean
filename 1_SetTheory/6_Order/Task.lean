@@ -811,12 +811,14 @@ theorem poiso_infel : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X
 
 
 
--- 43 ) Properties about partial order itsefl also doesn't change through isomorphism
+-- 43 ) Properties about partial order itself also doesn't change through isomorphism
 
 
 theorem poiso_if_then_iff (φ : Set → Prop) :
 (∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (φ 𝓐) → (φ 𝓑)) → (∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((φ 𝓐) ↔ (φ 𝓑))) := sorry
 
+theorem poiso_subs : ∀ 𝓐 𝓑 X, (X ⊆ setPO(𝓐)) → (f P≃O 𝓑) → (𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X])) := sorry
+theorem poiso_card : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartPO 𝓒) P≃O (𝓑 CartPO 𝓓)) := sorry
 theorem poiso_latt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((Latt 𝓐) ↔ (Latt 𝓑)) := sorry
 theorem poiso_complatt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((CompLatt 𝓐) ↔ (CompLatt 𝓑)) := sorry
 theorem poiso_linord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((LinOrd 𝓐) ↔ (LinOrd 𝓑)) := sorry
