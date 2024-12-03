@@ -176,6 +176,7 @@ theorem dom_preimage : ∀ A B P, (P  BinRelBtw A AND B) → dom P = P⁻¹.[B] 
 
 
 -- 20) Image and preimage other properties
+theorem rel_image_id : ∀ A X, (X ⊆ A) → (id_ A).[X] = X := sorry
 theorem rel_image_union : ∀ X Y R, (BinRel R) → R.[X ∪ Y] = R.[X] ∪ R.[Y] := sorry
 theorem rel_preimage_union : ∀ X Y R , (BinRel R) → R⁻¹.[X ∪ Y] = R⁻¹.[X] ∪ R⁻¹.[Y] := sorry
 theorem monotonic_rel_image : ∀ X Y R, (BinRel R) → X ⊆ Y → R.[X] ⊆ R.[Y] := sorry

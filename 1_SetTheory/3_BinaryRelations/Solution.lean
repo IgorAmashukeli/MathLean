@@ -1649,6 +1649,34 @@ theorem dom_preimage : ∀ A B P, (P BinRelBtw A AND B) → dom P = P⁻¹.[B] :
     )
 
 
+  theorem rel_image_id : ∀ A X, (X ⊆ A) → (id_ A).[X] = X :=
+    fun (A X hX) =>
+      extensionality ((id_ A).[X]) X (
+        fun (x) =>
+          Iff.intro
+          (
+            fun (hx) =>
+              let u₁ := Iff.mp (image_prop (id_ A) X x) hx
+              Exists.elim u₁ (
+                fun (y) =>
+                  fun (hy) =>
+                    let u₂ := (id_prop A y x) (And.right hy)
+
+                    eq_subst (fun (t) => t ∈ X) (y) (x) (And.left (And.left u₂)) (And.left hy)
+              )
+
+          )
+          (
+            fun (hx) =>
+              Iff.mpr (image_prop (id_ A) X x) (
+                Exists.intro x (
+                  And.intro (hx) (prop_then_id A x (hX x (hx)))
+                )
+              )
+          )
+      )
+
+
 theorem rel_image_union : ∀ X Y R, (BinRel R) → R.[X ∪ Y] = R.[X] ∪ R.[Y] :=
   fun (X) => fun (Y) => fun (R) => fun (_ : (BinRel R)) =>
     extensionality (R.[X ∪ Y]) (R.[X] ∪ R.[Y])

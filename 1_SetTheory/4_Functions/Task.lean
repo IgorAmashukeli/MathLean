@@ -263,13 +263,19 @@ theorem bijection_inv_mp : ∀ f A B, ((f Bij A To B) → (f⁻¹ Bij B To A)) :
 theorem bijection_inv : ∀ f A B, binary_relation f → ((f Bij A To B) ↔ (f⁻¹ Bij B To A)) := sorry
 
 
--- 32) Functionality, totality, injectivity, and surjectivity and bijection criteria with respect to composition, inverse and id
+
+-- 32) Functionality, totality, injectivity, and surjectivity and bijection criteria with respect to composition, inverse, id
+-- and ff⁻¹ val and image terms
 theorem id_func_criterion : ∀ f A B, (f BinRelBtw A AND B) → ((is_functional f) ↔ (f ∘ f⁻¹ ⊆ id_ B)) := sorry
 theorem id_tot_criterion : ∀ f A B, (f BinRelBtw A AND B) → ((is_total f A) ↔ (id_ A ⊆ f⁻¹ ∘ f)) := sorry
 theorem id_inj_criterion : ∀ f A B, (f BinRelBtw A AND B) → ((is_injective f) ↔ (f⁻¹ ∘ f ⊆ id_ A)) := sorry
 theorem id_surj_criterion : ∀ f A B, (f BinRelBtw A AND B) → ((is_surjective f B) ↔ (id_ B ⊆ f ∘ f⁻¹)) := sorry
 theorem id_bijection_criterion :
 ∀ f A B, (f BinRelBtw A AND B) → ((f Bij A To B) ↔ ((f⁻¹ ∘ f = id_ A) ∧ (f ∘ f⁻¹ = id_ B))) := sorry
+theorem bij_finv_f : ∀ f A B, (f Bij A To B) → (∀ x ∈ A; (f⁻¹⦅f⦅x⦆⦆) = x) := sorry
+theorem bij_f_finv : ∀ f A B, (f Bij A To B) → (∀ x ∈ B; (f⦅f⁻¹⦅x⦆⦆) = x) := sorry
+theorem bijimg_finv_f : ∀ f A B, (f Bij A To B) → (∀ X, (X ⊆ A) → (f⁻¹.[f.[X]] = X)) := sorry
+theorem bijimg_f_finv : ∀ f A B, (f Bij A To B) → (∀ X, (X ⊆ B) → (f.[f⁻¹.[X]] = X)) := sorry
 
 
 -- 33) Reversability definitions

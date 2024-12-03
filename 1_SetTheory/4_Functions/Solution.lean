@@ -2251,6 +2251,9 @@ theorem bijection_inv : ∀ f A B, binary_relation f → ((f Bij A To B) ↔ (f�
     )
 
 
+
+
+
 theorem id_func_criterion : ∀ f A B, binary_relation_between A B f → ((is_functional f) ↔ (f ∘ f⁻¹ ⊆ id_ B)) :=
   fun (f A B) => fun (h₁ : binary_relation_between A B f) =>
     Iff.intro
@@ -2417,6 +2420,51 @@ theorem id_bijection_criterion : ∀ f A B, binary_relation_between A B f → ((
         let h₀ := Iff.mpr (id_surj_criterion f A B h₁) (h₆)
         And.intro (And.intro (And.intro (h₁) (h₇)) (h₈)) (And.intro (h₉) (h₀))
     )
+
+
+theorem bij_finv_f : ∀ f A B, (f Bij A To B) → (∀ x ∈ A; (f⁻¹⦅f⦅x⦆⦆) = x) :=
+  fun (f A B) =>
+    fun (hf : (f Bij A To B)) =>
+      let hfinv := bijection_inv_mp f A B hf
+      fun (x) =>
+        fun (hx) =>
+          let u₁ := And.right (function_composition_A f (f⁻¹) A B A (And.left hf) (And.left hfinv)) x hx
+          let u₂ := And.left (Iff.mp (id_bijection_criterion f A B (And.left (And.left (And.left hf)))) hf)
+          let u₃ := id_val_prop A x hx
+          let u₄ := eq_subst (fun (t) => (t⦅x⦆) = ((id_ A)⦅x⦆)) (id_ A) (f⁻¹ ∘ f) (Eq.symm u₂) (Eq.refl ((id_ A)⦅x⦆))
+          let u₅ := Eq.trans (Eq.symm u₁) u₄
+          Eq.trans (u₅) (u₃)
+
+
+theorem bij_f_finv : ∀ f A B, (f Bij A To B) → (∀ x ∈ B; (f⦅f⁻¹⦅x⦆⦆) = x) :=
+  fun (f A B) =>
+    fun (hf : (f Bij A To B)) =>
+      let hfinv := bijection_inv_mp f A B hf
+      fun (x) =>
+        fun (hx) =>
+          let u₁ := And.right (function_composition_A (f⁻¹) f B A B (And.left hfinv) (And.left hf)) x hx
+          let u₂ := And.right (Iff.mp (id_bijection_criterion f A B (And.left (And.left (And.left hf)))) hf)
+          let u₃ := id_val_prop B x hx
+          let u₄ := eq_subst (fun (t) => (t⦅x⦆) = ((id_ B)⦅x⦆)) (id_ B) (f ∘ f⁻¹) (Eq.symm u₂) (Eq.refl ((id_ B)⦅x⦆))
+          let u₅ := Eq.trans (Eq.symm u₁) u₄
+          Eq.trans (u₅) (u₃)
+
+
+theorem bijimg_finv_f : ∀ f A B, (f Bij A To B) → (∀ X, (X ⊆ A) → (f⁻¹.[f.[X]] = X)) :=
+  fun (f A B hf X hX) =>
+    let u₁ := rel_image_composition (f⁻¹) f X
+    let u₂ := And.left (Iff.mp (id_bijection_criterion f A B (And.left (And.left (And.left hf)))) hf)
+    let u₃ := eq_subst (fun (t) => t.[X] = (id_ A).[X]) (id_ A) (f⁻¹ ∘ f) (Eq.symm u₂) (Eq.refl ((id_ A).[X]))
+    Eq.trans (Eq.symm u₁) (Eq.trans (u₃) (rel_image_id A X hX))
+
+
+
+theorem bijimg_f_finv : ∀ f A B, (f Bij A To B) → (∀ X, (X ⊆ B) → (f.[f⁻¹.[X]] = X)) :=
+  fun (f A B hf X hX) =>
+    let u₁ := rel_image_composition f (f⁻¹) X
+    let u₂ := And.right (Iff.mp (id_bijection_criterion f A B (And.left (And.left (And.left hf)))) hf)
+    let u₃ := eq_subst (fun (t) => t.[X] = (id_ B).[X]) (id_ B) (f ∘ f⁻¹) (Eq.symm u₂) (Eq.refl ((id_ B).[X]))
+    Eq.trans (Eq.symm u₁) (Eq.trans (u₃) (rel_image_id B X hX))
 
 
 noncomputable def left_reversable (f A B : Set) : Prop := (f Fun A To B) ∧ ∃ g, (g Fun B To A) ∧ (g ∘ f = id_ A)

@@ -14,6 +14,7 @@ theorem equinum_trans : ∀ A B C, (A ~ B) → (B ~ C) → (A ~ C) := sorry
 
 
 -- 2) Image and partition equinumerousity properties
+theorem equinum_image_f : ∀ A B X f, X ⊆ A → (f Inj A To B) → (f ⨡ X) Bij X To (f.[X]) := sorry
 theorem equinum_image : ∀ A B X f, X ⊆ A → (f Inj A To B) → X ~ f.[X] := sorry
 theorem equinum_partition : ∀ A B X Y, (X ⊆ A) → (Y ⊆ B) → (X ~ Y) → ((A \ X) ~ (B \ Y)) → (A ~ B) := sorry
 

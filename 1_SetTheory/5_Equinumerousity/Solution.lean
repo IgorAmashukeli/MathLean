@@ -41,13 +41,10 @@ theorem equinum_trans : ∀ A B C, (A ~ B) → (B ~ C) → (A ~ C) :=
     )
 
 
-theorem equinum_image : ∀ A B X f, X ⊆ A → (f Inj A To B) → X ~ f.[X] :=
+theorem equinum_image_f : ∀ A B X f, X ⊆ A → (f Inj A To B) → (f ⨡ X) Bij X To (f.[X]) :=
   fun (A B X f) => fun (h : X ⊆ A) => fun (h₁ : (f Inj A To B)) =>
-
     let g₁ := spec_is_spec (fun (t) => ∃ a ∈ X; (a . f . t)) (rng f)
-
-    Exists.intro (f ⨡ X) (
-      And.intro (
+    And.intro (
         let u := fun_restriction_prop A B X f (And.left h₁)
         let v := Iff.mp (And.left (subset_using_equality X A)) h
         let r := intersec2_comm A X
@@ -109,6 +106,14 @@ theorem equinum_image : ∀ A B X f, X ⊆ A → (f Inj A To B) → X ~ f.[X] :=
                   )
             )
       ))
+
+
+theorem equinum_image : ∀ A B X f, X ⊆ A → (f Inj A To B) → X ~ f.[X] :=
+  fun (A B X f) => fun (h : X ⊆ A) => fun (h₁ : (f Inj A To B)) =>
+
+
+    Exists.intro (f ⨡ X) (
+      equinum_image_f A B X f h h₁
     )
 
 

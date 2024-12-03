@@ -216,8 +216,6 @@ theorem inter_is_PO_PO :
 ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (setPO(𝓐) = setPO(𝓑)) → (PartOrd (𝓐 InterPO 𝓑)) := sorry
 theorem inv_PO_less : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≺(invPO 𝓐)) . y) ↔ (y . (≺(𝓐)) . x) := sorry
 theorem inv_PO_lesseq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(invPO 𝓐)) . y) ↔ (y . (≼(𝓐)) . x)  := sorry
-
-
 theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 CartPO 𝓑)) := sorry
 
 
@@ -640,7 +638,7 @@ theorem lin_latt : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) := sorry
 -- 34) Well ordered set definition
 
 
-def is_well_order 𝓐 := (LinOrd 𝓐) ∧ ∀ X, (X ≠ ∅) → (X ⊆ setPO(𝓐)) → (𝓐 MinExi X)
+def is_well_order 𝓐 := (LinOrd 𝓐) ∧ ∀ X, (X ⊆ setPO(𝓐)) →  (X ≠ ∅) → (𝓐 MinExi X)
 syntax "WellOrd" term : term
 macro_rules
 | `(WellOrd $𝓐) => `(is_well_order $𝓐)
@@ -810,14 +808,15 @@ theorem poiso_supel : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (𝓐 SuprExi X
 theorem poiso_infel : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X) → (f PO_ISO_PO 𝓐 To 𝓑) → (f⦅𝓐 Infm X⦆ = 𝓑 Infm (f.[X])) := sorry
 
 
--- 43) Properties about isomorphic partial orders can be proved in one side only due to the symmetry of isommorphism
+-- 43 ) Properties about partial order itself also doesn't change through isomorphism
 
 
 theorem poiso_if_then_iff (φ : Set → Prop) :
 (∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → (φ 𝓐) → (φ 𝓑)) → (∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((φ 𝓐) ↔ (φ 𝓑))) := sorry
 
-
--- 44 ) Properties about partial order itself also doesn't change through isomorphism
+theorem poiso_subset_prop (φ : Set → Set → Prop) :
+(∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((φ 𝓐 X) ↔ (φ 𝓑 (f.[X])))) →
+(∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((∀ X, (X ⊆ setPO(𝓐)) → (φ 𝓐 X)) ↔ (∀ X, (X ⊆ setPO(𝓑)) → (φ 𝓑 X)))) := sorry
 
 theorem poiso_latt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((Latt 𝓐) ↔ (Latt 𝓑)) := sorry
 theorem poiso_complatt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((CompLatt 𝓐) ↔ (CompLatt 𝓑)) := sorry
@@ -825,9 +824,18 @@ theorem poiso_linord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((LinOrd 𝓐) ↔ (
 theorem poiso_welord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((WellOrd 𝓐) ↔ (WellOrd 𝓑)) := sorry
 
 
--- 43) Partial order isomorphism translates throug different partial order constructions
+-- 44) Partial order isomorphism translates through different partial order constructions
 
 theorem poiso_inv : ∀ 𝓐, (𝓐 P≃O 𝓑) → ((inv_PO 𝓐) P≃O (inv_PO 𝓑)) := sorry
-theorem poiso_subs : ∀ 𝓐 𝓑 X, (X ⊆ setPO(𝓐)) → (f P≃O 𝓑) → (𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X])) := sorry
-theorem poiso_inter : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 InterPO 𝓒) P≃O (𝓑 InterPO 𝓓)) := sorry
-theorem poiso_card : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartPO 𝓒) P≃O (𝓑 CartPO 𝓓)) := sorry
+theorem poiso_subs : ∀ 𝓐 𝓑 f X, (X ≠ ∅) → (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X]))) := sorry
+theorem poiso_inter : ∀ 𝓐 𝓑 𝓒 𝓓 f, (setPO(𝓐) = setPO(𝓒)) →
+(setPO(𝓑) = setPO(𝓓)) → (f PO_ISO_PO 𝓐 To 𝓑) → (f PO_ISO_PO 𝓒 To 𝓓) → (f PO_ISO_PO (𝓐 InterPO 𝓒) To (𝓑 InterPO 𝓓)) := sorry
+theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartPO 𝓒) P≃O (𝓑 CartPO 𝓓)) := sorry
+
+
+-- 45) induced order with order function saving creates isomorphic partial order
+
+noncomputable def induced_R₂ (𝓐 f: Set) := {s ∈ (rng f) × (rng f) | ∃ x y ∈ setPO(𝓐); (x . (≼(𝓐)) . y) ∧ s = (f⦅x⦆, f⦅y⦆)}
+noncomputable def induced_order (𝓐 f: Set) := ⁅rng f; str (rng f) (induced_R₂ 𝓐 f); (induced_R₂ 𝓐 f)⁆
+
+theorem poiso_induced : ∀ 𝓐 f X, (PartOrd 𝓐) → (f Inj (setPO(𝓐)) To X) → (f PO_ISO_PO 𝓐 To (induced_order 𝓐 f)) := sorry
