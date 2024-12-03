@@ -83,7 +83,7 @@ theorem un_binon : ∀ A P Q, (P BinRelOn A) → (Q BinRelOn A) → ((P ∪ Q) B
 theorem refl_un_left : ∀ A P Q, (refl P A) → (refl (P ∪ Q) A) := sorry
 theorem refl_un_right : ∀ A P Q, (refl Q A) → (refl (P ∪ Q) A) := sorry
 theorem irrefl_un : ∀ P Q, (irrefl P) → (irrefl Q) → (irrefl (P ∪ Q)) := sorry
-theorem symm_un : ∀ P Q, (symm P) → (symm Q) → (symm (P ∪ is_minimalQ)) := sorry
+theorem symm_un : ∀ P Q, (symm P) → (symm Q) → (symm (P ∪ Q)) := sorry
 theorem str_un : ∀ A P Q, (str_conn P A) → (str_conn Q A) → (str_conn (P ∪ Q) A) := sorry
 theorem str_con_un_left : ∀ A P Q, (str_conn P A) → (str_conn (P ∪ Q) A) := sorry
 theorem str_con_un_right : ∀ A P Q, (str_conn Q A) → (str_conn (P ∪ Q) A) := sorry
@@ -476,13 +476,13 @@ theorem infm_subset : ∀ 𝓐 B C, (PartOrd 𝓐) → (B ⊆ C) → (𝓐 InfmE
 → (¬ ((𝓐 Infm B) . (≺(𝓐)) . (𝓐 Infm C))) := sorry
 
 theorem supr_union :
-∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 SuprExi (B _ i))
+∀ 𝓐 B I, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 SuprExi (B _ i))
 → (∀ i j ∈ I; (𝓐 Supr (B _ i)) = (𝓐 Supr (B _ j))) →
 ((𝓐 SuprExi (⋃[i in I] B at i)) ∧
 (∀ s ∈ I; (𝓐 Supr (⋃[i in I] B at i)) = (𝓐 Supr (B _ s)))) := sorry
 
 theorem infm_union :
-∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 InfmExi (B _ i))
+∀ 𝓐 B I, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 InfmExi (B _ i))
 → (∀ i j ∈ I; (𝓐 Infm (B _ i)) = (𝓐 Infm (B _ j))) →
 ((𝓐 InfmExi (⋃[i in I] B at i)) ∧
 (∀ s ∈ I; (𝓐 Infm (⋃[i in I] B at i)) = (𝓐 Infm (B _ s)))) := sorry
@@ -657,7 +657,7 @@ macro_rules
 | `($𝓐 AntiChain $B) => `(anti_chain $𝓐 $B)
 
 theorem lin_chain : ∀ 𝓐 B, (B ≠ ∅) → (B ⊆ setPO(𝓐)) → (LinOrd 𝓐) → (𝓐 Chain B) := sorry
-theorem antichain : ∀ 𝓐 𝓑, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartPO 𝓑) AntiChain (A × B)) := sorry
+theorem antichain : ∀ 𝓐 𝓑 A B, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartPO 𝓑) AntiChain (A × B)) := sorry
 
 
 -- 36) Order isomorphism
@@ -751,17 +751,17 @@ theorem poiso_subs_eq (φ : Set → Set → Set → Prop) (ψ : Set → Set → 
 (∀ 𝓧 X, (X ⊆ setPO(𝓧)) → (ψ 𝓧 X) ⊆ setPO(𝓧)) → (∀ X, (∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 X x) ↔ (φ 𝓑 (f.[X]) (f⦅x⦆)))) →
 (f.[ψ 𝓐 X] = ψ 𝓑 (f.[X]))) := sorry
 
-theorem poiso_interv_eq (φ : Set → Set → Set → Set → Prop) (ψ : Set → Set → Set → Set)
+theorem poiso_interv_eq (c d : Set) (φ : Set → Set → Set → Set → Prop) (ψ : Set → Set → Set → Set)
  : ∀ 𝓐 𝓑 f, (f PO_ISO_PO 𝓐 To 𝓑) → (∀ 𝓧 x, ∀ a b, (x ∈ ψ 𝓧 a b ↔ φ 𝓧 a b x)) →
- (∀ 𝓧 a b, (ψ 𝓧 a b) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a b x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅b⦆) (f⦅x⦆)))) → (
-  f.[ψ 𝓐 a b] = ψ 𝓑 (f⦅a⦆) (f⦅b⦆)
+ (∀ 𝓧 a b, (ψ 𝓧 a b) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 c d x) ↔ (φ 𝓑 (f⦅c⦆) (f⦅d⦆) (f⦅x⦆)))) → (
+  f.[ψ 𝓐 c d] = ψ 𝓑 (f⦅c⦆) (f⦅d⦆)
  )) := sorry
 
 
- theorem poiso_interv_eq₂ (φ : Set → Set → Set → Prop) (ψ : Set → Set → Set)
+ theorem poiso_interv_eq₂ (c : Set) (φ : Set → Set → Set → Prop) (ψ : Set → Set → Set)
  : ∀ 𝓐 𝓑 f, (f PO_ISO_PO 𝓐 To 𝓑) → (∀ 𝓧 x, ∀ a, (x ∈ ψ 𝓧 a ↔ φ 𝓧 a x)) →
- (∀ 𝓧 a, (ψ 𝓧 a) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅x⦆)))) → (
-  f.[ψ 𝓐 a] = ψ 𝓑 (f⦅a⦆)
+ (∀ 𝓧 a, (ψ 𝓧 a) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 c x) ↔ (φ 𝓑 (f⦅c⦆) (f⦅x⦆)))) → (
+  f.[ψ 𝓐 c] = ψ 𝓑 (f⦅c⦆)
  )) := sorry
 
 theorem poiso_minset : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → (f.[min_set 𝓐 X] = min_set 𝓑 (f.[X])) := sorry
@@ -826,7 +826,7 @@ theorem poiso_welord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((WellOrd 𝓐) ↔ 
 
 -- 44) Partial order isomorphism translates through different partial order constructions
 
-theorem poiso_inv : ∀ 𝓐, (𝓐 P≃O 𝓑) → ((inv_PO 𝓐) P≃O (inv_PO 𝓑)) := sorry
+theorem poiso_inv : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((inv_PO 𝓐) P≃O (inv_PO 𝓑)) := sorry
 theorem poiso_subs : ∀ 𝓐 𝓑 f X, (X ≠ ∅) → (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X]))) := sorry
 theorem poiso_inter : ∀ 𝓐 𝓑 𝓒 𝓓 f, (setPO(𝓐) = setPO(𝓒)) →
 (setPO(𝓑) = setPO(𝓓)) → (f PO_ISO_PO 𝓐 To 𝓑) → (f PO_ISO_PO 𝓒 To 𝓓) → (f PO_ISO_PO (𝓐 InterPO 𝓒) To (𝓑 InterPO 𝓓)) := sorry

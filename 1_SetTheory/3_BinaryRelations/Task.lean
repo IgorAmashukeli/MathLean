@@ -96,6 +96,8 @@ theorem comp_is_rel : ∀ A B R, (BinRel (comp A B R)) := sorry
 -- 10) Properties, enough for subset and equality of binary relation
 theorem rel_subset : (∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q) := sorry
 theorem relation_equality : (∀ P Q, (BinRel P) → (BinRel Q) → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q)) := sorry
+theorem relation_subset_btw : ∀ P Q A B, (P BinRelBtw A AND B) → (∀ x ∈ A; ∀ y ∈ B; (x . P . y) → (x . Q . y)) → (P ⊆ Q) := sorry
+theorem relation_equality_btw : ∀ P Q A B, (P BinRelBtw A AND B) → (Q BinRelBtw A AND B) → (∀ x ∈ A; ∀ y ∈ B; (x . P . y) ↔ (x . Q . y)) → (P = Q) := sorry
 
 
 -- 11) R⁻¹ (inverse binary relation) construction and its properties

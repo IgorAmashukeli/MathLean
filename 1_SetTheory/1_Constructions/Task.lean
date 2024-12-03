@@ -112,3 +112,14 @@ notation (priority := high) "⋂" => intersection_set
 theorem intersection_set_is_intersection : ∀ A x, x ∈ ⋂ A ↔ (x ∈ ⋃ A ∧ ∀ y ∈ A; x ∈ y) := sorry
 theorem intersection_non_empty : ∀ A, (A ≠ ∅ → ∀ x, (x ∈ ⋂ A) ↔ ∀ y ∈ A; x ∈ y) := sorry
 theorem intersect_subset_monotonic : ∀ A B, (A ≠ ∅) → (A ⊆ B) → (⋂ B ⊆ ⋂ A) := sorry
+
+
+-- 13) Set of all singletons
+
+noncomputable def singlbool_set (A) := {S ∈ 𝒫 (A) | ∃ x ∈ A; S = {x}}
+syntax "𝒫₁" term : term
+macro_rules
+| `(𝒫₁ $A) => `(singlbool_set $A)
+
+theorem singlbool_set_prop : ∀ A S, (S ∈ 𝒫₁ (A)) ↔ (∃ x ∈ A; S = {x}) := sorry
+theorem in_singlbool_set : ∀ A x, ({x} ∈ 𝒫₁ (A)) ↔ (x ∈ A) := sorry

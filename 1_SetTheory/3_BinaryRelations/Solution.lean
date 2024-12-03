@@ -1096,6 +1096,34 @@ theorem relation_equality : (∀ P Q, (BinRel P) → (BinRel Q) → ((∀ x y, (
         subset_then_equality P Q (And.intro (rel_subset P Q h g (fun (x) => fun (y) => Iff.mp (s x y))) (rel_subset Q P g h (fun (x) => fun (y) => Iff.mp (iff_comm.mp (s x y)))))
 
 
+theorem relation_subset_btw : ∀ P Q A B, (P BinRelBtw A AND B) → (∀ x ∈ A; ∀ y ∈ B; (x . P . y) → (x . Q . y)) → (P ⊆ Q) :=
+  fun (P Q A B hP h) =>
+    fun (z) =>
+      fun (hz) =>
+        let u₁ := hP z hz
+        let u₂ := Iff.mp (cartesian_product_is_cartesian A B z) u₁
+        Exists.elim u₂ (
+          fun (x) =>
+            fun (hx) =>
+              Exists.elim (And.right hx) (
+                fun (y) =>
+                  fun (hy) =>
+                    eq_subst (fun (t) => t ∈ Q) (x, y) z (Eq.symm (And.right hy)) (
+                      h x (And.left hx) y (And.left hy) (
+                        eq_subst (fun (t) => t ∈ P) z (x, y) (And.right hy) (hz)
+                      )
+                    )
+              )
+        )
+
+
+theorem relation_equality_btw : ∀ P Q A B, (P BinRelBtw A AND B) → (Q BinRelBtw A AND B) → (∀ x ∈ A; ∀ y ∈ B; (x . P . y) ↔ (x . Q . y)) → (P = Q) :=
+  fun (P Q A B hP hQ h) =>
+    subset_then_equality P Q (And.intro (relation_subset_btw P Q A B hP (
+      fun (x hx y hy) => Iff.mp (h x hx y hy)
+    )) (relation_subset_btw Q P A B hQ (fun (x hx y hy) => Iff.mpr (h x hx y hy))))
+
+
 
 theorem composition_pair_assoc: ∀ P Q R x y, (x . ((P ∘ Q) ∘ R) . y) ↔ (x . (P ∘ (Q ∘ R)) . y) :=
   fun (P) => fun (Q) => fun (R) => fun (x) => fun (y) =>

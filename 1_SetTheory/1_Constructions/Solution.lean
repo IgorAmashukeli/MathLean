@@ -64,7 +64,7 @@ theorem subs_subs_eq : ∀ A B, A ⊆ B ∧ B ⊆ A ↔ A = B :=
 
 theorem equality_then_subset : ∀ A B, A = B → A ⊆ B :=
   fun (A B) => fun (h : A = B) =>
-    eq_subst Set (fun (u) => A ⊆ u) A B (h) (subset_refl A)
+    eq_subst (fun (u) => A ⊆ u) A B (h) (subset_refl A)
 
 
 theorem exists_empty : (∃ x, empty x) :=
@@ -153,7 +153,7 @@ theorem set_empty_iff_empty : ∀ A, (A = ∅) ↔ (∀ x, x ∉ A) :=
         fun (x) =>
           fun (hx : (x ∈ A)) =>
             empty_set_is_empty x (
-              eq_subst Set (fun (t) => x ∈ t) (A) (∅) hA hx
+              eq_subst (fun (t) => x ∈ t) (A) (∅) hA hx
             )
     )
     (
@@ -188,7 +188,7 @@ theorem set_non_empty_iff_non_empty : ∀ A, (A ≠ ∅) ↔ ∃ x, x ∈ A :=
             fun (x) =>
               fun (hx : x ∈ A) =>
                 empty_set_is_empty x (
-                  eq_subst Set (fun (t) => x ∈ t) (A) (∅) (hAemp) (hx)
+                  eq_subst (fun (t) => x ∈ t) (A) (∅) (hAemp) (hx)
                 )
           )
     )
@@ -467,7 +467,7 @@ theorem neg_notin_refl : ∀ x, x ∉ x :=
     fun (w) =>
       fun (hw : w ∈ { x } ∧ ∀ A ∈ w; A ∉ {x}) =>
         let third := (Iff.mp (singleton_a_elem_is_a x w)) (And.left hw)
-        let fourth : ∀ A ∈ x; A ∉ {x} := eq_subst Set (fun (B : Set) => ∀ A ∈ B; A ∉ {x}) w x third (And.right hw)
+        let fourth : ∀ A ∈ x; A ∉ {x} := eq_subst (fun (B : Set) => ∀ A ∈ B; A ∉ {x}) w x third (And.right hw)
 
         fun (s : (x ∈ x)) =>
           let fifth : x ∉ {x} := fourth x s
@@ -755,13 +755,13 @@ theorem specification_hard (P : Set → Prop) : (∀ A, (∃ x ∈ A; P x) → �
                           (
                             fun (h₁ : P u) =>
                               let third := (And.left (And.right hu) (h₁))
-                              eq_subst Set (fun (elem) => elem ∈ A ∧ P elem) (u) (x) (Eq.symm third)
+                              eq_subst (fun (elem) => elem ∈ A ∧ P elem) (u) (x) (Eq.symm third)
                               (And.intro (And.left hu) (h₁))
                           )
                           (
                             fun (h₁ : ¬ P u) =>
                               let third := (And.right (And.right hu) (h₁))
-                              eq_subst Set (fun (elem) => elem ∈ A ∧ P elem) (e) (x) (Eq.symm third)
+                              eq_subst (fun (elem) => elem ∈ A ∧ P elem) (e) (x) (Eq.symm third)
                               (e_property)
                           )
                       )
@@ -900,4 +900,64 @@ theorem all_ss_then_union_ss : ∀ A B, (∀ X ∈ A; X ⊆ B) → (⋃ A ⊆ B)
       fun (w) =>
         fun (hw : w ∈ A ∧ x ∈ w) =>
           h₁ w (And.left hw) x (And.right hw)
+    )
+
+
+
+noncomputable def singlbool_set (A) := {S ∈ 𝒫 (A) | ∃ x ∈ A; S = {x}}
+syntax "𝒫₁" term : term
+macro_rules
+| `(𝒫₁ $A) => `(singlbool_set $A)
+
+theorem singlbool_set_prop : ∀ A S, (S ∈ 𝒫₁ (A)) ↔ (∃ x ∈ A; S = {x}) :=
+  fun (A S) =>
+    let P := fun (S) => (∃ x ∈ A; S = {x})
+    Iff.intro
+    (
+      fun (hS) =>
+        And.right (Iff.mp (spec_is_spec P (𝒫 A) S) (hS))
+    )
+    (
+      fun (hS) =>
+        Exists.elim hS (
+          fun (x) =>
+            fun (hx) =>
+              let u₁ := eq_subst (fun (t) => t ⊆ A) {x} S (Eq.symm (And.right hx)) (
+                fun (s) =>
+                  fun (hs) =>
+                    let u₂ := Iff.mp (singleton_a_elem_is_a x s) hs
+                    eq_subst (fun (t) => t ∈ A) x s (Eq.symm u₂) (And.left hx)
+              )
+              Iff.mpr (spec_is_spec P (𝒫 A) S) (
+              And.intro (Iff.mpr (boolean_set_is_boolean A S) (
+                u₁
+              )) (hS)
+
+              )
+        )
+
+    )
+
+
+theorem in_singlbool_set : ∀ A x, ({x} ∈ 𝒫₁ (A)) ↔ (x ∈ A) :=
+  fun (A x) =>
+    Iff.intro
+    (
+      fun (hx) =>
+        let u₁ := Iff.mp (singlbool_set_prop A {x}) hx
+        Exists.elim u₁ (
+          fun (y) =>
+            fun (hy) =>
+              eq_subst (fun (t) => t ∈ A) y x (
+                Eq.symm (Iff.mp (singleton_a_elem_is_a y x) (
+                  eq_subst (fun (t) => x ∈ t) {x} {y} (And.right hy) (x_in_singl_x x)
+                ))
+              ) (And.left hy)
+        )
+    )
+    (
+      fun (hx) =>
+        Iff.mpr (singlbool_set_prop A {x}) (
+          Exists.intro x (And.intro (hx) (Eq.refl {x}))
+        )
     )

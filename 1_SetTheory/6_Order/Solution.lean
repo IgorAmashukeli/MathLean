@@ -4839,8 +4839,8 @@ theorem infm_subset : ∀ 𝓐 B C, (PartOrd 𝓐) → (B ⊆ C) → (𝓐 InfmE
               ) (inf_po_prop 𝓐 B h𝓐 hinfb₂)
 
 
-theorem supr_union : ∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 SuprExi (B _ i)) → (∀ i j ∈ I; (𝓐 Supr (B _ i)) = (𝓐 Supr (B _ j))) → ((𝓐 SuprExi (⋃[i in I] B at i)) ∧(∀ s ∈ I; (𝓐 Supr (⋃[i in I] B at i)) = (𝓐 Supr (B _ s)))) :=
-  fun (𝓐 B) =>
+theorem supr_union : ∀ 𝓐 B I, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 SuprExi (B _ i)) → (∀ i j ∈ I; (𝓐 Supr (B _ i)) = (𝓐 Supr (B _ j))) → ((𝓐 SuprExi (⋃[i in I] B at i)) ∧(∀ s ∈ I; (𝓐 Supr (⋃[i in I] B at i)) = (𝓐 Supr (B _ s)))) :=
+  fun (𝓐 B I) =>
     fun (hI : (I ≠ ∅)) =>
       fun (h𝓐 : (PartOrd 𝓐)) =>
         fun (hBI : (B Indx I)) =>
@@ -4871,8 +4871,8 @@ theorem supr_union : ∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) �
               )
 
 
-theorem infm_union : ∀ 𝓐 B, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 InfmExi (B _ i)) → (∀ i j ∈ I; (𝓐 Infm (B _ i)) = (𝓐 Infm (B _ j))) → ((𝓐 InfmExi (⋃[i in I] B at i)) ∧ (∀ s ∈ I; (𝓐 Infm (⋃[i in I] B at i)) = (𝓐 Infm (B _ s)))) :=
-  fun (𝓐 B) =>
+theorem infm_union : ∀ 𝓐 B I, (I ≠ ∅) → (PartOrd 𝓐) → (B Indx I) → (∀ i ∈ I; 𝓐 InfmExi (B _ i)) → (∀ i j ∈ I; (𝓐 Infm (B _ i)) = (𝓐 Infm (B _ j))) → ((𝓐 InfmExi (⋃[i in I] B at i)) ∧ (∀ s ∈ I; (𝓐 Infm (⋃[i in I] B at i)) = (𝓐 Infm (B _ s)))) :=
+  fun (𝓐 B I) =>
     fun (hI : (I ≠ ∅)) =>
       fun (h𝓐 : (PartOrd 𝓐)) =>
         fun (hBI : (B Indx I)) =>
@@ -7068,8 +7068,8 @@ theorem lin_chain : ∀ 𝓐 B, (B ≠ ∅) → (B ⊆ setPO(𝓐)) →  (LinOrd
           And.intro (And.left h𝓐) (And.intro (hB) (u))
 
 
-theorem antichain : ∀ 𝓐 𝓑, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartPO 𝓑) AntiChain (A × B)) :=
-  fun (𝓐 𝓑) =>
+theorem antichain : ∀ 𝓐 𝓑 A B, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartPO 𝓑) AntiChain (A × B)) :=
+  fun (𝓐 𝓑 A B) =>
     fun (h𝓐 : (𝓐 AntiChain A)) =>
       fun (h𝓑 : (𝓑 AntiChain B)) =>
         let L₀ := (≼(𝓐 CartPO 𝓑))
@@ -8434,10 +8434,10 @@ theorem poiso_infexi : ∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO �
 
 
 
-theorem poiso_interv_eq (φ : Set → Set → Set → Set → Prop) (ψ : Set → Set → Set → Set)
+theorem poiso_interv_eq (c d : Set) (φ : Set → Set → Set → Set → Prop) (ψ : Set → Set → Set → Set)
  : ∀ 𝓐 𝓑 f, (f PO_ISO_PO 𝓐 To 𝓑) → (∀ 𝓧 x, ∀ a b, (x ∈ ψ 𝓧 a b ↔ φ 𝓧 a b x)) →
- (∀ 𝓧 a b, (ψ 𝓧 a b) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a b x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅b⦆) (f⦅x⦆)))) → (
-  f.[ψ 𝓐 a b] = ψ 𝓑 (f⦅a⦆) (f⦅b⦆)
+ (∀ 𝓧 a b, (ψ 𝓧 a b) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 c d x) ↔ (φ 𝓑 (f⦅c⦆) (f⦅d⦆) (f⦅x⦆)))) → (
+  f.[ψ 𝓐 c d] = ψ 𝓑 (f⦅c⦆) (f⦅d⦆)
  )) :=
   fun (𝓐 𝓑 f) =>
     fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
@@ -8449,15 +8449,15 @@ theorem poiso_interv_eq (φ : Set → Set → Set → Set → Prop) (ψ : Set �
       let k := And.left r
       fun (hab : (∀ 𝓧 x, ∀ a b, (x ∈ ψ 𝓧 a b ↔ φ 𝓧 a b x)) ) =>
         fun (h𝓧 :  (∀ 𝓧 a b, (ψ 𝓧 a b) ⊆ setPO(𝓧))) =>
-          fun (hφ : (∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a b x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅b⦆) (f⦅x⦆))))) =>
-                extensionality (f.[ψ 𝓐 a b]) (ψ 𝓑 (f⦅a⦆) (f⦅b⦆)) (
+          fun (hφ : (∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 c d x) ↔ (φ 𝓑 (f⦅c⦆) (f⦅d⦆) (f⦅x⦆))))) =>
+                extensionality (f.[ψ 𝓐 c d]) (ψ 𝓑 (f⦅c⦆) (f⦅d⦆)) (
                   fun (y) =>
                     Iff.intro
                     (
-                      fun (hy : y ∈ (f.[ψ 𝓐 a b])) =>
-                        Iff.mpr (hab 𝓑 y (f⦅a⦆) (f⦅b⦆)) (
+                      fun (hy : y ∈ (f.[ψ 𝓐 c d])) =>
+                        Iff.mpr (hab 𝓑 y (f⦅c⦆) (f⦅d⦆)) (
 
-                          let M := ψ 𝓐 a b
+                          let M := ψ 𝓐 c d
 
                           let hyB := specification_set_subset (fun (t) => ∃ s ∈ M; (s . f . t)) (rng f)
                           let hyB₁ := subset_trans (f.[M]) (rng f) (setPO(𝓑)) (hyB) (rng_partial_function f setPO(𝓐) setPO(𝓑) (r)) y (hy)
@@ -8470,7 +8470,7 @@ theorem poiso_interv_eq (φ : Set → Set → Set → Set → Prop) (ψ : Set �
 
                           let u := Iff.mp (hφ (f⁻¹⦅y⦆) (u₇)) (
 
-                            Iff.mp (hab 𝓐 (f⁻¹⦅y⦆) a b) (
+                            Iff.mp (hab 𝓐 (f⁻¹⦅y⦆) c d) (
 
                               let u₀ := Iff.mp (image_prop f M y) hy
 
@@ -8494,13 +8494,13 @@ theorem poiso_interv_eq (φ : Set → Set → Set → Set → Prop) (ψ : Set �
 
                           )
 
-                          eq_subst (fun (m) => φ 𝓑 (f⦅a⦆) (f⦅b⦆) m) (f⦅f⁻¹⦅y⦆⦆) (y) (Eq.symm u₆) (u)
+                          eq_subst (fun (m) => φ 𝓑 (f⦅c⦆) (f⦅d⦆) m) (f⦅f⁻¹⦅y⦆⦆) (y) (Eq.symm u₆) (u)
                         )
                     )
                     (
-                      fun (hy : y ∈ (ψ 𝓑 (f⦅a⦆) (f⦅b⦆))) =>
-                        let M := ψ 𝓐 a b
-                        let hyB₁ := h𝓧 𝓑 (f⦅a⦆) (f⦅b⦆) y hy
+                      fun (hy : y ∈ (ψ 𝓑 (f⦅c⦆) (f⦅d⦆))) =>
+                        let M := ψ 𝓐 c d
+                        let hyB₁ := h𝓧 𝓑 (f⦅c⦆) (f⦅d⦆) y hy
                         let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
                         let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) y (hyB₁)
                         let u₄ := eq_subst (fun (t) => t⦅y⦆ = (f⦅f⁻¹⦅y⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
@@ -8511,10 +8511,10 @@ theorem poiso_interv_eq (φ : Set → Set → Set → Set → Prop) (ψ : Set �
                         Iff.mpr (image_prop f M y) (
                           Exists.intro (f⁻¹⦅y⦆) (
                             And.intro (
-                              Iff.mpr (hab 𝓐 (f⁻¹⦅y⦆) a b) (
+                              Iff.mpr (hab 𝓐 (f⁻¹⦅y⦆) c d) (
                                 Iff.mpr (hφ (f⁻¹⦅y⦆) u₇) (
-                                  eq_subst (fun (m) => φ 𝓑 (f⦅a⦆) (f⦅b⦆) m) (y) (f⦅f⁻¹⦅y⦆⦆) u₆ (
-                                    Iff.mp (hab 𝓑 y (f⦅a⦆) (f⦅b⦆)) (
+                                  eq_subst (fun (m) => φ 𝓑 (f⦅c⦆) (f⦅d⦆) m) (y) (f⦅f⁻¹⦅y⦆⦆) u₆ (
+                                    Iff.mp (hab 𝓑 y (f⦅c⦆) (f⦅d⦆)) (
                                       hy
                                     )
                                   )
@@ -8530,10 +8530,10 @@ theorem poiso_interv_eq (φ : Set → Set → Set → Set → Prop) (ψ : Set �
 
 
 
-theorem poiso_interv_eq₂ (φ : Set → Set → Set → Prop) (ψ : Set → Set → Set)
+theorem poiso_interv_eq₂ (c : Set) (φ : Set → Set → Set → Prop) (ψ : Set → Set → Set)
  : ∀ 𝓐 𝓑 f, (f PO_ISO_PO 𝓐 To 𝓑) → (∀ 𝓧 x, ∀ a, (x ∈ ψ 𝓧 a ↔ φ 𝓧 a x)) →
- (∀ 𝓧 a, (ψ 𝓧 a) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅x⦆)))) → (
-  f.[ψ 𝓐 a] = ψ 𝓑 (f⦅a⦆)
+ (∀ 𝓧 a, (ψ 𝓧 a) ⊆ setPO(𝓧)) → ((∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 c x) ↔ (φ 𝓑 (f⦅c⦆) (f⦅x⦆)))) → (
+  f.[ψ 𝓐 c] = ψ 𝓑 (f⦅c⦆)
  )) :=
   fun (𝓐 𝓑 f) =>
     fun (hf : (f PO_ISO_PO 𝓐 To 𝓑)) =>
@@ -8545,15 +8545,15 @@ theorem poiso_interv_eq₂ (φ : Set → Set → Set → Prop) (ψ : Set → Set
       let k := And.left r
       fun (hab : (∀ 𝓧 x, ∀ a, (x ∈ ψ 𝓧 a ↔ φ 𝓧 a x)) ) =>
         fun (h𝓧 :  (∀ 𝓧 a, (ψ 𝓧 a) ⊆ setPO(𝓧))) =>
-          fun (hφ : (∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 a x) ↔ (φ 𝓑 (f⦅a⦆) (f⦅x⦆))))) =>
-                extensionality (f.[ψ 𝓐 a]) (ψ 𝓑 (f⦅a⦆)) (
+          fun (hφ : (∀ x, (x ∈ setPO(𝓐)) → ((φ 𝓐 c x) ↔ (φ 𝓑 (f⦅c⦆) (f⦅x⦆))))) =>
+                extensionality (f.[ψ 𝓐 c]) (ψ 𝓑 (f⦅c⦆)) (
                   fun (y) =>
                     Iff.intro
                     (
-                      fun (hy : y ∈ (f.[ψ 𝓐 a])) =>
-                        Iff.mpr (hab 𝓑 y (f⦅a⦆)) (
+                      fun (hy : y ∈ (f.[ψ 𝓐 c])) =>
+                        Iff.mpr (hab 𝓑 y (f⦅c⦆)) (
 
-                          let M := ψ 𝓐 a
+                          let M := ψ 𝓐 c
 
                           let hyB := specification_set_subset (fun (t) => ∃ s ∈ M; (s . f . t)) (rng f)
                           let hyB₁ := subset_trans (f.[M]) (rng f) (setPO(𝓑)) (hyB) (rng_partial_function f setPO(𝓐) setPO(𝓑) (r)) y (hy)
@@ -8566,7 +8566,7 @@ theorem poiso_interv_eq₂ (φ : Set → Set → Set → Prop) (ψ : Set → Set
 
                           let u := Iff.mp (hφ (f⁻¹⦅y⦆) (u₇)) (
 
-                            Iff.mp (hab 𝓐 (f⁻¹⦅y⦆) a) (
+                            Iff.mp (hab 𝓐 (f⁻¹⦅y⦆) c) (
 
                               let u₀ := Iff.mp (image_prop f M y) hy
 
@@ -8590,13 +8590,13 @@ theorem poiso_interv_eq₂ (φ : Set → Set → Set → Prop) (ψ : Set → Set
 
                           )
 
-                          eq_subst (fun (m) => φ 𝓑 (f⦅a⦆) m) (f⦅f⁻¹⦅y⦆⦆) (y) (Eq.symm u₆) (u)
+                          eq_subst (fun (m) => φ 𝓑 (f⦅c⦆) m) (f⦅f⁻¹⦅y⦆⦆) (y) (Eq.symm u₆) (u)
                         )
                     )
                     (
-                      fun (hy : y ∈ (ψ 𝓑 (f⦅a⦆))) =>
-                        let M := ψ 𝓐 a
-                        let hyB₁ := h𝓧 𝓑 (f⦅a⦆) y hy
+                      fun (hy : y ∈ (ψ 𝓑 (f⦅c⦆))) =>
+                        let M := ψ 𝓐 c
+                        let hyB₁ := h𝓧 𝓑 (f⦅c⦆) y hy
                         let u₂ := And.right (Iff.mp (id_bijection_criterion f (setPO(𝓐)) (setPO(𝓑)) k) s)
                         let u₃ := And.right (function_composition_A (f⁻¹) f (setPO(𝓑)) (setPO(𝓐)) (setPO(𝓑)) (And.left u₁) t) y (hyB₁)
                         let u₄ := eq_subst (fun (t) => t⦅y⦆ = (f⦅f⁻¹⦅y⦆⦆)) (f ∘ f⁻¹) (id_ setPO(𝓑)) (u₂) u₃
@@ -8607,10 +8607,10 @@ theorem poiso_interv_eq₂ (φ : Set → Set → Set → Prop) (ψ : Set → Set
                         Iff.mpr (image_prop f M y) (
                           Exists.intro (f⁻¹⦅y⦆) (
                             And.intro (
-                              Iff.mpr (hab 𝓐 (f⁻¹⦅y⦆) a) (
+                              Iff.mpr (hab 𝓐 (f⁻¹⦅y⦆) c) (
                                 Iff.mpr (hφ (f⁻¹⦅y⦆) u₇) (
-                                  eq_subst (fun (m) => φ 𝓑 (f⦅a⦆) m) (y) (f⦅f⁻¹⦅y⦆⦆) u₆ (
-                                    Iff.mp (hab 𝓑 y (f⦅a⦆)) (
+                                  eq_subst (fun (m) => φ 𝓑 (f⦅c⦆) m) (y) (f⦅f⁻¹⦅y⦆⦆) u₆ (
+                                    Iff.mp (hab 𝓑 y (f⦅c⦆)) (
                                       hy
                                     )
                                   )
@@ -8632,7 +8632,7 @@ theorem poiso_lro : ∀ 𝓐 𝓑 f a b, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ s
           let φ := fun (𝓐) => fun (a) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≺(𝓐)) . x) ∧ (x . (≺(𝓐)) . b))
           let ψ := fun (𝓐) => fun (a) => fun (b) => ⦗ a ; b ⦘ of 𝓐
 
-          poiso_interv_eq φ ψ 𝓐 𝓑 f hf (
+          poiso_interv_eq a b φ ψ 𝓐 𝓑 f hf (
             fun (𝓧 x a b) =>
               spec_is_spec (fun (m) => (a . (≺(𝓧)) . m) ∧ (m . (≺(𝓧)) . b)) (setPO(𝓧)) x
           ) (lro_sub_all) (
@@ -8665,7 +8665,7 @@ theorem poiso_lcro : ∀ 𝓐 𝓑 f a b, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ 
           let φ := fun (𝓐) => fun (a) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≼(𝓐)) . x) ∧ (x . (≺(𝓐)) . b))
           let ψ := fun (𝓐) => fun (a) => fun (b) => ⟦ a ; b ⦘ of 𝓐
 
-          poiso_interv_eq φ ψ 𝓐 𝓑 f hf (
+          poiso_interv_eq a b φ ψ 𝓐 𝓑 f hf (
             fun (𝓧 x a b) =>
               spec_is_spec (fun (m) => (a . (≼(𝓧)) . m) ∧ (m . (≺(𝓧)) . b)) (setPO(𝓧)) x
           ) (lcro_sub_all) (
@@ -8696,7 +8696,7 @@ theorem poiso_locr : ∀ 𝓐 𝓑 f a b, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ 
           let φ := fun (𝓐) => fun (a) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≺(𝓐)) . x) ∧ (x . (≼(𝓐)) . b))
           let ψ := fun (𝓐) => fun (a) => fun (b) => ⦗ a ; b ⟧ of 𝓐
 
-          poiso_interv_eq φ ψ 𝓐 𝓑 f hf (
+          poiso_interv_eq a b φ ψ 𝓐 𝓑 f hf (
             fun (𝓧 x a b) =>
               spec_is_spec (fun (m) => (a . (≺(𝓧)) . m) ∧ (m . (≼(𝓧)) . b)) (setPO(𝓧)) x
           ) (lorc_sub_all) (
@@ -8727,7 +8727,7 @@ theorem poiso_lrc : ∀ 𝓐 𝓑 f a b, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ s
           let φ := fun (𝓐) => fun (a) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≼(𝓐)) . x) ∧ (x . (≼(𝓐)) . b))
           let ψ := fun (𝓐) => fun (a) => fun (b) =>  ⟦ a ; b ⟧ of 𝓐
 
-          poiso_interv_eq φ ψ 𝓐 𝓑 f hf (
+          poiso_interv_eq a b φ ψ 𝓐 𝓑 f hf (
             fun (𝓧 x a b) =>
               spec_is_spec (fun (m) => (a . (≼(𝓧)) . m) ∧ (m . (≼(𝓧)) . b)) (setPO(𝓧)) x
           ) (lrc_sub_all) (
@@ -8757,7 +8757,7 @@ theorem poiso_lc : ∀ 𝓐 𝓑 f a, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ setP
         let φ := fun (𝓐) => fun (a) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≼(𝓐)) . x))
           let ψ := fun (𝓐) => fun (a) => ⟦ a ; +∞ ⦘ of 𝓐
 
-          poiso_interv_eq₂ φ ψ 𝓐 𝓑 f hf (
+          poiso_interv_eq₂ a φ ψ 𝓐 𝓑 f hf (
             fun (𝓧 x a) =>
               spec_is_spec (fun (m) => (a . (≼(𝓧)) . m)) (setPO(𝓧)) x
           ) (lc_sub_all) (
@@ -8784,7 +8784,7 @@ theorem poiso_rc : ∀ 𝓐 𝓑 f b, (f PO_ISO_PO 𝓐 To 𝓑) → (b ∈ setP
         let φ := fun (𝓐) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((x . (≼(𝓐)) . b))
           let ψ := fun (𝓐) => fun (b) => ⦗ -∞ ; b ⟧ of 𝓐
 
-          poiso_interv_eq₂ φ ψ 𝓐 𝓑 f hf (
+          poiso_interv_eq₂ b φ ψ 𝓐 𝓑 f hf (
             fun (𝓧 x b) =>
               spec_is_spec (fun (m) => (m . (≼(𝓧)) . b)) (setPO(𝓧)) x
           ) (rc_sub_all) (
@@ -8807,7 +8807,7 @@ theorem poiso_lo : ∀ 𝓐 𝓑 f a, (f PO_ISO_PO 𝓐 To 𝓑) → (a ∈ setP
         let φ := fun (𝓐) => fun (a) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((a . (≺(𝓐)) . x))
           let ψ := fun (𝓐) => fun (a) => ⦗ a ; +∞ ⦘ of 𝓐
 
-          poiso_interv_eq₂ φ ψ 𝓐 𝓑 f hf (
+          poiso_interv_eq₂ a φ ψ 𝓐 𝓑 f hf (
             fun (𝓧 x a) =>
               spec_is_spec (fun (m) => (a . (≺(𝓧)) . m)) (setPO(𝓧)) x
           ) (lo_sub_all) (
@@ -8830,7 +8830,7 @@ theorem poiso_ro : ∀ 𝓐 𝓑 f b, (f PO_ISO_PO 𝓐 To 𝓑) → (b ∈ setP
         let φ := fun (𝓐) => fun (b) => fun (x) => (x ∈ setPO(𝓐)) ∧ ((x . (≺(𝓐)) . b))
           let ψ := fun (𝓐) => fun (b) => ⦗ -∞ ; b ⦘ of 𝓐
 
-          poiso_interv_eq₂ φ ψ 𝓐 𝓑 f hf (
+          poiso_interv_eq₂ b φ ψ 𝓐 𝓑 f hf (
             fun (𝓧 x b) =>
               spec_is_spec (fun (m) => (m . (≺(𝓧)) . b)) (setPO(𝓧)) x
           ) (ro_sub_all) (
