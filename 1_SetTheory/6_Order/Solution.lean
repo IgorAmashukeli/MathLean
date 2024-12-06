@@ -4716,6 +4716,23 @@ theorem min_subset_prop : ∀ 𝓐 B C, (C ⊆ B) → (PartOrd 𝓐) → (𝓐 M
                 And.left (min_po_prop 𝓐 C h𝓐 (And.left hminc))
               )
           )
+
+theorem po_max_subset_prop : ∀ 𝓐 B C, (C ⊆ B) → (PartOrd 𝓐) → (𝓐 MaxExi B) → (𝓐 MaxExi C) → ((𝓐 Max C) . (≼(𝓐)) . (𝓐 Max B)) :=
+  fun (𝓐 B C hCB h𝓐 hBexi hCexi) =>
+    let u₁ := max_po_prop 𝓐 B h𝓐 hBexi
+    let u₂ := max_po_prop 𝓐 C h𝓐 hCexi
+    let u₃ := hCB (𝓐 Max C) (And.left (u₂))
+    And.right u₁ (𝓐 Max C) u₃
+
+
+theorem po_min_subset_prop : ∀ 𝓐 B C, (C ⊆ B) → (PartOrd 𝓐) → (𝓐 MinExi B) → (𝓐 MinExi C) → ((𝓐 Min B) . (≼(𝓐)) . (𝓐 Min C)) :=
+  fun (𝓐 B C hCB h𝓐 hBexi hCexi) =>
+    let u₁ := min_po_prop 𝓐 B h𝓐 hBexi
+    let u₂ := min_po_prop 𝓐 C h𝓐 hCexi
+    let u₃ := hCB (𝓐 Min C) (And.left (u₂))
+    And.right u₁ (𝓐 Min C) u₃
+
+
 theorem max_inter_prop : ∀ 𝓐 B I i, i ∈ I → (PartOrd 𝓐) → (B IndxFun I) → ((𝓐 Max (B _ i)) ∈ (⋂[ i in I ] B at i)) → (𝓐 MaxExi (B _ i)) → ((𝓐 MaxExi (⋂[ i in I ] B at i)) ∧ ((𝓐 Max (⋂[ i in I ] B at i)) = 𝓐 Max (B _ i))) :=
   fun (𝓐 B I i) =>
     fun (hi : i ∈ I) =>

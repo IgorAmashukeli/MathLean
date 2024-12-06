@@ -117,6 +117,7 @@ theorem inv_between_mp : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw 
 noncomputable def composition (P Q : Set) : Set := {pr ∈ dom Q × rng P | ∃ x y, (pr = (x, y)) ∧ ∃ z, (x . Q . z) ∧ (z . P . y)}
 infix:60 (priority:=high) " ∘ " => composition
 theorem composition_is_rel : ∀ P Q, binary_relation (P ∘ Q) := sorry
+theorem composition_is_relbtw : ∀ P Q A B C, (P BinRelBtw B AND C) → (Q BinRelBtw A AND B) → ((P ∘ Q) BinRelBtw A AND C) := sorry
 theorem composition_pair_prop : ∀ P Q, ∀ x y, (x . (P ∘ Q) . y) ↔ ∃ z, (x . Q . z) ∧ (z . P . y) := sorry
 theorem composition_pair_assoc: ∀ P Q R x y, (x . ((P ∘ Q) ∘ R) . y) ↔ (x . (P ∘ (Q ∘ R)) . y) := sorry
 theorem composition_assoc : ∀ P Q R, ((P ∘ Q) ∘ R) = (P ∘ (Q ∘ R)) := sorry

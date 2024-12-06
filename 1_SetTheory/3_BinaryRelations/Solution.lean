@@ -1176,6 +1176,14 @@ theorem composition_assoc : ∀ P Q R, ((P ∘ Q) ∘ R) = (P ∘ (Q ∘ R)) :=
   fun (P) => fun (Q) => fun (R) =>
     relation_equality ((P ∘ Q) ∘ R) (P ∘ (Q ∘ R)) (composition_is_rel (P ∘ Q) (R)) (composition_is_rel (P) (Q ∘ R)) (composition_pair_assoc P Q R)
 
+theorem composition_is_relbtw : ∀ P Q A B C, (P BinRelBtw B AND C) → (Q BinRelBtw A AND B) → ((P ∘ Q) BinRelBtw A AND C) :=
+  fun (P Q A B C hP hQ) =>
+    let S := fun (pr) => ∃ x y, (pr = (x, y)) ∧ ∃ z, (x . Q . z) ∧ (z . P . y)
+    let u₁ : (P ∘ Q) ⊆ ((dom Q) × (rng P)) := specification_set_subset S (dom Q × rng P)
+    let u₂ := And.right (And.right (prop_then_binary_relation B C P hP))
+    let u₃ := And.left (And.right (prop_then_binary_relation A B Q hQ))
+    let u₄ := cartesian_product_subset (dom Q) (rng P) A C (u₃) (u₂)
+    fun (x) => fun (hx) => u₄ x (u₁ x hx)
 
 
 theorem inv_composition_pair_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . ((P ∘ Q)⁻¹) . y) ↔ (x . ((Q⁻¹) ∘ P⁻¹) . y)) :=

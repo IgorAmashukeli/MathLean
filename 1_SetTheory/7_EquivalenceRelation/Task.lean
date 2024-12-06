@@ -51,9 +51,10 @@ syntax "ker" term "On" term : term
 macro_rules
 | `(ker $f On $A) => `(kernel_func $f $A)
 
-
+theorem kernel_crit : ∀ f A, ∀ x y ∈ A; ((x, y) ∈ (ker f On A)) ↔ (f⦅x⦆ = f⦅y⦆) := sorry
 theorem kernel_equivrel : ∀ A f, ((ker f On A) EquivRel A) := sorry
 theorem kernel_inj_crit : ∀ A B f, (f Fun A To B) → ((f Inj A To B) ↔ ((ker f On A) = id_ A)) := sorry
+theorem kerneleq_cond : ∀ A R f, (R EquivRel A) → ((R = ker f On A) ↔ (∀ x y ∈ A; (x . R . y) ↔ (f⦅x⦆ = f⦅y⦆))) := sorry
 
 -- 6) Equivalence classes and its properties
 
@@ -83,6 +84,7 @@ noncomputable def singl_set (A) := {S ∈ 𝒫 (A) | ∃ x ∈ A; S = {x}}
 
 theorem factorset_prop : ∀ A R S, (S ∈ (A ./ R) ↔ (∃ x ∈ A; S = ([x] Of R On A))) := sorry
 theorem factor_set_in : ∀ A R, ∀ x ∈ A; ([x] Of R On A) ∈ (A ./ R) := sorry
+theorem factor_set_union : ∀ A R, (R EquivRel A) → (⋃ (A ./ R)) = A := sorry
 
 theorem factor_id : ∀ A, (A ./ (id_ A)) = 𝒫₁ A := sorry
 theorem factor_allpairnemp : ∀ A, (A ≠ ∅) → (A ./ (A × A)) = {A} := sorry
@@ -108,9 +110,7 @@ theorem equivrel_kernel_natproj : ∀ A R, (R EquivRel A) → (R = ker (R ProjFu
 theorem equivrel_kernel : ∀ A R, (R EquivRel A) → (∃ f B, (f Fun A To B) ∧ (R = ker f On A)) := sorry
 theorem natproj_surj : ∀ A R, ((R ProjFun A) Surj A To (A ./ R)) := sorry
 
-
--- TO DO theorem about induced kernel functions and theorems about
-
+-- 9) Induced function and its properties
 
 noncomputable def induced_func (A B R f) := {s ∈ (A ./ R) × B | ∃ x ∈ A; s = ([x] Of R On A, f⦅x⦆)}
 syntax term "IndFun" term "To" term "Of" term : term
@@ -119,6 +119,27 @@ macro_rules
 
 
 theorem kernat_ind : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = (ker f On A)) →
-(((f IndFun A To B Of R) Fun (A ./ R) To B) ∧ f = (f IndFun A To B Of R) ∘ (f ProjFun A)) ∧ (f IndFun A To B Of R)⦅[x] Of R On A⦆ = f⦅x⦆ := sorry
+((f IndFun A To B Of R) Fun (A ./ R) To B) ∧ f = (f IndFun A To B Of R) ∘ (R ProjFun A) := sorry
+theorem kernat_indval :
+∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = (ker f On A)) → ∀ x ∈ A; (f IndFun A To B Of R)⦅[x] Of R On A⦆ = f⦅x⦆ := sorry
+theorem kernatind_uni : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = (ker f On A))
+ → (∃! g, (g Fun (A ./ R) To B) ∧ (f = g ∘ (R ProjFun A))) := sorry
 
-theorem kernat_uni : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = (ker f On A)) → (∃! f, (f Fun (A ./ R) To B) ∧ (f = (f IndFun A To B Of R) ∘ (f ProjFun A))) := sorry
+-- 11 ) Factor set by kernel of a function is equinumerous to range of the function
+
+theorem factor_kernel_equin : ∀ A B f, (f Fun A To B) → (A ./ (ker f On A)) ~ (rng f) := sorry
+
+
+-- 10) Factor set covering and inclusion relation to relation subset
+
+theorem facsub_cov : ∀ A R S, (R EquivRel A) → (S EquivRel A) → (R ⊆ S) → (A ./ R) ≿ (A ./ S) := sorry
+theorem facsub_incl_ax : choice_ax → ∀ A R S, (R EquivRel A) → (S EquivRel A) → (R ⊆ S) → (A ./ S) ≾ (A ./ R) := sorry
+
+
+-- 11) Other factor set properties
+
+
+-- 12) Compatible relation, function and operation of factorset
+
+
+-- 13) Partitioning and equivalence relations

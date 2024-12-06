@@ -32,20 +32,29 @@ def exists_unique (P : α → Prop) : Prop := (∃ (x : α), P x ∧ (∀ y : α
 open Lean TSyntax.Compat in
 macro "∃!" xs:explicitBinders ", " b:term : term => expandExplicitBinders ``exists_unique xs b
 
+
+
+
 axiom Set : Type
 axiom membership : Set → Set → Prop
 infix:50 (priority := high) " ∈ " => membership
 infix:50 (priority := high) " ∉ " => (fun (x : Set) => (fun (y : Set) => ¬ membership x y))
 
+axiom exists_unique_expansion_curry (P : Set → Prop) :
+   (∃! (x : Set), P x) ↔ (∃ (x : Set), P x) ∧ (∀ (x y : Set), (P x → P y → x = y))
+
 axiom set_to_prop (P : Set → Prop) (h : ∃! x, P x) : Set
 axiom prop_to_set (P : Set → Prop) (h : ∃! x, P x) : P (set_to_prop P h) ∧ ∀ x, x ≠ set_to_prop P h → ¬P x
-
+axiom eq_congr_func_arg {α β} (f : α → β) : (∀ (x y : α), x = y → f x = f y)
 axiom eq_subst (P : Set → Prop) : (∀ (a b : Set), a = b → P a → P b)
 
 
 def forall_in_A (P : Set → Prop) (A : Set) : Prop := (∀ x, (x ∈ A → P x))
 def exists_in_A (P : Set → Prop) (A : Set) : Prop := (∃ x, (x ∈ A ∧ P x))
 def exists_uniq_in_A (P : Set → Prop) (A : Set) : Prop := (∃! x, (x ∈ A ∧ P x))
+
+
+
 
 declare_syntax_cat idents
 syntax ident : idents
@@ -305,7 +314,7 @@ axiom rel_subset : (∀ P Q, binary_relation P → binary_relation Q → (∀ x 
 axiom prop_then_id : ∀ A, ∀ x ∈ A; (x . (id_ A) . x)
 axiom inv_id : ∀ A, ((id_ A)⁻¹) = (id_ A)
 axiom inv_between_mp : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw B AND A)
-
+axiom composition_is_relbtw : ∀ P Q A B C, (P BinRelBtw B AND C) → (Q BinRelBtw A AND B) → ((P ∘ Q) BinRelBtw A AND C)
 
 axiom intersect2_rel_is_rel : ∀ P Q, binary_relation P → binary_relation Q → binary_relation (P ∩ Q)
 
@@ -510,6 +519,29 @@ macro_rules
 axiom equinum_refl : ∀ A, A ~ A
 axiom equinum_symm : ∀ A B, (A ~ B) → B ~ A
 axiom equinum_trans : ∀ A B C, (A ~ B) → (B ~ C) → (A ~ C)
+
+
+def includes (A B : Set) := ∃ f, f Inj A To B
+syntax term "≾" term : term
+syntax term "⋨" term : term
+syntax term "⋠" term : term
+macro_rules
+  | `($A:term ≾ $B:term) => `(includes $A $B)
+  | `($A:term ⋠ $B:term) => `(¬($A ≾ $B))
+  | `($A:term ⋨ $B:term) => `(($A ≾ $B) ∧ ($A ≁ $B))
+
+
+def covers (A B : Set) := ∃ f, f Surj A To B
+syntax term "≿" term : term
+syntax term "⋩" term : term
+syntax term "⋡" term : term
+macro_rules
+| `($A:term ≿ $B:term) => `(covers $A $B)
+| `($A:term ⋩ $B:term) => `(¬ ($A ≿ $B))
+| `($A:term ⋡ $B:term) => `(($A ≿ $B) ∧ ($A ≁ $B))
+
+
+theorem incl_cov_prop_AC : choice_ax → (∀ A B, (A ≾ B) ↔ ((B ≿ A) ∨ (A = ∅ ∧ B ≠ ∅))) := sorry
 
 
 -- 38) Indexation with function· defintion

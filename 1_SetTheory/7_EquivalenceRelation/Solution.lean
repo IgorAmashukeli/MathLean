@@ -555,6 +555,38 @@ theorem factor_set_in : ∀ A R, ∀ x ∈ A; ([x] Of R On A) ∈ (A ./ R) :=
     )
 
 
+theorem factor_set_union : ∀ A R, (R EquivRel A) → (⋃ (A ./ R)) = A :=
+  fun (A R hRA) =>
+
+    extensionality (⋃ (A ./ R)) A (
+      fun (x) =>
+        Iff.intro
+        (
+          fun (hx) =>
+            let u₁ := Iff.mp (union_set_is_union (A ./ R) x) hx
+            Exists.elim u₁ (
+              fun (S) =>
+                fun (hS) =>
+                  let u₂ := Iff.mp (factorset_prop A R S) (And.left hS)
+                  Exists.elim u₂ (
+                    fun (y) =>
+                      fun (hy) =>
+                        let u₃ := eq_subst (fun (t) => x ∈ t) (S) ([y] Of R On A) (And.right hy) (And.right hS)
+                        equiv_class_sub A R y x u₃
+                  )
+            )
+        )
+        (
+          fun (hx) =>
+            Iff.mpr (union_set_is_union (A ./ R) x) (
+              Exists.intro ([x] Of R On A) (
+                And.intro (factor_set_in A R x hx) (equiv_class_x_in A R x hx hRA)
+              )
+            )
+        )
+    )
+
+
 
 theorem factor_id : ∀ A, (A ./ (id_ A)) = 𝒫₁ A :=
   fun (A) =>
@@ -763,6 +795,36 @@ theorem natproj_prop : ∀ A R, ∀ x ∈ A; (R ProjFun A)⦅x⦆ = [x] Of R On 
     And.right (lam_then_fun_prop P A (A ./ R) u₁)
 
 
+theorem kerneleq_cond : ∀ A R f, (R EquivRel A) → ((R = ker f On A) ↔ (∀ x y ∈ A; (x . R . y) ↔ (f⦅x⦆ = f⦅y⦆))) :=
+  fun (A R f hRA) =>
+  Iff.intro
+  (
+    fun (hker) =>
+      fun (x) =>
+        fun (hx : x ∈ A) =>
+            fun (y) =>
+              fun (hy : y ∈ A) =>
+                let s₁ := kernel_crit f A x hx y hy
+                let s₂ := eq_subst (fun (t) => ((x, y) ∈ R) ↔ (x, y) ∈ t) R (ker f On A) hker (
+                  Iff.intro (fun (m) => m) (fun (m) => m))
+                iff_transitivity ((x, y) ∈ R) ((x, y) ∈ (ker f On A)) (f⦅x⦆ = f⦅y⦆) s₂ s₁
+  )
+  (
+    fun (hprop) =>
+      let u₁ := And.left hRA
+      let u₂ := And.left (kernel_equivrel A f)
+      relation_equality_btw R (ker f On A) A A (u₁) (u₂) (
+        fun (x hx y hy) =>
+          let u₃ := kernel_crit f A x hx y hy
+          let u₄ := hprop x hx y hy
+          Iff.intro (fun (h₁) => Iff.mpr (u₃) (Iff.mp u₄ h₁)) (fun (h₂) => Iff.mpr (u₄) (Iff.mp u₃ h₂))
+      )
+  )
+
+
+
+
+
 
 theorem equivrel_kernel_natproj : ∀ A R, (R EquivRel A) → (R = ker (R ProjFun A) On A) :=
   fun (A R hRA) =>
@@ -819,31 +881,483 @@ macro_rules
 | `($f IndFun $A To $B Of $R) => `(induced_func $A $B $R $f)
 
 
--- TO Prove
+theorem induced_crit : ∀ A B R f, (f Fun A To B) →
+(∀ s₁ s₂, ((s₁, s₂) ∈ (f IndFun A To B Of R)) ↔ (∃ x ∈ A; (s₁ = [x] Of R On A) ∧ (s₂ = f⦅x⦆))) :=
+  fun (A B R f hf s₁ s₂) =>
+    let P := fun (s) => ∃ x ∈ A; s = ([x] Of R On A, f⦅x⦆)
+    Iff.intro
+    (
+      fun (hs) =>
+        let u₁ := Iff.mp (spec_is_spec P ((A ./ R) × B) (s₁, s₂)) hs
+        let u₂ := And.right u₁
+        Exists.elim u₂ (
+          fun (x) =>
+            fun (hx) =>
+              Exists.intro x (
+                And.intro (And.left hx) (
+                  Iff.mp (ordered_pair_set_prop (s₁) (s₂) ([x] Of R On A) (f⦅x⦆)) (
+                    And.right hx
+                  )
+                )
+              )
+        )
+    )
+    (
+      fun (hxs) =>
+        Exists.elim hxs (
+          fun (x) =>
+            fun (hx) =>
+
+            Iff.mpr (spec_is_spec P ((A ./ R) × B) (s₁, s₂)) (
+              And.intro (Iff.mpr (cartesian_product_pair_prop (A ./ R) B s₁ s₂) (
+                And.intro (
+                  eq_subst (fun (t) => t ∈ (A ./ R)) ([x] Of R On A) (s₁) (Eq.symm (And.left (And.right hx))) (
+                    factor_set_in A R x (And.left hx)
+                  )
+                ) (
+                  eq_subst (fun (t) => t ∈ B) (f⦅x⦆) (s₂) (Eq.symm (And.right (And.right hx))) (
+                    val_in_B f A B hf x (And.left hx)
+                  )
+                )
+              )) (
+                Exists.intro x (
+                  And.intro (And.left hx) (
+                    Iff.mpr (ordered_pair_set_prop (s₁) (s₂) ([x] Of R On A) (f⦅x⦆)) (
+                      And.right hx
+                    )
+                  )
+                )
+              )
+            )
+        )
+    )
+
+
 
 theorem kernat_ind : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = (ker f On A)) →
-((f IndFun A To B Of R) Fun (A ./ R) To B) ∧ f = (f IndFun A To B Of R) ∘ (f ProjFun A) :=
+((f IndFun A To B Of R) Fun (A ./ R) To B) ∧ f = (f IndFun A To B Of R) ∘ (R ProjFun A) :=
   fun (A B R f hRA hf hker) =>
+
+    let h₁ := natproj_fun A R
 
     let g := f IndFun A To B Of R
 
     let C := (A ./ R) × B
     let P := fun (s) => ∃ x ∈ A; s = ([x] Of R On A, f⦅x⦆)
 
+    let u₀ := Iff.mp (kerneleq_cond A R f hRA) hker
+
     let u₁ : g BinRelBtw (A ./ R) AND B := specification_set_subset P C
+
     let u₂ : g PartFun (A ./ R) To B := And.intro (u₁) (
-      fun (x y z hxy hxz) =>
-        sorry
+      fun (s₁ s₂ s₃ hss₁ hss₂) =>
+        let v₀ := Iff.mp (induced_crit A B R f hf s₁ s₂) hss₁
+        let v₁ := Iff.mp (induced_crit A B R f hf s₁ s₃) hss₂
+        Exists.elim v₀ (
+          fun (x) =>
+            fun (hx) =>
+              Exists.elim v₁ (
+                fun (y) =>
+                  fun (hy) =>
+                    let v₄ := Eq.trans (Eq.symm (And.left (And.right hx))) (And.left (And.right hy))
+                    let v₅ := Iff.mpr (And.right (And.right (equiv_class_internemp A R x (And.left hx) y (And.left hy) hRA))) v₄
+                    let v₆ := Iff.mp (u₀ x (And.left hx) y (And.left hy)) v₅
+                    Eq.trans (And.right (And.right hx)) (Eq.trans (v₆) (Eq.symm (And.right (And.right hy))))
+              )
+        )
     )
-    let u₃ : g Fun (A ./ R) To B := And.intro (u₂) (sorry)
+    let u₃ : g Fun (A ./ R) To B := And.intro (u₂) (
+      fun (S hS) =>
+        let u₄ := Iff.mp (factorset_prop A R S) hS
+        Exists.elim u₄ (
+          fun (x) =>
+            fun (hx) =>
+              Exists.intro (f⦅x⦆) (
+                Iff.mpr (spec_is_spec P ((A ./ R) × B) (S, (f⦅x⦆))) (
+                  And.intro (
+                    Iff.mpr (cartesian_product_pair_prop (A ./ R) B S (f⦅x⦆) ) (
+                      And.intro (hS) (val_in_B f A B hf x (And.left hx))
+                    )
+                  ) (
+                    Exists.intro x (
+                      And.intro (And.left hx) (
+                        Iff.mpr (ordered_pair_set_prop S (f⦅x⦆) ([x] Of R On A) (f⦅x⦆)) (
+                          And.intro (And.right hx) (Eq.refl (f⦅x⦆))
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+        )
+    )
+    (And.intro (u₃) (
+
+      let P := fun (s) => ∃ x ∈ A; s = ([x] Of R On A, f⦅x⦆)
+
+      let u₄ := composition_is_relbtw (f IndFun A To B Of R) (R ProjFun A) A (A ./ R) B (
+        specification_set_subset P ((A ./ R) × B)
+      ) (
+        And.left (And.left (natproj_fun A R))
+      )
+      relation_equality_btw f ((f IndFun A To B Of R) ∘ (R ProjFun A)) A B (And.left (And.left hf)) (u₄) (
+        fun (x hx y _) =>
+          Iff.intro
+          (
+            fun (hfxy) =>
+              let fprop := Iff.mp (function_equal_value_prop f A B hf x y hx) hfxy
+              Iff.mpr (composition_pair_prop (f IndFun A To B Of R) (R ProjFun A) x y) (
+                let z := [x] Of R On A
+                Exists.intro (z) (
+                  And.intro (Iff.mpr (function_equal_value_prop (R ProjFun A) A (A ./ R) (h₁) x z hx) (
+                    Eq.symm (natproj_prop A R x hx)
+                  )) (
+                    eq_subst (fun (t) => (z, t) ∈ (f IndFun A To B Of R)) (f⦅x⦆) (y) (Eq.symm fprop) (
+                      Iff.mpr (induced_crit A B R f hf z (f⦅x⦆)) (
+                        Exists.intro x (
+                          And.intro (hx) (
+                            And.intro (Eq.refl z) (Eq.refl (f⦅x⦆))
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+
+          )
+          (
+            fun (hcoxy) =>
+              Iff.mpr (function_equal_value_prop f A B hf x y hx) (
+                let h₀ := Iff.mp (composition_pair_prop (f IndFun A To B Of R) (R ProjFun A) x y) hcoxy
+                Exists.elim h₀ (
+                  fun (z) =>
+                    fun (hz) =>
+                      let h₂ := Iff.mp (function_equal_value_prop (R ProjFun A) A (A ./ R) h₁ x z hx) (And.left hz)
+                      let h₃ := natproj_prop A R x hx
+                      let h₄ := Eq.trans h₂ h₃
+                      let h₅ := Iff.mp (induced_crit A B R f hf z y) (And.right hz)
+                      Exists.elim h₅ (
+                        fun (s) =>
+                          fun (hs) =>
+                            let h₆ := And.left (And.right hs)
+                            let h₇ := And.right (And.right hs)
+                            let h₈ := Eq.trans (Eq.symm h₆) (h₄)
+                            let h₉ := Iff.mpr (And.right (And.right (equiv_class_internemp A R x hx s (And.left hs) hRA))) (
+                              Eq.symm h₈)
+                            let h₁₀ := Iff.mp (u₀ x hx s (And.left hs)) h₉
+
+                            eq_subst (fun (t) => y = t) (f⦅s⦆) (f⦅x⦆) (Eq.symm (h₁₀)) (h₇)
+                      )
+                )
+              )
+          )
+      )
+
+    ))
 
 
-    (And.intro (u₃) (sorry))
+theorem kernat_ind₂ : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (∀ x y ∈ A; (x . R . y) → (f⦅x⦆ = f⦅y⦆)) →
+((f IndFun A To B Of R) Fun (A ./ R) To B) ∧ f = (f IndFun A To B Of R) ∘ (R ProjFun A) :=
+  fun (A B R f hRA hf hker) =>
 
-theorem kernat_indval : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = (ker f On A)) → ∀ x ∈ A;  (f IndFun A To B Of R)⦅[x] Of R On A⦆ = f⦅x⦆ := sorry
+    let h₁ := natproj_fun A R
+
+    let g := f IndFun A To B Of R
+
+    let C := (A ./ R) × B
+    let P := fun (s) => ∃ x ∈ A; s = ([x] Of R On A, f⦅x⦆)
+
+    let u₀ := hker
+
+    let u₁ : g BinRelBtw (A ./ R) AND B := specification_set_subset P C
+
+    let u₂ : g PartFun (A ./ R) To B := And.intro (u₁) (
+      fun (s₁ s₂ s₃ hss₁ hss₂) =>
+        let v₀ := Iff.mp (induced_crit A B R f hf s₁ s₂) hss₁
+        let v₁ := Iff.mp (induced_crit A B R f hf s₁ s₃) hss₂
+        Exists.elim v₀ (
+          fun (x) =>
+            fun (hx) =>
+              Exists.elim v₁ (
+                fun (y) =>
+                  fun (hy) =>
+                    let v₄ := Eq.trans (Eq.symm (And.left (And.right hx))) (And.left (And.right hy))
+                    let v₅ := Iff.mpr (And.right (And.right (equiv_class_internemp A R x (And.left hx) y (And.left hy) hRA))) v₄
+                    let v₆ := u₀ x (And.left hx) y (And.left hy) v₅
+                    Eq.trans (And.right (And.right hx)) (Eq.trans (v₆) (Eq.symm (And.right (And.right hy))))
+              )
+        )
+    )
+    let u₃ : g Fun (A ./ R) To B := And.intro (u₂) (
+      fun (S hS) =>
+        let u₄ := Iff.mp (factorset_prop A R S) hS
+        Exists.elim u₄ (
+          fun (x) =>
+            fun (hx) =>
+              Exists.intro (f⦅x⦆) (
+                Iff.mpr (spec_is_spec P ((A ./ R) × B) (S, (f⦅x⦆))) (
+                  And.intro (
+                    Iff.mpr (cartesian_product_pair_prop (A ./ R) B S (f⦅x⦆) ) (
+                      And.intro (hS) (val_in_B f A B hf x (And.left hx))
+                    )
+                  ) (
+                    Exists.intro x (
+                      And.intro (And.left hx) (
+                        Iff.mpr (ordered_pair_set_prop S (f⦅x⦆) ([x] Of R On A) (f⦅x⦆)) (
+                          And.intro (And.right hx) (Eq.refl (f⦅x⦆))
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+        )
+    )
+    (And.intro (u₃) (
+
+      let P := fun (s) => ∃ x ∈ A; s = ([x] Of R On A, f⦅x⦆)
+
+      let u₄ := composition_is_relbtw (f IndFun A To B Of R) (R ProjFun A) A (A ./ R) B (
+        specification_set_subset P ((A ./ R) × B)
+      ) (
+        And.left (And.left (natproj_fun A R))
+      )
+      relation_equality_btw f ((f IndFun A To B Of R) ∘ (R ProjFun A)) A B (And.left (And.left hf)) (u₄) (
+        fun (x hx y _) =>
+          Iff.intro
+          (
+            fun (hfxy) =>
+              let fprop := Iff.mp (function_equal_value_prop f A B hf x y hx) hfxy
+              Iff.mpr (composition_pair_prop (f IndFun A To B Of R) (R ProjFun A) x y) (
+                let z := [x] Of R On A
+                Exists.intro (z) (
+                  And.intro (Iff.mpr (function_equal_value_prop (R ProjFun A) A (A ./ R) (h₁) x z hx) (
+                    Eq.symm (natproj_prop A R x hx)
+                  )) (
+                    eq_subst (fun (t) => (z, t) ∈ (f IndFun A To B Of R)) (f⦅x⦆) (y) (Eq.symm fprop) (
+                      Iff.mpr (induced_crit A B R f hf z (f⦅x⦆)) (
+                        Exists.intro x (
+                          And.intro (hx) (
+                            And.intro (Eq.refl z) (Eq.refl (f⦅x⦆))
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+
+          )
+          (
+            fun (hcoxy) =>
+              Iff.mpr (function_equal_value_prop f A B hf x y hx) (
+                let h₀ := Iff.mp (composition_pair_prop (f IndFun A To B Of R) (R ProjFun A) x y) hcoxy
+                Exists.elim h₀ (
+                  fun (z) =>
+                    fun (hz) =>
+                      let h₂ := Iff.mp (function_equal_value_prop (R ProjFun A) A (A ./ R) h₁ x z hx) (And.left hz)
+                      let h₃ := natproj_prop A R x hx
+                      let h₄ := Eq.trans h₂ h₃
+                      let h₅ := Iff.mp (induced_crit A B R f hf z y) (And.right hz)
+                      Exists.elim h₅ (
+                        fun (s) =>
+                          fun (hs) =>
+                            let h₆ := And.left (And.right hs)
+                            let h₇ := And.right (And.right hs)
+                            let h₈ := Eq.trans (Eq.symm h₆) (h₄)
+                            let h₉ := Iff.mpr (And.right (And.right (equiv_class_internemp A R x hx s (And.left hs) hRA))) (
+                              Eq.symm h₈)
+                            let h₁₀ := u₀ x hx s (And.left hs) h₉
+
+                            eq_subst (fun (t) => y = t) (f⦅s⦆) (f⦅x⦆) (Eq.symm (h₁₀)) (h₇)
+                      )
+                )
+              )
+          )
+      )
+
+    ))
+
+
+theorem kernat_anyind_val : ∀ A B R g f, (g Fun (A ./ R) To B) ∧ (f = g ∘ (R ProjFun A)) → (∀ x ∈ A; g⦅[x] Of R On A⦆ = f⦅x⦆) :=
+  fun (A B R g f hg x hx) =>
+    let u₁ := hg
+    let u₂ := eq_congr_func_arg (fun (t : Set) => t⦅x⦆) f ((g) ∘ (R ProjFun A)) (And.right u₁)
+    let u₂₀ := natproj_fun A R
+    let u₃ := And.right (function_composition (R ProjFun A) (g) A (A ./ R) B (u₂₀) (And.left u₁)) x (
+      eq_subst (fun (t) => x ∈ t) (A) (dom (R ProjFun A)) (dom_function (R ProjFun A) A (A ./ R) (u₂₀)) (hx)
+    )
+    let u₄ := Eq.symm (Eq.trans u₂ u₃)
+    eq_subst (fun (t) => (g)⦅t⦆ = f⦅x⦆) ((R ProjFun A)⦅x⦆) ([x] Of R On A) (
+      natproj_prop A R x hx
+    ) (u₄)
 
 
 
-theorem kernat_uni : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = (ker f On A)) → (∃! f, (f Fun (A ./ R) To B) ∧ (f = (f IndFun A To B Of R) ∘ (f ProjFun A))) :=
-  fun (A B R f hRA hr hker) =>
-    sorry
+theorem kernat_indval : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = (ker f On A)) → ∀ x ∈ A; (f IndFun A To B Of R)⦅[x] Of R On A⦆ = f⦅x⦆ :=
+  fun (A B R f hRA hf hker x hx) =>
+    let u₁ := kernat_ind A B R f hRA hf hker
+    let u₂ := eq_congr_func_arg (fun (t : Set) => t⦅x⦆) f ((f IndFun A To B Of R) ∘ (R ProjFun A)) ( And.right u₁)
+    let u₂₀ := natproj_fun A R
+    let u₃ := And.right (function_composition (R ProjFun A) (f IndFun A To B Of R) A (A ./ R) B (u₂₀) (And.left u₁)) x (
+      eq_subst (fun (t) => x ∈ t) (A) (dom (R ProjFun A)) (dom_function (R ProjFun A) A (A ./ R) (u₂₀)) (hx)
+    )
+    let u₄ := Eq.symm (Eq.trans u₂ u₃)
+    eq_subst (fun (t) => (f IndFun A To B Of R)⦅t⦆ = f⦅x⦆) ((R ProjFun A)⦅x⦆) ([x] Of R On A) (
+      natproj_prop A R x hx
+    ) (u₄)
+
+
+
+
+theorem kernat_indval₂ : ∀ A B R f, (R EquivRel A) → (f Fun A To B)
+ → (∀ x y ∈ A; (x . R . y) → (f⦅x⦆ = f⦅y⦆)) → ∀ x ∈ A; (f IndFun A To B Of R)⦅[x] Of R On A⦆ = f⦅x⦆ :=
+  fun (A B R f hRA hf hker x hx) =>
+    let u₁ := kernat_ind₂ A B R f hRA hf hker
+    let u₂ := eq_congr_func_arg (fun (t : Set) => t⦅x⦆) f ((f IndFun A To B Of R) ∘ (R ProjFun A)) ( And.right u₁)
+    let u₂₀ := natproj_fun A R
+    let u₃ := And.right (function_composition (R ProjFun A) (f IndFun A To B Of R) A (A ./ R) B (u₂₀) (And.left u₁)) x (
+      eq_subst (fun (t) => x ∈ t) (A) (dom (R ProjFun A)) (dom_function (R ProjFun A) A (A ./ R) (u₂₀)) (hx)
+    )
+    let u₄ := Eq.symm (Eq.trans u₂ u₃)
+    eq_subst (fun (t) => (f IndFun A To B Of R)⦅t⦆ = f⦅x⦆) ((R ProjFun A)⦅x⦆) ([x] Of R On A) (
+      natproj_prop A R x hx
+    ) (u₄)
+
+
+
+
+
+
+theorem kernatind_uni : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = (ker f On A)) → (∃! g, (g Fun (A ./ R) To B) ∧ (f = g ∘ (R ProjFun A))) :=
+  fun (A B R f hRA hf hker) =>
+    let P := fun (g) => (g Fun (A ./ R) To B) ∧ (f = g ∘ (R ProjFun A))
+    Iff.mpr (exists_unique_expansion_curry P) (
+      And.intro (Exists.intro (f IndFun A To B Of R) (kernat_ind A B R f hRA hf hker)) (
+        fun (f₁ f₂ hf₁ hf₂) =>
+          Iff.mpr (equal_functions_abc_A f₁ f₂ (A ./ R) B B (And.left hf₁) (And.left hf₂)) (
+            fun (S) =>
+              fun (hS) =>
+                let facprop := Iff.mp (factorset_prop A R S) hS
+                Exists.elim facprop (
+                  fun (x) =>
+                    fun (hx) =>
+                      eq_subst (fun (t) => f₁⦅t⦆ = f₂⦅t⦆) ([x] Of R On A) (S) (Eq.symm (And.right hx)) (
+                        let hf₁₁ := kernat_anyind_val A B R f₁ f (hf₁) x (And.left hx)
+                        let hf₂₁ := kernat_anyind_val A B R f₂ f (hf₂) x (And.left hx)
+                        Eq.trans (hf₁₁) (Eq.symm (hf₂₁))
+                      )
+                )
+          )
+
+      )
+    )
+
+
+theorem factor_kernel_equin : ∀ A B f, (f Fun A To B) → (A ./ (ker f On A)) ~ (rng f) :=
+  fun (A B f hf) =>
+    let hf₁ := function_rng_def f A B hf
+    let g := f IndFun A To (rng f) Of (ker f On A)
+    let M := (A ./ (ker f On A))
+    let N := rng f
+    let hg := kernat_ind A (rng f) (ker f On A) f (kernel_equivrel A f) hf₁ (Eq.refl (ker f On A))
+    Exists.intro g (And.intro (And.left hg) (
+      And.intro
+      (And.right (Iff.mpr (func_inj_prop M N g (And.left hg)) (
+        fun (s₁ hs₁ s₂ hs₂) =>
+          let u₁ := Iff.mp (factorset_prop A (ker f On A) s₁) hs₁
+          let u₂ := Iff.mp (factorset_prop A (ker f On A) s₂) hs₂
+
+          Exists.elim u₁ (
+            fun (x) =>
+              fun (hx) =>
+                Exists.elim u₂ (
+                  fun (y) =>
+                    fun (hy) =>
+                      fun (hgs₁s₂) =>
+                        let u₃ := kernat_indval A (rng f) (ker f On A) f (kernel_equivrel A f) hf₁ (Eq.refl (ker f On A)) x (And.left hx)
+                        let u₄ := eq_subst (fun (t) => g⦅t⦆ = f⦅x⦆) ([x] Of (ker f On A) On (A)) s₁ (Eq.symm (And.right hx)) (u₃)
+                        let u₅ := kernat_indval A (rng f) (ker f On A) f (kernel_equivrel A f) hf₁ (Eq.refl (ker f On A)) y (And.left hy)
+                        let u₆ := eq_subst (fun (t) => g⦅t⦆ = f⦅y⦆) ([y] Of (ker f On A) On (A)) s₂ (Eq.symm (And.right hy)) (u₅)
+                        let u₇ := Eq.trans (Eq.symm u₄) (Eq.trans hgs₁s₂ (u₆))
+                        let u₈ := Iff.mpr (Iff.mp (kerneleq_cond A (ker f On A) f (kernel_equivrel A f)) (Eq.refl (ker f On A)) x (And.left hx) y (And.left hy)) u₇
+                        let u₉ := Iff.mp (And.right (And.right (equiv_class_internemp A (ker f On A) x (And.left hx) y (And.left hy) (kernel_equivrel A f)))) u₈
+                        Eq.trans (And.right hx) (Eq.trans (u₉) (Eq.symm (And.right hy)))
+                )
+          )
+      )))
+      (
+
+        And.right (Iff.mpr (func_surj_prop (A ./ (ker f On A)) (rng f) g (And.left hg)) (
+
+          fun (y) =>
+            fun (hy) =>
+              let u₁ := Iff.mp (rng_prop f y) hy
+              Exists.elim u₁ (
+                fun (x) =>
+                  fun (hx) =>
+                    let u₂₀ := dom_function f A (rng f) hf₁
+                    let u₂₁ := Iff.mpr (dom_prop f x) (Exists.intro y hx)
+                    let u₂₂ := eq_subst (fun (t) => x ∈ t) (dom f) (A) (Eq.symm u₂₀) (u₂₁)
+                    let u₂ := Iff.mp (function_equal_value_prop f A (rng f) hf₁ x y u₂₂) hx
+
+                    Exists.intro ([x] Of (ker f On A) On A) (
+                      let u₃ : g⦅[x] Of (ker f On A) On A⦆ = f⦅x⦆ := kernat_indval A (rng f) (ker f On A) f (kernel_equivrel A f) hf₁ (Eq.refl (ker f On A)) x u₂₂
+                      And.intro (factor_set_in A (ker f On A) x u₂₂) (Eq.trans u₂ (Eq.symm (u₃)))
+                    )
+              )
+        ))
+      )
+    ))
+
+
+
+
+theorem facsub_cov : ∀ A R S, (R EquivRel A) → (S EquivRel A) → (R ⊆ S) → (A ./ R) ≿ (A ./ S) :=
+  fun (A R S hRA hSA hRS) =>
+    let P := (fun (x) => [x] Of S On A)
+    let f := lam_fun A (A ./ S) P
+    let g := f IndFun A To (A ./ S) Of R
+    let fprop := lam_then_fun_prop P A (A ./ S) (
+      fun (x hx) =>
+        factor_set_in A S x hx
+    )
+    let Rprop := fun (x hx y hy hxy) =>
+        let u₁ := hRS (x, y) hxy
+        let u₂ := Iff.mp (And.right (And.right (equiv_class_internemp A S x hx y hy hSA))) u₁
+        Eq.trans (And.right fprop x hx) (Eq.trans (u₂) (Eq.symm (And.right fprop y hy)))
+
+    let gprop := kernat_ind₂ A (A ./ S) R f hRA (And.left fprop) (
+        Rprop
+    )
+    Exists.intro g (
+      And.intro (And.left gprop) (
+        fun (s hs) =>
+          let u₃ := Iff.mp (factorset_prop A S s) hs
+          Exists.elim u₃ (
+            fun (x) =>
+              fun (hx) =>
+                let xclass := [x] Of R On A
+                Exists.intro (xclass) (
+                  Iff.mpr (function_equal_value_prop g (A ./ R) (A ./ S) (And.left gprop) xclass s (
+                    factor_set_in A R x (And.left hx)
+                  )) (Eq.trans (And.right hx) (Eq.symm (
+
+                    let u₄ : (g)⦅xclass⦆ =f⦅x⦆ := kernat_indval₂ A (A ./ S) R f hRA (And.left fprop) Rprop x (And.left hx)
+                    let u₅ : f⦅x⦆ = [x] Of S On A := And.right fprop x (And.left hx)
+                    Eq.trans u₄ u₅
+                  )))
+                )
+          )
+      )
+    )
+
+
+
+theorem facsub_incl_ax : choice_ax → ∀ A R S, (R EquivRel A) → (S EquivRel A) → (R ⊆ S) → (A ./ S) ≾ (A ./ R) :=
+  fun (ch A R S hRA hSA hRS) =>
+    let u₁ := facsub_cov A R S hRA hSA hRS
+    Iff.mpr (incl_cov_prop_AC ch (A ./ S) (A ./ R)) (
+      Or.inl (u₁)
+    )
