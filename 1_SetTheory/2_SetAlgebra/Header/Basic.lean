@@ -85,6 +85,8 @@ axiom empty_set_is_empty : empty ∅
 axiom empty_set_is_subset_any : ∀ A, ∅ ⊆ A
 axiom unordered_pair_set_is_unordered_pair : ∀ a₁ a₂ x, x ∈ {a₁, a₂} ↔ x = a₁ ∨ x = a₂
 axiom unordered_pair_is_unordered : ∀ a₁ a₂, {a₁, a₂} = {a₂, a₁}
+axiom left_unordered_pair : ∀ a₁ a₂, a₁ ∈ {a₁, a₂}
+axiom right_unordered_pair : ∀ a₁ a₂, a₂ ∈ {a₁, a₂}
 axiom union_set_is_union : (∀ A x, (x ∈ ⋃ A ↔ ∃ y ∈ A; x ∈ y))
 axiom spec_is_spec (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x ∈ A ∧ P x)
 axiom specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} ⊆ A)
@@ -93,3 +95,10 @@ axiom subset_then_equality : ∀ A B, A ⊆ B ∧ B ⊆ A → A = B
 def set_equality (A B : Set) := ∀ x, (x ∈ A ↔ x ∈ B)
 axiom extensionality : ∀ A B, set_equality A B → (A = B)
 axiom subset_refl : ∀ A, A ⊆ A
+
+noncomputable def intersection_set : Set → Set := fun (A) => {x ∈ ⋃ A | ∀ y ∈ A; x ∈ y}
+notation (priority := high) "⋂" => intersection_set
+theorem intersection_set_is_intersection : ∀ A x, x ∈ ⋂ A ↔ (x ∈ ⋃ A ∧ ∀ y ∈ A; x ∈ y) := sorry
+theorem intersection_non_empty : ∀ A, (A ≠ ∅ → ∀ x, (x ∈ ⋂ A) ↔ ∀ y ∈ A; x ∈ y) := sorry
+theorem intersect_subset_monotonic : ∀ A B, (A ≠ ∅) → (A ⊆ B) → (⋂ B ⊆ ⋂ A) := sorry
+axiom set_non_empty_iff_non_empty : ∀ A, (A ≠ ∅) ↔ ∃ x, x ∈ A

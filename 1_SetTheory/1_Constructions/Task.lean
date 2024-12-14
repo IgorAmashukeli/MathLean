@@ -62,6 +62,7 @@ theorem unordered_pair_set_is_unordered_pair : ∀ a₁ a₂ x, x ∈ {a₁, a�
 theorem left_unordered_pair : ∀ a₁ a₂, a₁ ∈ {a₁, a₂} := sorry
 theorem right_unordered_pair : ∀ a₁ a₂, a₂ ∈ {a₁, a₂} := sorry
 theorem unordered_pair_is_unordered : ∀ a₁ a₂, {a₁, a₂} = {a₂, a₁} := sorry
+theorem unordered_pair_subs : ∀ a₁ a₂ A, (a₁ ∈ A) → (a₂ ∈ A) → ({a₁, a₂} ⊆ A) := sorry
 
 
 -- 8) construction of {a} (singleton set) and its properties
@@ -70,6 +71,7 @@ notation (priority := high) "{" a "}" => singleton_set a
 theorem singleton_a_elem_is_a : ∀ a x, x ∈ {a} ↔ x = a := sorry
 theorem x_in_singl_x : ∀ x, x ∈ {x} := sorry
 theorem singleton_non_empty : ∀ x, non_empty {x} := sorry
+theorem singl_subs : ∀ A x, x ∈ A → {x} ⊆ A := sorry
 
 
 -- 9) regularity properties
@@ -109,6 +111,7 @@ theorem specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} �
 -- 12) ⋂ A (intersection set) construction and its properties
 noncomputable def intersection_set : Set → Set := fun (A) => {x ∈ ⋃ A | ∀ y ∈ A; x ∈ y}
 notation (priority := high) "⋂" => intersection_set
+theorem intersection_sub_union : ∀ A, (⋂ A) ⊆ (⋃ A) := sorry
 theorem intersection_set_is_intersection : ∀ A x, x ∈ ⋂ A ↔ (x ∈ ⋃ A ∧ ∀ y ∈ A; x ∈ y) := sorry
 theorem intersection_non_empty : ∀ A, (A ≠ ∅ → ∀ x, (x ∈ ⋂ A) ↔ ∀ y ∈ A; x ∈ y) := sorry
 theorem intersect_subset_monotonic : ∀ A B, (A ≠ ∅) → (A ⊆ B) → (⋂ B ⊆ ⋂ A) := sorry

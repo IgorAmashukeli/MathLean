@@ -77,6 +77,44 @@ theorem intersect_2sets_prop : (∀ A B x, x ∈ A ∩ B ↔ x ∈ A ∧ x ∈ B
   fun (A) => fun (B) =>
     spec_is_spec (fun (x) => x ∈ B) A
 
+theorem intersect_2sets_is_intersect : (∀ A B, (⋂ {A, B}) = A ∩ B) :=
+  fun (A B) =>
+    let u₀ := Iff.mpr (set_non_empty_iff_non_empty {A, B}) (
+      Exists.intro A (left_unordered_pair A B)
+    )
+    extensionality (⋂ {A, B}) (A ∩ B) (
+      fun (x) =>
+        Iff.intro
+        (
+          fun (hx) =>
+            let u₁ := Iff.mp (intersection_non_empty {A, B} (u₀) x) hx
+            Iff.mpr (intersect_2sets_prop A B x) (
+              And.intro (u₁ A (left_unordered_pair A B)) (u₁ B (right_unordered_pair A B))
+            )
+        )
+        (
+          fun (hx) =>
+            let u₁ := Iff.mp (intersect_2sets_prop A B x) hx
+            Iff.mpr (intersection_non_empty {A, B} u₀ x) (
+              fun (y) =>
+                fun (hy) =>
+                  Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair A B y) (hy))
+                  (
+                    fun (hy) =>
+                      eq_subst (fun (t) => x ∈ t) A (y) (Eq.symm hy) (
+                        And.left u₁
+                      )
+                  )
+                  (
+                    fun (hy) =>
+                      eq_subst (fun (t) => x ∈ t) B (y) (Eq.symm hy) (
+                        And.right u₁
+                      )
+                  )
+            )
+        )
+    )
+
 
 theorem difference_prop : (∀ A B x, x ∈ A \ B ↔ x ∈ A ∧ x ∉ B) :=
   fun (A) => fun (B) =>

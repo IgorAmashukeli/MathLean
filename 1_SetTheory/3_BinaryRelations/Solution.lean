@@ -308,6 +308,11 @@ theorem coordinates_snd_corr_lemma : ∀ a b, {x ∈ ⋃ (a, b) | ⋃ (a, b) ≠
 
 noncomputable def fst_coor (A : Set) : Set := ⋃ (⋂ A)
 noncomputable def snd_coor (A : Set) : Set := ⋃ ({x ∈ ⋃ A | ⋃ A ≠ ⋂ A → x ∉ ⋂ A})
+syntax "π₁" term : term
+syntax "π₂" term : term
+macro_rules
+| `(π₁ $s) => `(fst_coor $s)
+| `(π₂ $s) => `(snd_coor $s)
 
 
 theorem coordinates_fst_coor : ∀ a b, fst_coor (a, b) = a :=
@@ -358,6 +363,8 @@ theorem cartesian_product_is_cartesian: ∀ A B pr, pr ∈ (A × B) ↔ (∃ x �
 
 
 
+
+
 theorem cartesian_product_pair_prop : ∀ A B a b, (a, b) ∈ (A × B) ↔ (a ∈ A ∧ b ∈ B) :=
   fun (A B a b) =>
     Iff.intro
@@ -385,6 +392,7 @@ theorem cartesian_product_pair_prop : ∀ A B a b, (a, b) ∈ (A × B) ↔ (a �
         let second: exists_in_A (fun x => exists_in_A (fun y => (a, b) = (x, y)) B) A := Exists.intro a (And.intro (And.left h) (Exists.intro b (And.intro (And.right h) (Eq.refl (a, b)))))
         first second
     )
+
 
 
 theorem fst_coor_set : ∀ A B pr, pr ∈ A × B → fst_coor pr ∈ A :=
@@ -437,6 +445,8 @@ theorem fst_snd_then_unique : ∀ A B pr, pr ∈ A × B → pr = (fst_coor pr, s
     )
 
 
+
+
 theorem equal_fst_snd : ∀ A B pr₁ pr₂, (pr₁ ∈ A × B) → (pr₂ ∈ A × B) →
   (fst_coor pr₁ = fst_coor pr₂) → (snd_coor pr₁ = snd_coor pr₂) → pr₁ = pr₂ :=
   fun (A B pr₁ pr₂) => fun (hpr₁ : pr₁ ∈ A × B) => fun (hpr₂ : pr₂ ∈ A × B) =>
@@ -445,6 +455,10 @@ theorem equal_fst_snd : ∀ A B pr₁ pr₂, (pr₁ ∈ A × B) → (pr₂ ∈ A
       (Eq.trans (Iff.mpr (ordered_pair_set_prop (fst_coor pr₁) (snd_coor pr₁) (fst_coor pr₂) (snd_coor pr₂))
         (And.intro (hfst) (hsnd)))
        (Eq.symm (fst_snd_then_unique A B pr₂ hpr₂)))
+
+
+
+
 
 
 
@@ -467,6 +481,7 @@ theorem cartesian_product_subset : ∀ A B C D, A ⊆ C → B ⊆ D → (A × B)
 
               )
         )
+
 
 
 
@@ -502,6 +517,235 @@ theorem cartesian_product_intersect : ∀ A B C D, (A × B) ∩ (C × D) ⊆ (A 
                 )
           )
     )
+
+
+
+
+
+
+
+noncomputable def disjoint_union (A B : Set) := (A × {∅}) ∪ (B × {{∅}})
+syntax term "⊔" term : term
+macro_rules
+| `($A ⊔ $B) => `(disjoint_union $A $B)
+
+theorem disj_in_left : ∀ A B x, (x ∈ A) → ((x, ∅) ∈ (A ⊔ B)) :=
+  fun (A B x hx) =>
+    Iff.mpr (union2_sets_prop (A × {∅}) (B × {{∅}}) (x, ∅)) (
+      Or.inl (
+        Iff.mpr (cartesian_product_pair_prop A {∅} x ∅) (
+          And.intro hx (elem_in_singl ∅)
+        )
+      )
+    )
+
+
+theorem disj_in_righ : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B)) :=
+  fun (A B x hx) =>
+    Iff.mpr (union2_sets_prop (A × {∅}) (B × {{∅}}) (x, {∅})) (
+      Or.inr (
+        Iff.mpr (cartesian_product_pair_prop B {{∅}} x {∅}) (
+          And.intro hx (elem_in_singl {∅})
+        )
+      )
+    )
+
+
+theorem disjunion2_pair_prop : ∀ A B x y, (x, y) ∈ (A ⊔ B) ↔ (x ∈ A ∧ y = ∅) ∨ (x ∈ B ∧ y = {∅}) :=
+  fun (A B x y) =>
+    Iff.intro
+    (
+      fun (hxy) =>
+        let u₁ := Iff.mp (union2_sets_prop (A × {∅}) (B × {{∅}}) (x, y)) hxy
+        Or.elim u₁
+        (
+          fun (hxyA) =>
+            Or.inl (
+              let u₂ := Iff.mp (cartesian_product_pair_prop A {∅} x y) hxyA
+              And.intro (And.left u₂) (in_singl_elem ∅ y (And.right u₂))
+            )
+        )
+        (
+          fun (hxyB) =>
+            Or.inr (
+              let u₂ := Iff.mp (cartesian_product_pair_prop B {{∅}} x y) hxyB
+              And.intro (And.left u₂) (in_singl_elem {∅} y (And.right u₂))
+            )
+        )
+    )
+    (
+      fun (hxy) =>
+        Or.elim hxy
+        (
+          fun (hxyA) =>
+            Iff.mpr (union2_sets_prop (A × {∅}) (B × {{∅}}) (x, y)) (
+              Or.inl (
+                Iff.mpr (cartesian_product_pair_prop A {∅} x y) (
+                  And.intro (And.left hxyA) (eq_subst (fun (t) => y ∈ {t}) y ∅ (And.right hxyA) (elem_in_singl y))
+                )
+              )
+            )
+        )
+        (
+          fun (hxyB) =>
+            Iff.mpr (union2_sets_prop (A × {∅}) (B × {{∅}}) (x, y)) (
+              Or.inr (
+                Iff.mpr (cartesian_product_pair_prop B {{∅}} x y) (
+                  And.intro (And.left hxyB) (eq_subst (fun (t) => y ∈ {t}) y {∅} (And.right hxyB) (elem_in_singl y))
+                )
+              )
+            )
+        )
+    )
+
+
+noncomputable def disjoint_union_left (X: Set) := {y ∈ X | (π₂ y) = ∅}
+noncomputable def disjoint_union_right (X : Set) := {y ∈ X | (π₂ y) = {∅}}
+syntax "DUL" term : term
+syntax "DUR" term : term
+macro_rules
+| `(DUL $X) => `(disjoint_union_left $X)
+| `(DUR $X) => `(disjoint_union_right $X)
+
+
+theorem dul_A : ∀ A B, (DUL (A ⊔ B)) = (A × {∅}) :=
+  fun (A B) =>
+    let P := fun (t) => (π₂ t) = ∅
+    let S := (DUL (A ⊔ B))
+    let T := (A × {∅})
+    extensionality S T (
+      fun (x) =>
+        Iff.intro
+        (
+          fun (xS) =>
+            let u₁ := Iff.mp (spec_is_spec P (A ⊔ B) x) xS
+            let u₂ := And.left u₁
+            let u₃ := And.right u₁
+            let u₄ := Iff.mp (union2_sets_prop (A × {∅}) (B × {{∅}}) x) u₂
+            Or.elim u₄
+            (
+              fun (hx) =>
+                hx
+            )
+            (
+              fun (hx) =>
+                let u₅ := Iff.mp (cartesian_product_pair_prop B {{∅}} (π₁ x) (π₂ x)) (
+                  eq_subst (fun (t) => t ∈ B × {{∅}}) (x) (π₁ x, π₂ x) (fst_snd_then_unique B {{∅}} x hx) (hx)
+                )
+                let u₆ := in_singl_elem {∅} (π₂ x) (And.right u₅)
+
+                False.elim (empty_set_is_empty ∅ (
+                  eq_subst (fun (t) => ∅ ∈ t) ({∅}) ∅ (Eq.trans (Eq.symm u₆) (u₃)) (elem_in_singl ∅)
+                ))
+            )
+        )
+        (
+          fun (xT) =>
+            Iff.mpr (spec_is_spec P (A ⊔ B) x) (
+              And.intro (Iff.mpr (union2_sets_prop (A × {∅}) (B × {{∅}}) x) (
+                Or.inl (xT)
+              )) (
+                let u₁ := eq_subst (fun (t) => t ∈ T) (x) (π₁ x, π₂ x) (fst_snd_then_unique A {∅} x xT) (xT)
+                let u₂ := And.right (Iff.mp (cartesian_product_pair_prop A {∅} (π₁ x) (π₂ x)) (u₁))
+                in_singl_elem ∅ (π₂ x) (u₂)
+              )
+            )
+
+        )
+    )
+theorem dur_B : ∀ A B, (DUR (A ⊔ B)) = (B × {{∅}}) :=
+  fun (A B) =>
+    let P := fun (t) => (π₂ t) = {∅}
+    let S := (DUR (A ⊔ B))
+    let T := (B × {{∅}})
+    extensionality S T (
+      fun (x) =>
+        Iff.intro
+        (
+          fun (xS) =>
+            let u₁ := Iff.mp (spec_is_spec P (A ⊔ B) x) xS
+            let u₂ := And.left u₁
+            let u₃ := And.right u₁
+            let u₄ := Iff.mp (union2_sets_prop (A × {∅}) (B × {{∅}}) x) u₂
+            Or.elim u₄
+            (
+              fun (hx) =>
+                let u₅ := Iff.mp (cartesian_product_pair_prop A {∅} (π₁ x) (π₂ x)) (
+                  eq_subst (fun (t) => t ∈ A × {∅}) (x) (π₁ x, π₂ x) (fst_snd_then_unique A {∅} x hx) (hx)
+                )
+                let u₆ := in_singl_elem ∅ (π₂ x) (And.right u₅)
+
+                False.elim (empty_set_is_empty ∅ (
+                  eq_subst (fun (t) => ∅ ∈ t) ({∅}) ∅ (Eq.trans (Eq.symm u₃) (u₆)) (elem_in_singl ∅)
+                ))
+            )
+            (
+              fun (hx) =>
+                hx
+            )
+        )
+        (
+          fun (xT) =>
+            Iff.mpr (spec_is_spec P (A ⊔ B) x) (
+              And.intro (Iff.mpr (union2_sets_prop (A × {∅}) (B × {{∅}}) x) (
+                Or.inr (xT)
+              )) (
+                let u₁ := eq_subst (fun (t) => t ∈ T) (x) (π₁ x, π₂ x) (fst_snd_then_unique B {{∅}} x xT) (xT)
+                let u₂ := And.right (Iff.mp (cartesian_product_pair_prop B {{∅}} (π₁ x) (π₂ x)) (u₁))
+                in_singl_elem {∅} (π₂ x) (u₂)
+              )
+            )
+
+        )
+    )
+theorem dul_subs : ∀ A B, (DUL (A ⊔ B)) ⊆ (A ⊔ B) :=
+  fun (A B) =>
+    let S := (A × {∅})
+    let T := (B × {{∅}})
+    eq_subst (fun (t) => t ⊆ A ⊔ B) (S) (DUL (A ⊔ B)) (Eq.symm (dul_A A B)) (And.left (union2_sets_subset_prop S T))
+
+
+theorem dur_subs : ∀ A B, (DUR (A ⊔ B)) ⊆ (A ⊔ B) :=
+  fun (A B) =>
+    let S := (A × {∅})
+    let T := (B × {{∅}})
+    eq_subst (fun (t) => t ⊆ A ⊔ B) (T) (DUR (A ⊔ B)) (Eq.symm (dur_B A B)) (And.right (union2_sets_subset_prop S T))
+
+
+theorem dulr_un : ∀ A B, (A ⊔ B) = (DUL (A ⊔ B)) ∪ (DUR (A ⊔ B)) :=
+  fun (A B) =>
+    let M := (A ⊔ B)
+    let S := (A × {∅})
+    let T := (B × {{∅}})
+    let Lu := (DUL (A ⊔ B))
+    let Ru := (DUR (A ⊔ B))
+    eq_subst (fun (t) => M = (t ∪ Ru)) (S) (Lu) (Eq.symm (dul_A A B)) (
+      eq_subst (fun (t) => M = (S ∪ t)) (T) (Ru) (Eq.symm (dur_B A B)) (Eq.refl M)
+    )
+
+theorem dulr_in : ∀ A B, (DUL (A ⊔ B)) ∩ (DUR (A ⊔ B)) = ∅ :=
+  fun (A B) =>
+    let P₁ := fun (t) => (π₂ t) = ∅
+    let P₂ := fun (t) => (π₂ t) = {∅}
+    let M := (DUL (A ⊔ B))
+    let N := (DUR (A ⊔ B))
+    Iff.mp (subs_subs_eq (M ∩ N) (∅)) (
+      And.intro (
+        fun (x hx) =>
+          False.elim (
+            let u₀ := Iff.mp (intersect_2sets_prop M N x) hx
+            let u₁ := And.right (Iff.mp (spec_is_spec P₁ (A ⊔ B) x) (And.left u₀))
+            let u₂ := And.right (Iff.mp (spec_is_spec P₂ (A ⊔ B) x) (And.right u₀))
+            let u₃ := Eq.trans (Eq.symm u₁) (u₂)
+            let u₄ := elem_in_singl ∅
+            let u₅ := eq_subst (fun (t) => ∅ ∈ t) ({∅}) (∅) (Eq.symm u₃) (u₄)
+
+            empty_set_is_empty ∅ (u₅)
+          )
+      ) (empty_set_is_subset_any (M ∩ N))
+    )
+
+
 
 
 -- tuple syntax

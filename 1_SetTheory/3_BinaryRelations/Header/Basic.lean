@@ -18,6 +18,7 @@ infix:50 (priority := high) " ∉ " => (fun (x : Set) => (fun (y : Set) => ¬ me
 axiom set_intro (P : Set → Prop) (h : ∃! x, P x) : Set
 axiom set_intro_prop (P : Set → Prop) (h : ∃! x, P x) : P (set_intro P h) ∧ ∀ x, x ≠ set_intro P h → ¬P x
 
+
 axiom exits_or_prop (P Q : Set → Prop) : (∃ x, (P x ∨ Q x)) ↔ ((∃ x, P x) ∨ (∃ x, Q x))
 
 def forall_in_A (P : Set → Prop) (A : Set) : Prop := (∀ x, (x ∈ A → P x))
@@ -114,3 +115,4 @@ axiom right_unordered_pair : ∀ a₁ a₂, a₂ ∈ {a₁, a₂}
 def set_equality (A B : Set) := ∀ x, (x ∈ A ↔ x ∈ B)
 axiom boolean : ∀ A, ∃ B, ∀ x, (x ∈ B ↔ x ⊆ A)
 axiom extensionality : ∀ A B, set_equality A B → (A = B)
+axiom subs_subs_eq : ∀ A B, A ⊆ B ∧ B ⊆ A ↔ A = B

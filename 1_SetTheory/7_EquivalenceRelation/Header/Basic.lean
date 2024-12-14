@@ -167,6 +167,7 @@ axiom sub_sub_union_sub : ∀ A B X, (A ⊆ X) → (B ⊆ X) → ((A ∪ B) ⊆ 
 axiom subset_trans : ∀ A B C, A ⊆ B → B ⊆ C → A ⊆ C
 axiom elem_subset_union : (∀ A, ∀ x ∈ A; x ⊆ ⋃ A)
 axiom all_ss_then_union_ss : ∀ A B, (∀ X ∈ A; X ⊆ B) → (⋃ A ⊆ B)
+axiom intersection_sub_union : ∀ A, (⋂ A) ⊆ (⋃ A)
 
 
 
@@ -236,7 +237,7 @@ axiom equal_fst_snd : ∀ A B pr₁ pr₂, (pr₁ ∈ A × B) → (pr₂ ∈ A �
   (fst_coor pr₁ = fst_coor pr₂) → (snd_coor pr₁ = snd_coor pr₂) → pr₁ = pr₂
 axiom boolean_set_not_empty : ∀ A, 𝒫 A ≠ ∅
 
-
+axiom intersect_2sets_is_intersect : (∀ A B, (⋂ {A, B}) = A ∩ B)
 
 -- tuple syntax
 declare_syntax_cat pair_comprehension

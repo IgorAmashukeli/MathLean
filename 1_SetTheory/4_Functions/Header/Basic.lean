@@ -154,6 +154,8 @@ axiom all_ss_then_union_ss : ∀ A B, (∀ X ∈ A; X ⊆ B) → (⋃ A ⊆ B)
 axiom equality_then_subset : ∀ A B, A = B → A ⊆ B
 axiom difference_subset_prop : (∀ A B, A \ B ⊆ A)
 
+axiom singl_subs : ∀ A x, x ∈ A → {x} ⊆ A
+
 
 noncomputable def boolean_func_sym : Set → Set :=
   fun (A : Set) => set_to_prop (fun (B : Set) => ∀ x, (x ∈ B ↔ x ⊆ A)) (unique_boolean A)
@@ -192,6 +194,7 @@ axiom cartesian_product_subset : ∀ A B C D, A ⊆ C → B ⊆ D → (A × B) �
 
 axiom fst_coor_set : ∀ A B pr, pr ∈ A × B → fst_coor pr ∈ A
 axiom snd_coor_set : ∀ A B pr, pr ∈ A × B → snd_coor pr ∈ B
+axiom fst_snd_then_unique : ∀ A B pr, pr ∈ A × B → pr = (fst_coor pr, snd_coor pr)
 
 -- tuple syntax
 declare_syntax_cat pair_comprehension
@@ -246,6 +249,7 @@ axiom inv_prop : ∀ R, (BinRel R) → ((R⁻¹)⁻¹) = R
 axiom inv_pair_prop : ∀ R, (BinRel R) → ∀ x y, (x . R . y) ↔ (y . (R⁻¹) . x)
 axiom rel_subset : (∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q)
 axiom relation_equality : (∀ P Q, (BinRel P) → (BinRel Q) → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q))
+axiom relation_equality_btw : ∀ P Q A B, (P BinRelBtw A AND B) → (Q BinRelBtw A AND B) → (∀ x ∈ A; ∀ y ∈ B; (x . P . y) ↔ (x . Q . y)) → (P = Q)
 axiom inv_between : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw B AND A)
 axiom inv_union_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∪ Q)⁻¹ = ((P⁻¹) ∪ Q⁻¹)
 axiom union2_rel_is_rel : ∀ P Q, (BinRel P) → (BinRel Q) → (BinRel (P ∪ Q))

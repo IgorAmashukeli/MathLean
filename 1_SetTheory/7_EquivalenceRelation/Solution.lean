@@ -95,6 +95,43 @@ theorem eq_rel_between : ∀ A R, (R EquivRel A) → (((id_ A) ⊆ (R)) ∧ (R �
   fun (A R hRA) =>
     And.intro (Iff.mp (refl_crit A R (And.left hRA)) (And.left (And.right hRA))) (And.left hRA)
 
+
+theorem equivrel_is_equivrel (φ : Set → Set → Prop) : ∀ A x y, (x, y) ∈ {R ∈ (A × A) | φ (π₁ R) (π₂ R)} ↔ (x ∈ A ∧ y ∈ A ∧ φ x y) :=
+  fun (A x y) =>
+    let B := A × A
+    let P := fun (R) => φ (π₁ R) (π₂ R)
+    let u₀ := spec_is_spec P B
+    Iff.intro
+    (
+      fun (hxy) =>
+        let u₁ := Iff.mp (u₀ (x, y) ) hxy
+        let u₂ := Iff.mp (cartesian_product_pair_prop A A x y) (And.left u₁)
+        let u₃ := And.right u₁
+        let v₂ := eq_subst (fun (t) => φ x t) (π₂ (x, y)) y (coordinates_snd_coor x y) (
+                eq_subst (fun (t) => φ t (π₂ (x, y))) (π₁ (x, y)) x (coordinates_fst_coor x y) (
+                  u₃
+                )
+              )
+        And.intro (And.left u₂) (And.intro (And.right u₂) (v₂))
+    )
+    (
+      fun (hxy) =>
+        let u₁ := Iff.mpr (cartesian_product_pair_prop A A x y) (And.intro (And.left hxy) (And.left (And.right hxy)))
+        let v₅ := eq_subst (fun (t) => φ (π₁ (x, y)) t) y (π₂ (x, y)) (Eq.symm (coordinates_snd_coor x y)) (
+                    eq_subst (fun (t) => φ t y) x (π₁ (x, y)) (Eq.symm (coordinates_fst_coor x y)) (
+                    And.right (And.right hxy)
+            )
+        )
+        Iff.mpr (u₀ (x, y)) (
+          And.intro (u₁) (
+            v₅
+          )
+        )
+    )
+
+
+
+
 theorem bin_equivrel (φ : Set → Set → Prop) :
 ∀ A, ((∀ x ∈ A; φ x x) ∧ (∀ x y, φ x y → φ y x) ∧ (∀ x y z, (φ x y ∧ φ y z) → (φ x z))) → ({R ∈ (A × A) | φ (π₁ R) (π₂ R)} EquivRel A) :=
   fun (A) =>
@@ -202,6 +239,134 @@ theorem oiso_equivrel : ∀ A, ((Oiso A) EquivRel A) :=
       And.intro (fun (x _) => iso_refl x) (And.intro (iso_symm) (fun(x y z hxyz) => iso_trans x y z (And.left hxyz) (And.right hxyz)))
     )
 
+theorem equivrel_inv : ∀ R A, (R EquivRel A) → (R = (R⁻¹)) :=
+  fun (R A hRA) =>
+    Iff.mp (symmetric_crit_eq A R (And.left hRA)) (
+      And.left (And.right (And.right hRA))
+    )
+
+noncomputable def cart_equiv (A B R S : Set) :=
+{pr ∈ ((A × B) × (A × B)) | ((π₁ (π₁ pr)) . R . (π₁ (π₂ pr))) ∧ ((π₂ (π₁ pr)) . S . (π₂ (π₂ pr)))}
+syntax term "Cart" term "On" term "And" term : term
+macro_rules
+| `($R Cart $S On $A And $B) => `(cart_equiv $A $B $R $S)
+
+theorem eqrel_cart_prop :
+∀ A B R S x y, ((x, y) ∈ (R Cart S On A And B)) ↔ (x ∈ (A × B) ∧ y ∈ (A × B) ∧ ((π₁ x) . R  . (π₁ y)) ∧ ((π₂ x) . S . (π₂ y))) :=
+fun (A B R S x y) =>
+  equivrel_is_equivrel (fun (x) => fun (y) => ((π₁ x) . R  . (π₁ y)) ∧ ((π₂ x) . S . (π₂ y))) (A × B) x y
+
+theorem equivrel_cart : ∀ A B R S, (R EquivRel A) → (S EquivRel B) → ((R Cart S On A And B) EquivRel (A × B)) :=
+  fun (A B R S hRA hSB) =>
+    bin_equivrel (fun (x) => fun (y) => ((π₁ x) . R  . (π₁ y)) ∧ ((π₂ x) . S . (π₂ y))) (A × B) (
+      And.intro (
+        fun (T hT) =>
+          And.intro (And.left (And.right (hRA)) (π₁ T) (fst_coor_set A B T hT)) (
+            And.left (And.right (hSB)) (π₂ T) (snd_coor_set A B T hT)
+          )
+      ) (And.intro (
+        fun (x y hxy) =>
+          let u₁ := And.left (And.right (And.right hRA)) (π₁ x) (π₁ y) (And.left hxy)
+          let u₂ := And.left (And.right (And.right hSB)) (π₂ x) (π₂ y) (And.right hxy)
+          And.intro (u₁) (u₂)
+      ) (
+        fun (x y z hxyz) =>
+          let u₁ := And.right (And.right (And.right hRA)) (π₁ x) (π₁ y) (π₁ z) (And.intro (And.left (And.left hxyz)) (And.left (And.right hxyz)))
+          let u₂ := And.right (And.right (And.right hSB)) (π₂ x) (π₂ y) (π₂ z) (And.intro (And.right (And.left hxyz)) (And.right (And.right hxyz)))
+          And.intro (u₁) (u₂)
+      ))
+    )
+
+theorem equivrel_int: ∀ X A, (X ≠ ∅) → (∀ R ∈ X; (R EquivRel A)) → ((⋂ X) EquivRel A) :=
+  fun (X A hX hRX) =>
+    let u₁ := (all_ss_then_union_ss X (A × A) (
+      fun (R hR) =>
+        And.left (hRX R hR)
+    ))
+    let u₂ := intersection_sub_union X
+    let u₃ := subset_trans (⋂ X) (⋃ X) (A × A) u₂ u₁
+    And.intro (u₃) (
+      And.intro (
+        fun (x hx) =>
+          Iff.mpr (intersection_non_empty X hX (x, x)) (
+            fun (R hR) =>
+              And.left (And.right (hRX R hR)) x hx
+          )
+      ) (And.intro (
+        fun (x y hxy) =>
+          let u₅ := Iff.mp (intersection_non_empty X hX (x, y)) hxy
+          Iff.mpr (intersection_non_empty X hX (y, x)) (
+            fun (R hR) =>
+              And.left (And.right (And.right (hRX R hR))) x y (u₅ R hR)
+          )
+      ) (
+        fun (x y z hxyz) =>
+          let u₅ := Iff.mp (intersection_non_empty X hX (x, y)) (And.left hxyz)
+          let u₆ := Iff.mp (intersection_non_empty X hX (y, z)) (And.right hxyz)
+          Iff.mpr (intersection_non_empty X hX (x, z)) (
+            fun (R hR) =>
+              And.right (And.right (And.right (hRX R hR))) x y z (
+                And.intro (u₅ R hR) (u₆ R hR)
+              )
+          )
+      ))
+    )
+
+
+
+theorem equivrel_int2 : ∀ R S, (R EquivRel A) → (S EquivRel A) → ((R ∩ S) EquivRel A) :=
+  fun (R S hRA hSA) =>
+    let u₀ := Iff.mpr (set_non_empty_iff_non_empty {R, S}) (
+      Exists.intro R (left_unordered_pair R S)
+    )
+    let u₁ := intersect_2sets_is_intersect R S
+    let u₂ := fun (x) => fun (hx : x ∈ {R, S}) => Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair R S x) hx) (
+      fun(hR) =>
+        eq_subst (fun (t) => (t EquivRel A)) (R) (x) (Eq.symm hR) (hRA)
+       ) (fun (hS) => eq_subst (fun (t) => (t EquivRel A)) (S) (x) (Eq.symm hS) (hSA))
+    eq_subst (fun (t) => (t EquivRel A)) (⋂ {R, S}) (R ∩ S) (u₁) (
+      equivrel_int {R, S} A (u₀) (u₂)
+    )
+
+
+theorem equivrel_intind : ∀ B I A, (I ≠ ∅) → (B IndxFun I) → (∀ i ∈ I; ((B _ i) EquivRel A)) → ((⋂[ i in I ] B at i) EquivRel A) :=
+  fun (B I A hI hBI heq) =>
+    let u₁ := Iff.mpr (set_non_empty_iff_non_empty (B.[I])) (
+      Exists.elim (Iff.mp (set_non_empty_iff_non_empty I) hI) (
+        fun (i) =>
+          fun (hi) =>
+            Exists.intro (B _ i) (
+              Iff.mpr (image_prop B I (B _ i)) (
+                Exists.intro i (
+                  And.intro (hi) (
+                    Exists.elim hBI (
+                      fun (Y) =>
+                        fun (hY) =>
+                          Iff.mpr (function_equal_value_prop B I Y hY i (B _ i) hi) (
+                            Eq.refl (B _ i)
+                          )
+                    )
+                  )
+                )
+              )
+            )
+      )
+    )
+    equivrel_int (B.[I]) A (u₁) (fun (Bi hBi) =>
+        let u₂ := Iff.mp (image_prop B I Bi) hBi
+        Exists.elim u₂ (
+          fun (i) =>
+            fun (hi) =>
+
+              Exists.elim hBI (
+                fun (Y) =>
+                  fun (hY) =>
+                    let u₂ := Iff.mp (function_equal_value_prop B I Y hY i Bi (And.left hi)) (And.right hi)
+                    eq_subst (fun (t) => t EquivRel A) (B _ i) (Bi) (Eq.symm u₂) (
+                      heq i (And.left hi)
+                    )
+              )
+        ))
 
 
 
@@ -209,6 +374,9 @@ noncomputable def kernel_func (f A : Set) := {R ∈ (A × A) | f⦅π₁ R⦆ = 
 syntax "ker" term "On" term : term
 macro_rules
 | `(ker $f On $A) => `(kernel_func $f $A)
+
+
+
 
 
 theorem kernel_crit : ∀ f A, ∀ x y ∈ A; ((x, y) ∈ (ker f On A)) ↔ (f⦅x⦆ = f⦅y⦆) :=
@@ -1311,6 +1479,147 @@ theorem factor_kernel_equin : ∀ A B f, (f Fun A To B) → (A ./ (ker f On A)) 
       )
     ))
 
+
+def fac_rel_compat (A R S) := (∀ r₁ r₂ ∈ (A ./ R); (r₁ . (S) . r₂) ↔ (∃ x₁ ∈ r₁; ∃ x₂ ∈ r₂; (x₁ . (R) . x₂)))
+syntax term "FacCompRelWith" term "On" term : term
+macro_rules
+| `($S FacCompRelWith $R On $A) => `(fac_rel_compat $A $R $S)
+
+theorem facrelcompcond :
+∀ A R S,
+(R EquivRel A) →
+((S FacCompRelWith R On A) ↔ (∀ x₁ x₂ ∈ A; (([x₁] Of R On A) . S . ([x₂] Of R On A)) ↔ (x₁ . R . x₂))) :=
+  fun (A R S hRA) =>
+    Iff.intro
+    (
+      fun (hS x₁ hx₁ x₂ hx₂) =>
+        Iff.intro
+        (
+          fun (heq) =>
+            let Eq₁ := [x₁] Of R On A
+            let Eq₂ := [x₂] Of R On A
+            let u₁ := Iff.mp (hS Eq₁ (factor_set_in A R x₁ hx₁) Eq₂ (factor_set_in A R x₂ hx₂)) heq
+            Exists.elim u₁ (
+              fun (x₃) =>
+                fun (hx₃) =>
+                  Exists.elim (And.right hx₃) (
+                    fun (x₄) =>
+                      fun (hx₄) =>
+                        let u₂ := And.right hx₄
+                        let u₃ := And.left hx₃
+                        let u₄ := And.left hx₄
+                        let u₅ := Iff.mp (in_euiv_class₂ A R x₁ x₃) u₃
+                        let u₆ := Iff.mp (in_euiv_class₂ A R x₂ x₄) u₄
+                        let u₇ := equivrel_trans A R hRA x₁ x₃ x₄ (
+                          And.intro (And.right u₅) (u₂)
+                        )
+                        equivrel_trans A R hRA x₁ x₄ x₂ (
+                          And.intro (u₇) (equivrel_symm A R hRA x₂ x₄ (And.right u₆))
+                        )
+                  )
+            )
+        )
+        (
+          fun (hx₁₂) =>
+            let Eq₁ := [x₁] Of R On A
+            let Eq₂ := [x₂] Of R On A
+            Iff.mpr (hS Eq₁ (factor_set_in A R x₁ hx₁) Eq₂ (factor_set_in A R x₂ hx₂)) (
+              Exists.intro x₁ (
+                And.intro (equiv_class_x_in A R x₁ hx₁ hRA) (
+                  Exists.intro x₂ (
+                    And.intro (equiv_class_x_in A R x₂ hx₂ hRA) (hx₁₂)
+                  )
+                )
+              )
+            )
+        )
+    )
+    (
+      fun (hx₁x₂ r₁ hr₁ r₂ hr₂) =>
+        let u₁ := Iff.mp (factorset_prop A R r₁) hr₁
+        let u₂ := Iff.mp (factorset_prop A R r₂) hr₂
+        Exists.elim u₁ (
+          fun (x₁) =>
+            fun (hx₁) =>
+              Exists.elim (u₂) (
+                fun (x₂) =>
+                  fun (hx₂) =>
+                    Iff.intro
+                    (
+                      fun (hr₁r₂) =>
+
+                        Exists.intro x₁ (
+                          And.intro (
+                            eq_subst (fun (t) => x₁ ∈ t) ([x₁] Of R On A) r₁ (Eq.symm (And.right hx₁)) (
+                              equiv_class_x_in A R x₁ (And.left hx₁) (hRA)
+                            )
+                          ) (
+                            Exists.intro x₂ (
+                              And.intro (
+                                eq_subst (fun (t) => x₂ ∈ t) ([x₂] Of R On A) r₂ (Eq.symm (And.right hx₂)) (
+                                  equiv_class_x_in A R x₂ (And.left hx₂) (hRA)
+                                )
+                              ) (
+                                Iff.mp (hx₁x₂ x₁ (And.left hx₁) x₂ (And.left hx₂)) (
+                                  eq_subst (fun (t) => (t, [x₂] Of R On A) ∈ S) r₁ ([x₁] Of R On A) (And.right hx₁) (
+                                    eq_subst (fun (t) => (r₁, t) ∈ S) r₂ ([x₂] Of R On A) (And.right hx₂) (
+                                      hr₁r₂
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                    )
+                    (
+                      fun (hexi) =>
+                        Exists.elim hexi (
+                          fun (x₁) =>
+                            fun (hx₁) =>
+                              Exists.elim (And.right hx₁) (
+                                fun (x₂) =>
+                                  fun (hx₂) =>
+                                    let v₁ := And.right hx₂
+                                    Exists.elim u₁ (
+                                      fun (x₃) =>
+                                        fun (hx₃) =>
+                                          Exists.elim u₂ (
+                                            fun (x₄) =>
+                                              fun (hx₄) =>
+                                                let v₃ := And.right hx₃
+                                                let v₄ := And.right hx₄
+                                                let v₅ := And.left (hx₁)
+                                                let v₆ := And.left (hx₂)
+                                                let v₇ := eq_subst (fun (t) => x₁ ∈ t) (r₁) ([x₃] Of R On A) (v₃) (v₅)
+                                                let v₈ := eq_subst (fun (t) => x₂ ∈ t) (r₂) ([x₄] Of R On A) (v₄) (v₆)
+                                                let v₉ := Iff.mp (in_euiv_class₂ A R x₃ x₁) v₇
+                                                let v₁₀ := Iff.mp (in_euiv_class₂ A R x₄ x₂) v₈
+                                                let v₁₁ := equivrel_trans A R hRA x₃ x₁ x₄ (
+                                                  And.intro (And.right v₉) (
+                                                    equivrel_trans A R hRA x₁ x₂ x₄ (
+                                                      And.intro (v₁) (equivrel_symm A R hRA x₄ x₂ (And.right v₁₀))
+                                                    )
+                                                  )
+                                                )
+                                                eq_subst (fun (t) => (r₁, t) ∈ S) ([x₄] Of R On A) (r₂) (Eq.symm v₄) (
+                                                  eq_subst (fun (t) => (t, [x₄] Of R On A) ∈ S) ([x₃] Of R On A) (r₁) (Eq.symm v₃) (
+                                                    Iff.mpr (hx₁x₂ x₃ (And.left hx₃) x₄ (And.left hx₄)) (
+                                                      v₁₁
+                                                    )
+                                                  )
+                                                )
+                                          )
+                                    )
+                              )
+                        )
+
+                    )
+              )
+
+        )
+
+    )
 
 
 

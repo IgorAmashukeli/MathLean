@@ -192,10 +192,10 @@ noncomputable def leq_cart (𝓐 𝓑) := {s ∈ (setPO(𝓐) × setPO(𝓑)) ×
 
 noncomputable def le_cart (𝓐 𝓑) := str (setPO(𝓐) × setPO(𝓑)) (leq_cart 𝓐 𝓑)
 
-noncomputable def cartesian_part_ord (𝓐 𝓑) := ⁅setPO(𝓐) × setPO(𝓑); le_cart 𝓐 𝓑; leq_cart 𝓐 𝓑⁆
-syntax term "CartPO" term : term
+noncomputable def cartesian_coordinate_part_ord (𝓐 𝓑) := ⁅setPO(𝓐) × setPO(𝓑); le_cart 𝓐 𝓑; leq_cart 𝓐 𝓑⁆
+syntax term "CartCordPO" term : term
 macro_rules
-| `($𝓐 CartPO $𝓑) => `(cartesian_part_ord $𝓐 $𝓑)
+| `($𝓐 CartCordPO $𝓑) => `(cartesian_coordinate_part_ord $𝓐 $𝓑)
 
 
 
@@ -216,7 +216,7 @@ theorem inter_is_PO_PO :
 ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (setPO(𝓐) = setPO(𝓑)) → (PartOrd (𝓐 InterPO 𝓑)) := sorry
 theorem inv_PO_less : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≺(invPO 𝓐)) . y) ↔ (y . (≺(𝓐)) . x) := sorry
 theorem inv_PO_lesseq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(invPO 𝓐)) . y) ↔ (y . (≼(𝓐)) . x)  := sorry
-theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 CartPO 𝓑)) := sorry
+theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 CartCordPO 𝓑)) := sorry
 
 
 -- 18) partial order pair properties
@@ -660,7 +660,7 @@ macro_rules
 | `($𝓐 AntiChain $B) => `(anti_chain $𝓐 $B)
 
 theorem lin_chain : ∀ 𝓐 B, (B ≠ ∅) → (B ⊆ setPO(𝓐)) → (LinOrd 𝓐) → (𝓐 Chain B) := sorry
-theorem antichain : ∀ 𝓐 𝓑 A B, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartPO 𝓑) AntiChain (A × B)) := sorry
+theorem antichain : ∀ 𝓐 𝓑 A B, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartCordPO 𝓑) AntiChain (A × B)) := sorry
 
 
 -- 36) Order isomorphism
@@ -833,7 +833,7 @@ theorem poiso_inv : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((inv_PO 𝓐) P≃O (i
 theorem poiso_subs : ∀ 𝓐 𝓑 f X, (X ≠ ∅) → (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((𝓐 SubsPO X) P≃O (𝓑 SubsPO (f.[X]))) := sorry
 theorem poiso_inter : ∀ 𝓐 𝓑 𝓒 𝓓 f, (setPO(𝓐) = setPO(𝓒)) →
 (setPO(𝓑) = setPO(𝓓)) → (f PO_ISO_PO 𝓐 To 𝓑) → (f PO_ISO_PO 𝓒 To 𝓓) → (f PO_ISO_PO (𝓐 InterPO 𝓒) To (𝓑 InterPO 𝓓)) := sorry
-theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartPO 𝓒) P≃O (𝓑 CartPO 𝓓)) := sorry
+theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartCordPO 𝓒) P≃O (𝓑 CartCordPO 𝓓)) := sorry
 
 
 -- 45) induced order with order function saving creates isomorphic partial order

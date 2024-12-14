@@ -36,7 +36,39 @@ theorem cartesian_product_subset : ∀ A B C D, A ⊆ C → B ⊆ D → (A × B)
 
 
 
--- 4) Tuple construction
+
+-- 4) Disjoint union of two sets:
+noncomputable def disjoint_union (A B : Set) := (A × {∅}) ∪ (B × {{∅}})
+syntax term "⊔" term : term
+macro_rules
+| `($A ⊔ $B) => `(disjoint_union $A $B)
+
+
+
+noncomputable def disjoint_union_left (X: Set) := {y ∈ X | (π₂ y) = ∅}
+noncomputable def disjoint_union_right (X : Set) := {y ∈ X | (π₂ y) = {∅}}
+syntax "DUL" term : term
+syntax "DUR" term : term
+macro_rules
+| `(DUL $X) => `(disjoint_union_left $X)
+| `(DUR $X) => `(disjoint_union_right $X)
+
+
+theorem dul_A : ∀ A B, (DUL (A ⊔ B)) = (A × {∅}) := sorry
+theorem dur_B : ∀ A B, (DUR (A ⊔ B)) = (B × {{∅}}) := sorry
+theorem dul_subs : ∀ A B, (DUL (A ⊔ B)) ⊆ (A ⊔ B) := sorry
+theorem dur_subs : ∀ A B, (DUR (A ⊔ B)) ⊆ (A ⊔ B) := sorry
+theorem dulr_un : ∀ A B, (A ⊔ B) = (DUL (A ⊔ B)) ∪ (DUR (A ⊔ B)) := sorry
+theorem dulr_in : ∀ A B, (DUL (A ⊔ B)) ∩ (DUR (A ⊔ B)) = ∅ := sorry
+theorem disj_in_left : ∀ A B x, (x ∈ A) → ((x, ∅) ∈ (A ⊔ B)) := sorry
+theorem disj_in_righ : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B)) := sorry
+theorem disjunion2_pair_prop : ∀ A B x y, (x, y) ∈ (A ⊔ B) ↔ (x ∈ A ∧ y = ∅) ∨ (x ∈ B ∧ y = {∅}) := sorry
+
+
+
+
+
+-- 5) Tuple construction
 -- ⁅a⁆, ⁅a, b⁆, ⁅a, b, c⁆, ⁅a, b, c, d⁆, ...
 declare_syntax_cat pair_comprehension
 syntax  pair_comprehension "; " term : pair_comprehension
@@ -48,10 +80,10 @@ macro_rules
 | `(⁅ $rest:pair_comprehension; $elem:term⁆) => `(ordered_pair_set ⁅$rest:pair_comprehension⁆ $elem:term)
 
 
--- 5) BinRelary relation construction and its property
+-- 6) BinRelary relation construction and its property
 noncomputable def binary_relation (R : Set) : Prop := ∀ z ∈ R; ∃ a, ∃ b, z = (a, b)
 
--- 6) BinRelary relation, implemented as a cartesian product subset
+-- 7) BinRelary relation, implemented as a cartesian product subset
 noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
 noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
 
@@ -71,7 +103,7 @@ macro_rules
 theorem binary_relation_elements_set: ∀ R x y, (x . R . y) → (x ∈ ⋃ (⋃ R) ∧ y ∈ ⋃ (⋃ R)) := sorry
 
 
--- 7)  Domain and range of binary relation and their properties
+-- 8)  Domain and range of binary relation and their properties
 noncomputable def dom (R : Set) := {x ∈ ⋃ (⋃ R) | ∃ y, (x . R . y)}
 noncomputable def rng (R : Set) := {y ∈ ⋃ (⋃ R) | ∃ x, (x . R . y)}
 theorem dom_rng_rel_prop: ∀ R, (BinRel R) → (dom R ∪ rng R = ⋃ (⋃ R)) := sorry
@@ -82,25 +114,25 @@ theorem prop_then_binary_relation : ∀ A B R, (R BinRelBtw A AND B) → (BinRel
 theorem rel_dom_rng_elem : ∀ R, (BinRel R) → ∀ x y, (x . R . y) → x ∈ dom R ∧ y ∈ rng R := sorry
 
 
--- 8) Union and intersection of binary relation is binary relation
+-- 9) Union and intersection of binary relation is binary relation
 theorem union2_rel_is_rel : ∀ P Q, (BinRel P) → (BinRel Q) → (BinRel (P ∪ Q)) := sorry
 theorem intersect2_rel_is_rel : ∀ P Q, (BinRel P) → (BinRel Q) → (BinRel (P ∩ Q)) := sorry
 
 
 
--- 9) Complement binary relation
+-- 10) Complement binary relation
 noncomputable def comp (A B R : Set) : Set := (A × B) \ R
 theorem comp_is_rel : ∀ A B R, (BinRel (comp A B R)) := sorry
 
 
--- 10) Properties, enough for subset and equality of binary relation
+-- 11) Properties, enough for subset and equality of binary relation
 theorem rel_subset : (∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . P . y) → (x . Q . y)) → P ⊆ Q) := sorry
 theorem relation_equality : (∀ P Q, (BinRel P) → (BinRel Q) → ((∀ x y, (x . P . y) ↔ (x . Q . y)) → P = Q)) := sorry
 theorem relation_subset_btw : ∀ P Q A B, (P BinRelBtw A AND B) → (∀ x ∈ A; ∀ y ∈ B; (x . P . y) → (x . Q . y)) → (P ⊆ Q) := sorry
 theorem relation_equality_btw : ∀ P Q A B, (P BinRelBtw A AND B) → (Q BinRelBtw A AND B) → (∀ x ∈ A; ∀ y ∈ B; (x . P . y) ↔ (x . Q . y)) → (P = Q) := sorry
 
 
--- 11) R⁻¹ (inverse binary relation) construction and its properties
+-- 12) R⁻¹ (inverse binary relation) construction and its properties
 noncomputable def inv (R : Set) : Set := {z ∈ rng R × dom R | ∃ x, ∃ y, (z = (y, x) ∧ (x . R . y))}
 syntax term"⁻¹" : term
 macro_rules
@@ -113,7 +145,7 @@ theorem inv_rng: ∀ R, (BinRel R) → rng (R⁻¹) = dom R := sorry
 theorem inv_between_mp : ∀ A B R, (R BinRelBtw A AND B) → (R⁻¹ BinRelBtw B AND A) := sorry
 
 
--- 12) P ∘ Q (composition of binary relations) construction and its properties
+-- 13) P ∘ Q (composition of binary relations) construction and its properties
 noncomputable def composition (P Q : Set) : Set := {pr ∈ dom Q × rng P | ∃ x y, (pr = (x, y)) ∧ ∃ z, (x . Q . z) ∧ (z . P . y)}
 infix:60 (priority:=high) " ∘ " => composition
 theorem composition_is_rel : ∀ P Q, binary_relation (P ∘ Q) := sorry
@@ -123,7 +155,7 @@ theorem composition_pair_assoc: ∀ P Q R x y, (x . ((P ∘ Q) ∘ R) . y) ↔ (
 theorem composition_assoc : ∀ P Q R, ((P ∘ Q) ∘ R) = (P ∘ (Q ∘ R)) := sorry
 
 
--- 13) Inverse and other operations
+-- 14) Inverse and other operations
 theorem inv_composition_pair_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . ((P ∘ Q)⁻¹) . y) ↔ (x . ((Q⁻¹) ∘ P⁻¹) . y)) := sorry
 theorem inv_composition_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹ = ((Q⁻¹) ∘ (P⁻¹)) := sorry
 theorem inv_union_pair_prop : ∀ P Q, (BinRel P) → (BinRel Q) → ∀ x y, (x . ((P ∪ Q)⁻¹) . y) ↔ (x . (P⁻¹ ∪ Q⁻¹) . y) := sorry
@@ -132,7 +164,7 @@ theorem comp_inv_prop_pair : ∀ P A B, (P  BinRelBtw A AND B) → ∀ x y, (x .
 theorem comp_inv_prop : ∀ P A B, (P  BinRelBtw A AND B) → comp A B (P⁻¹) = (comp B A P)⁻¹ := sorry
 
 
--- 14) Composition and other operations
+-- 15) Composition and other operations
 theorem union_composition_pair_prop_right : ∀ P Q R, ∀ x y, (x . ((P ∪ Q) ∘ R) . y) ↔ (x . ((P ∘ R) ∪ (Q ∘ R)) . y) := sorry
 theorem union_composition_prop_right : ∀ P Q R, ((P ∪ Q) ∘ R) = ((P ∘ R) ∪ (Q ∘ R))  := sorry
 theorem union_composition_pair_prop_left : ∀ P Q R, ∀ x y, (x . (P ∘ (Q ∪ R)) . y) ↔ (x . ((P ∘ Q) ∪ (P ∘ R)) . y) := sorry
@@ -145,7 +177,7 @@ theorem intersect2_composition_prop_right: ∀ P Q R, (P ∩ Q) ∘ R ⊆ (P ∘
 theorem intersect2_composition_prop_left: ∀ P Q R, P ∘ (Q ∩ R) ⊆ (P ∘ Q) ∩ (P ∘ R) := sorry
 
 
--- 15) Identical binary relation andits properties
+-- 16) Identical binary relation andits properties
 noncomputable def id_ (A : Set) : Set := {t ∈ (A × A) | ∃ x : Set, t = (x, x)}
 theorem id_is_rel : ∀ A, binary_relation (id_ A) := sorry
 theorem id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ (y ∈ A)) := sorry
@@ -155,30 +187,30 @@ theorem id_rel_composition_right : ∀ A B R, (R BinRelBtw A AND B) → (R ∘ (
 theorem id_rel_composition_left : ∀ A B R, (R BinRelBtw A AND B) → ((id_ B) ∘ R) = R := sorry
 
 
--- 16) Image of a binary relation construction
+-- 17) Image of a binary relation construction
 noncomputable def rel_image (X R : Set) := {b ∈ rng R | ∃ a ∈ X; (a . R . b)}
 syntax  term ".[" term "]" : term
 macro_rules
   | `($R:term .[ $X:term ])  => `(rel_image $X $R)
 
 
--- 17) Preimage is just image of inverse
+-- 18) Preimage is just image of inverse
 -- but it can be deined differently
 theorem rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | ∃ b ∈ Y; (a . R . b)} := sorry
 
 
--- 18) Image and preimage main properties
+-- 19) Image and preimage main properties
 theorem image_prop : ∀ R y X, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y)) := sorry
 theorem preimage_prop : ∀ R Y, (BinRel R) → ∀ x, (x ∈ R⁻¹.[Y] ↔ ∃ y ∈ Y; (x . R . y)) := sorry
 
 
 
--- 19) Range and domain as image and preimage
+-- 20) Range and domain as image and preimage
 theorem rng_is_rel_image : ∀ R, (BinRel R) → rng R = R.[dom R] := sorry
 theorem dom_preimage : ∀ A B P, (P  BinRelBtw A AND B) → dom P = P⁻¹.[B] := sorry
 
 
--- 20) Image and preimage other properties
+-- 21) Image and preimage other properties
 theorem rel_image_id : ∀ A X, (X ⊆ A) → (id_ A).[X] = X := sorry
 theorem rel_image_union : ∀ X Y R, (BinRel R) → R.[X ∪ Y] = R.[X] ∪ R.[Y] := sorry
 theorem rel_preimage_union : ∀ X Y R , (BinRel R) → R⁻¹.[X ∪ Y] = R⁻¹.[X] ∪ R⁻¹.[Y] := sorry

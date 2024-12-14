@@ -934,6 +934,27 @@ theorem function_rng_def : ∀ f A B, (f Fun A To B) → (f Fun A To (rng f)) :=
       ) (And.right (And.left hf))) (And.right hf)
 
 
+theorem partfunction_dom_def : ∀ f A B, (f PartFun A To B) → (f Fun (dom f) To B) :=
+  fun (f A B hf) =>
+    And.intro (And.intro (
+      fun (S hS) =>
+        let u₁ := And.left hf S hS
+        let u₂ := snd_coor_set A B S u₁
+        let u₃ := eq_subst (fun (t) => t ∈ f) (S) (π₁ S, π₂ S) (fst_snd_then_unique A B S u₁) (hS)
+        let u₄ := Iff.mpr (dom_prop f (π₁ S)) (Exists.intro (π₂ S) (u₃))
+        eq_subst (fun (t) => t ∈ ((dom f) × B)) (π₁ S, π₂ S) (S) (Eq.symm (fst_snd_then_unique A B S u₁)) (
+          Iff.mpr (cartesian_product_pair_prop (dom f) B (π₁ S) (π₂ S)) (
+            And.intro (u₄) (u₂)
+          )
+        )
+
+    ) (And.right hf)) (
+      fun (x) =>
+        fun (hx) =>
+          Iff.mp (dom_prop f x) hx
+    )
+
+
 
 noncomputable def value_pick (f x : Set) : Set := ⋃ (f  .[ { x } ])
 syntax term "⦅" term "⦆" : term
@@ -2037,6 +2058,170 @@ theorem surj_restriction_prop : ∀ Y f, (is_surjective f Y) → (is_surjective 
       )
 
 
+def continues (f g) := (f = (g ⨡ (dom f)))
+syntax term "Continues" term : term
+macro_rules
+| `($g Continues $f) => `(continues $f $g)
+
+theorem partfun_cont_B : ∀ A B C D f g, (g Continues f) → (f PartFun A To B) → (g PartFun C To D) → (f PartFun A To D) :=
+  fun (A B C D f g hcont hf hg) =>
+    And.intro (
+      fun (S hS) =>
+        let u₀ := And.left (hf) S hS
+        let u₀₁ := fst_coor_set A B S u₀
+        let u₂ := And.left (intersect_2sets_subset_prop g ((dom f) × (rng g)))
+        let u₃ := eq_subst (fun (t) => t ⊆ g) (g  ⨡ (dom f)) f (Eq.symm (hcont)) (u₂) S hS
+        let u₄ := And.left hg S u₃
+        let u₅ := snd_coor_set C D S u₄
+        eq_subst (fun (t) => t ∈  (A × D)) (π₁ S, π₂ S) (S) (Eq.symm (fst_snd_then_unique C D S u₄)) (
+
+          Iff.mpr (cartesian_product_pair_prop A D (π₁ S) (π₂ S)) (
+            And.intro (u₀₁) (u₅)
+          )
+        )
+    ) (And.right hf)
+
+theorem partfun_cont_cond:
+∀ A B C D f g, (f PartFun A To B) → (g PartFun C To D) →
+((g Continues f) ↔ ((dom f ⊆ dom g) ∧ (∀ x ∈ dom f; f⦅x⦆ = g⦅x⦆))) :=
+  fun (A B C D f g hf hg) =>
+    Iff.intro
+    (
+      fun (hcongf) =>
+        let u₀ := fun (x₁ hx₁) => Iff.mpr (dom_prop g x₁) (
+          Exists.elim (Iff.mp (dom_prop f x₁) hx₁) (
+            fun (y) =>
+              fun (hy) =>
+                Exists.intro y (
+                  let u₀₀ : f ⊆ g := eq_subst (fun (t) => t ⊆ g) (g  ⨡ (dom f)) f (Eq.symm hcongf) (
+                    And.left (intersect_2sets_subset_prop g ((dom f) × (rng g)))
+                  )
+                  u₀₀ (x₁, y) (hy)
+                )
+          )
+        )
+
+        And.intro (u₀) (
+          fun (x hx) =>
+            let u₁ := partfunction_dom_def g C D hg
+            let u₂ := fun_restriction_val (dom g) D (dom f) g u₀ u₁ x hx
+            eq_subst (fun (t) => t⦅x⦆ = g⦅x⦆) (g  ⨡ (dom f)) f (Eq.symm (hcongf)) (
+              Eq.symm u₂
+            )
+        )
+    )
+    (
+      fun (hfgx) =>
+
+
+        extensionality f (g  ⨡ (dom f)) (
+          fun (s) =>
+            Iff.intro
+            (
+              fun (hs) =>
+                let u₁ := And.left hf s hs
+                let u₁₁ := eq_subst (fun (t) => t ∈ f) s (π₁ s, π₂ s) (fst_snd_then_unique A B s u₁) (hs)
+                let u₂ := Iff.mpr (dom_prop f (π₁ s)) (Exists.intro (π₂ s) (u₁₁))
+                let u₃ := And.left hfgx (π₁ s) (u₂)
+                let u₄ := Iff.mp (dom_prop g (π₁ s)) u₃
+                Exists.elim u₄ (
+                  fun (y) =>
+                    fun (hy) =>
+                    let u₅ := eq_subst (fun (t) => (π₁ s, t) ∈ g) (y) (π₂ s) (
+                      let u₆ := Iff.mp (partial_function_equal_value_prop g C D hg (π₁ s) y (u₃)) hy
+                      Eq.trans u₆ (
+                        let u₇ := Eq.symm (And.right hfgx (π₁ s) u₂)
+                        Eq.trans u₇ (
+                          Eq.symm (
+                            Iff.mp (partial_function_equal_value_prop f A B hf (π₁ s) (π₂ s) (u₂)) (
+                              u₁₁
+                            )
+                          )
+                        )
+                      )
+                    ) (hy)
+                    let u₆ := Iff.mpr (rng_prop g (π₂ s)) (Exists.intro (π₁ s) (u₅))
+
+                    eq_subst (fun (t) => t ∈ (g  ⨡ (dom f))) (π₁ s, π₂ s) s (Eq.symm (fst_snd_then_unique A B s u₁)) (
+                      Iff.mpr (intersect_2sets_prop g ((dom f) × (rng g)) (π₁ s, π₂ s)) (
+                        And.intro (u₅) (
+                          Iff.mpr (cartesian_product_pair_prop (dom f) (rng g) (π₁ s) (π₂ s)) (
+                            And.intro (u₂) (u₆)
+                          )
+                        )
+                      )
+                    )
+                )
+            )
+            (
+              fun (hs) =>
+                let u₁ := Iff.mp (intersect_2sets_prop g ((dom f) × (rng g)) s) hs
+                let pair_s := fst_snd_then_unique (dom f) (rng g) s (And.right u₁)
+                let u₁₀ := eq_subst (fun (t) => t ∈ ((dom f) × (rng g))) (s) (π₁ s, π₂ s) (pair_s) (And.right u₁)
+                let u₂ := Iff.mp (cartesian_product_pair_prop (dom f) (rng g) (π₁ s) (π₂ s)) (u₁₀)
+                let u₃ := And.left u₂
+                let u₄ := And.left hfgx (π₁ s) u₃
+                let u₅ := And.right hfgx (π₁ s) u₃
+
+                eq_subst (fun (t) => t ∈ f) (π₁ s, π₂ s) s (Eq.symm (pair_s)) (
+                  Iff.mpr (partial_function_equal_value_prop f A B hf (π₁ s) (π₂ s) (u₃)) (
+                    Eq.trans (Iff.mp (partial_function_equal_value_prop g C D hg (π₁ s) (π₂ s) u₄) (
+                      eq_subst (fun (t) => t ∈ g) (s) (π₁ s, π₂ s) (pair_s) (And.left u₁)
+                    )) (Eq.symm u₅)
+                  )
+                )
+            )
+        )
+    )
+
+
+theorem fun_cont_B : ∀ A B C D f g, (g Continues f) → (f Fun A To B) → (g Fun C To D) → (f Fun A To D) :=
+  fun (A B C D f g hcont hf hg) =>
+    let u₁ := And.left (hf)
+    let u₂ := And.left (hg)
+    let u₃ := partfun_cont_B A B C D f g hcont u₁ u₂
+    And.intro (u₃) (And.right (hf))
+
+
+
+theorem fun_cont_cond:
+∀ A B C D f g, (f Fun A To B) → (g Fun C To D) →
+((g Continues f) ↔ ((A ⊆ C) ∧ (∀ x ∈ A; f⦅x⦆ = g⦅x⦆))) :=
+  fun (A B C D f g hf hg) =>
+    let u₁ := And.left hf
+    let u₂ := And.left hg
+    let u₃ := partfun_cont_cond A B C D f g u₁ u₂
+    eq_subst (fun (t) => (g Continues f) ↔ ((A ⊆ t) ∧ ∀ x ∈ A; f⦅x⦆ = g⦅x⦆)) (dom g) (C) (
+      Eq.symm (dom_function g C D hg)
+    ) (
+      eq_subst (fun (t) => (g Continues f) ↔ ((t ⊆ dom g) ∧ ∀ x ∈ t; f⦅x⦆ = g⦅x⦆)) (dom f) (A) (
+        Eq.symm (dom_function f A B hf)
+      ) (u₃)
+    )
+
+
+theorem total_fun_cont_cond : ∀ A B f g, (f PartFun A To B) → (g Fun A To D) → ((g Continues f) ↔ (∀ x ∈ dom f; f⦅x⦆ = g⦅x⦆)) :=
+  fun (A B f g hf hg) =>
+    let u₂ := And.left hg
+    let u₃ := partfun_cont_cond A B A D f g hf u₂
+    Iff.intro
+    (
+      fun (hcont) =>
+        And.right (Iff.mp (u₃) hcont)
+
+    )
+    (
+      fun (hdomx) =>
+        let u₁ := dom_function g A D hg
+        let u₄ := dom_partial_function f A B hf
+        Iff.mpr (u₃) (
+          And.intro (
+            eq_subst (fun (t) => dom f ⊆ t) (A) (dom g) (u₁) (u₄)
+          ) (hdomx)
+        )
+    )
+
+
 theorem monotonic_operator_fix_point : ∀ A F, (F Fun 𝒫 A To 𝒫 A) → (∀ X Y ∈ 𝒫 A; X ⊆ Y → F⦅X⦆ ⊆ F⦅Y⦆) → (∃ Z ∈ 𝒫 A; F⦅Z⦆ = Z) :=
   fun (A F) => fun (h₁ : F Fun 𝒫 A To 𝒫 A) => fun (h₂ : ∀ X Y ∈ 𝒫 A; X ⊆ Y → F⦅X⦆ ⊆ F⦅Y⦆) =>
     let S := { X ∈ (𝒫 A) | X ⊆ F⦅X⦆ }
@@ -3055,6 +3240,172 @@ theorem indexed_intersection_is_intersection :
               )
 
           )
+
+
+noncomputable def indexed_disjoined_union (A I : Set) := {s ∈ ((⋃[ i in I ] A at i) × I) | ∃ i ∈ I; ∃ x ∈ (A _ i); s = (x, i)}
+syntax "⨆[" term "in" term "]" term "at" term : term
+macro_rules
+| `( ⨆[$i:term in $I:term ] $A:term at $i:term) => `(indexed_disjoined_union $A $I)
+
+theorem indexed_disjoined_union_is_disjoined_union :
+∀ A I, (A IndxFun I) → (∀ s, (s ∈ ⨆[ i in I ] A at i) ↔ (∃ i ∈ I; ∃ x ∈ (A _ i); s = (x, i))) :=
+  fun (A I hAI s) =>
+    let P := fun (s) => ∃ i ∈ I; ∃ x ∈ (A _ i); s = (x, i)
+    let M := (⋃[ i in I ] A at i)
+    let hiAI := fun_indexed_is_indexed A I hAI
+    Iff.intro
+    (
+      fun (hsdij) =>
+        And.right (Iff.mp (spec_is_spec P (M × I) s) hsdij)
+    )
+    (
+      fun (hexis) =>
+        Iff.mpr (spec_is_spec P (M × I) s) (
+          And.intro (Iff.mpr (cartesian_product_is_cartesian M I s) (
+            Exists.elim hexis (
+              fun (i hi) =>
+                  Exists.elim (And.right hi) (
+                    fun (x hx) =>
+                      Exists.intro x (
+                        And.intro (indexed_sub_indexed_union A I hiAI i (And.left hi) x (And.left hx)) (
+                          Exists.intro i (And.intro (And.left hi) (And.right hx)))
+                      )
+                  )
+            )
+          )) (hexis)
+        )
+    )
+
+theorem indexed_disjoined_union_pair_prop₁ :
+∀ A I, (A IndxFun I) → (∀ x y, ((x, y) ∈ ⨆[ i in I ] A at i) ↔ (∃ i ∈ I; x ∈ (A _ i) ∧ y = i)) :=
+  fun (A I hAI x y) =>
+    Iff.intro
+    (
+      fun (hxy) =>
+        let u₁ := Iff.mp (indexed_disjoined_union_is_disjoined_union A I hAI (x, y)) hxy
+        Exists.elim u₁
+        (
+          fun (i hi) =>
+            Exists.elim (And.right hi) (
+              fun (m hm) =>
+                let u₂ := Iff.mp (ordered_pair_set_prop x y m i) (And.right hm)
+                Exists.intro i (
+                  And.intro (And.left hi) (
+                    And.intro (eq_subst (fun (t) => t ∈ (A _ i)) m x (Eq.symm (And.left u₂)) (And.left hm)) (And.right u₂)
+                  )
+                )
+            )
+        )
+    )
+    (
+      fun (hxy) =>
+        Iff.mpr (indexed_disjoined_union_is_disjoined_union A I hAI (x, y)) (
+          Exists.elim hxy (
+            fun (i hi) =>
+              Exists.intro i (And.intro (And.left hi) (
+                Exists.intro x (
+                  And.intro (And.left (And.right hi)) (
+                    Iff.mpr (ordered_pair_set_prop x y x i) (
+                      And.intro (Eq.refl x) (And.right (And.right hi))
+                    )
+                  )
+                )
+              ))
+          )
+        )
+    )
+
+theorem indexed_disjoined_union_pair_prop₂ :
+∀ A I i, (A IndxFun I) → (i ∈ I) → (∀ x, ((x, i) ∈ ⨆[ i in I ] A at i) ↔ (x ∈ (A _ i))) :=
+  fun (A I i hAI hi x) =>
+    Iff.intro
+    (
+      fun (hxi) =>
+        let u₁ := Iff.mp (indexed_disjoined_union_pair_prop₁ A I hAI x i) hxi
+        Exists.elim u₁ (
+          fun (j hj) =>
+            eq_subst (fun (t) => x ∈ (A _ t)) j i (Eq.symm (And.right (And.right hj))) (And.left (And.right hj))
+        )
+    )
+    (
+      fun (hxi) =>
+        Iff.mpr (indexed_disjoined_union_pair_prop₁ A I hAI x i) (
+          Exists.intro i (
+            And.intro (hi) (
+              And.intro (hxi) (Eq.refl i)
+            )
+          )
+        )
+    )
+
+theorem indexed_disjoined_union_in :
+∀ A I x i, (A IndxFun I) → (i ∈ I) → (x ∈ (A _ i)) → ((x, i) ∈ ⨆[ i in I ] A at i) :=
+  fun (A I x i hAI hi hxi) =>
+    Iff.mpr (indexed_disjoined_union_pair_prop₂ A I i hAI hi x) hxi
+
+
+noncomputable def indexed_func (A) := lam_fun (dom A) (𝒫 (⋃ (rng A) × dom A)) (fun (i) => (A _ i) × {i})
+syntax "DU" term : term
+macro_rules
+| `(DU $A) => `(indexed_func $A)
+
+
+theorem DU_is_func : ∀ A I X, (A Fun I To X) → ((DU A) Fun I To (𝒫 (⋃ (rng A) × I))) ∧ (∀ i ∈ I; (DU A) _ i = (A _ i) × {i}) :=
+  fun (A I X hAI) =>
+    let P := fun (i) => (A _ i) × {i}
+    let L := dom A
+    let R := 𝒫 (⋃ (rng A) × dom A)
+    let domi := dom_function A I X hAI
+    let prop₁ := fun (i) => fun (hi : (i ∈ L)) =>
+        let u₀ := eq_subst (fun (t) => i ∈ t) (dom A) (I) (Eq.symm domi) (hi)
+        let u₁ := Iff.mpr (boolean_set_is_boolean ((⋃ (rng A)) × I) ((A _ i) × {i})) (
+          cartesian_product_subset (A _ i) {i} (⋃ (rng A)) I (elem_subset_union (rng A) (A _ i) (
+            Iff.mpr (rng_prop A (A _ i)) (
+              Exists.intro i (
+                Iff.mpr (function_equal_value_prop A I X hAI i (A _ i) u₀) (Eq.refl (A _ i))
+              )
+            )
+          )) (singl_subs I i (u₀))
+        )
+        let u₂ := eq_subst (fun (t) => ((A _ i) × {i}) ∈ 𝒫 (⋃ (rng A) × t)) (I) (dom A) (domi) (u₁)
+        u₂
+
+    let u₃ := lam_then_fun_prop P L R (
+      prop₁
+    )
+    eq_subst (fun (t) => ((DU A) Fun t To (𝒫 (⋃ (rng A) × t))) ∧ (∀ i ∈ t; (DU A) _ i = (A _ i) × {i})) (dom A) I (Eq.symm domi) (u₃)
+
+
+theorem DU_indxfun : ∀ A I i, (i ∈ I) → (A IndxFun I) → ((DU A) IndxFun I) ∧ ((DU A) _ i = (A _ i) × {i}) :=
+  fun (A I i hi hAI) =>
+    Exists.elim hAI (
+      fun (X hX) =>
+        let u₁ := DU_is_func A I X hX
+        And.intro (Exists.intro (𝒫 (⋃ (rng A) × I)) (And.left u₁)) (And.right u₁ i hi)
+    )
+
+
+
+
+theorem indexed_disjoined_set_is_eq : ∀ A I i, (A IndxFun I) → (i ∈ I) → ((DU A) _ i) = {x ∈ ⨆[ i in I ] A at i | (π₂ x) = i} :=
+  fun (A I i hAI hi) =>
+    let S := (DU A) _ i
+    let M := {x ∈ ⨆[ i in I ] A at i | (π₂ x) = i}
+    extensionality S M (
+      fun (x) =>
+        sorry
+    )
+
+theorem indexed_dishoined_set_subs : ∀ A I i, (A IndxFun I) → (i ∈ I) → ((DU A) _ i) ⊆ (⨆[ i in I ] A at i) :=
+  fun (A I i hAI hi) =>
+    let P := fun (x) => (π₂ x) = i
+    let S := ⨆[ i in I ] A at i
+    let M := {x ∈ ⨆[ i in I ] A at i | (π₂ x) = i}
+    let u₁ := specification_set_subset P S
+    eq_subst (fun (t) => t ⊆ (⨆[ i in I ] A at i)) (M) ((DU A) _ i) (Eq.symm (indexed_disjoined_set_is_eq A I i hAI hi)) (u₁)
+
+theorem indexed_disjoined_set_un : ∀ A I, (A IndxFun I) → (⨆[ i in I ] A at i) = (⋃[i in I] (DU A) at i) := sorry
+theorem indexed_disjoined_set_int : ∀ A I, (A IndxFun I) → (⋂[i in I] (DU A) at i) = ∅ := sorry
 
 
 

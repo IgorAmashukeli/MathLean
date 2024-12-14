@@ -539,6 +539,22 @@ theorem unordered_pair_is_unordered : ∀ a₁ a₂, {a₁, a₂} = {a₂, a₁}
     )
 
 
+theorem unordered_pair_subs : ∀ a₁ a₂ A, (a₁ ∈ A) → (a₂ ∈ A) → ({a₁, a₂} ⊆ A) :=
+  fun (a₁ a₂ A ha₁ ha₂) =>
+    fun (x hx) =>
+      Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair a₁ a₂ x) hx)
+      (
+        fun (hxa₁) =>
+          eq_subst (fun (t) => t ∈ A) a₁ x (Eq.symm hxa₁) (ha₁)
+      )
+      (
+        fun (hxa₂) =>
+          eq_subst (fun (t) => t ∈ A) a₂ x (Eq.symm hxa₂) (ha₂)
+      )
+
+theorem singl_subs : ∀ x A, (x ∈ A) → {x} ⊆ A :=
+  fun (x A hx) =>
+    unordered_pair_subs x x A (hx) (hx)
 
 theorem unique_union : ∀ A, ∃! B, ∀ x, (x ∈ B ↔ ∃ y ∈ A; x ∈ y) :=
   fun (A) =>
@@ -844,6 +860,9 @@ theorem intersection_set_is_intersection : ∀ A x, x ∈ ⋂ A ↔ (x ∈ ⋃ A
     spec_is_spec (fun (x) => ∀ y ∈ A; x ∈ y) (⋃ A)
 
 
+theorem intersection_sub_union : ∀ A, (⋂ A) ⊆ (⋃ A) :=
+  fun (A) =>
+    specification_set_subset (fun (x) => ∀ y ∈ A; x ∈ y) (⋃ A)
 
 
 theorem intersection_non_empty : ∀ A, (A ≠ ∅ → ∀ x, (x ∈ ⋂ A) ↔ ∀ y ∈ A; x ∈ y) :=

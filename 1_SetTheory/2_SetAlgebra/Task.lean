@@ -30,6 +30,7 @@ macro_rules
 -- 3) A ∪ B, A ∩ B, A \ B, A △ B main properties
 theorem union2_sets_prop : (∀ A B x, x ∈ A ∪ B ↔ x ∈ A ∨ x ∈ B) := sorry
 theorem intersect_2sets_prop : (∀ A B x, x ∈ A ∩ B ↔ x ∈ A ∧ x ∈ B) := sorry
+theorem intersect_2sets_is_intersect : (∀ A B, (⋂ {A, B}) = A ∩ B) := sorry
 theorem difference_prop : (∀ A B x, x ∈ A \ B ↔ x ∈ A ∧ x ∉ B) := sorry
 theorem symmetric_difference_prop : (∀ A B x, x ∈ A △ B ↔ (x ∈ A ∧ x ∉ B) ∨ (x ∈ B ∧ x ∉ A)) := sorry
 
