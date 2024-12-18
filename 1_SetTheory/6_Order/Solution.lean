@@ -2429,10 +2429,10 @@ noncomputable def leq_cart (𝓐 𝓑) := {s ∈ (po_set_cart 𝓐 𝓑) × (po_
 
 noncomputable def le_cart (𝓐 𝓑) := str (setPO(𝓐) × setPO(𝓑)) (leq_cart 𝓐 𝓑)
 
-noncomputable def cartesian_coordinate_part_ord (𝓐 𝓑) := ⁅setPO(𝓐) × setPO(𝓑); le_cart 𝓐 𝓑; leq_cart 𝓐 𝓑⁆
-syntax term "CartCordPO" term : term
+noncomputable def cartesian2_coordinate_part_ord (𝓐 𝓑) := ⁅setPO(𝓐) × setPO(𝓑); le_cart 𝓐 𝓑; leq_cart 𝓐 𝓑⁆
+syntax term "Cart2CordPO" term : term
 macro_rules
-| `($𝓐 CartCordPO $𝓑) => `(cartesian_coordinate_part_ord $𝓐 $𝓑)
+| `($𝓐 Cart2CordPO $𝓑) => `(cartesian2_coordinate_part_ord $𝓐 $𝓑)
 
 
 theorem poset_cart_prop₁ : ∀ 𝓐 𝓑, ∀ s ∈ po_set_cart 𝓐 𝓑; (π₁ s) ∈ (setPO(𝓐)) :=
@@ -2547,7 +2547,7 @@ theorem leq_cart_prop : ∀ 𝓐 𝓑, ∀ s₁ s₂ ∈ po_set_cart 𝓐 𝓑; 
 
 
 
-theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 CartCordPO 𝓑)) :=
+theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 Cart2CordPO 𝓑)) :=
   fun (𝓐 𝓑) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
       fun (h𝓑 : (PartOrd 𝓑)) =>
@@ -2562,7 +2562,7 @@ theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartO
         Exists.intro S (
           Exists.intro L (
             Exists.intro LE (
-              And.intro (Eq.refl (𝓐 CartCordPO 𝓑)) (
+              And.intro (Eq.refl (𝓐 Cart2CordPO 𝓑)) (
 
                 let emp := Iff.mpr (set_non_empty_iff_non_empty S) (
 
@@ -7059,11 +7059,28 @@ theorem lin_latt : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) :=
                 )
       )
 
+def is_well_found_order 𝓐 := (PartOrd 𝓐) ∧ (∀ X, ( (X ⊆ setPO(𝓐)) →  (X ≠ ∅) → (𝓐 MinExi X)))
+syntax "WellFoundOrd" term : term
+macro_rules
+| `(WellFoundOrd $𝓐) => `(is_well_found_order $𝓐)
 
 def is_well_order 𝓐 := (LinOrd 𝓐) ∧ ∀ X, (X ⊆ setPO(𝓐)) → (X ≠ ∅) → (𝓐 MinExi X)
 syntax "WellOrd" term : term
 macro_rules
 | `(WellOrd $𝓐) => `(is_well_order $𝓐)
+
+
+theorem wellord_wellfoundcrit : ∀ 𝓐, (WellOrd 𝓐) ↔ ((LinOrd 𝓐) ∧ (WellFoundOrd 𝓐)) :=
+  fun (_) =>
+    Iff.intro
+    (
+      fun (hwell) =>
+        And.intro (And.left hwell) (And.intro (And.left (And.left hwell)) (And.right hwell))
+    )
+    (
+      fun (hliwefo) =>
+        And.intro (And.left hliwefo) (And.right (And.right hliwefo))
+    )
 
 
 def is_chain (𝓐 B) := (PartOrd 𝓐) ∧ (B ⊆ setPO(𝓐)) ∧ (LinOrd (𝓐 SubsPO B))
@@ -7085,17 +7102,17 @@ theorem lin_chain : ∀ 𝓐 B, (B ≠ ∅) → (B ⊆ setPO(𝓐)) →  (LinOrd
           And.intro (And.left h𝓐) (And.intro (hB) (u))
 
 
-theorem antichain : ∀ 𝓐 𝓑 A B, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 CartCordPO 𝓑) AntiChain (A × B)) :=
+theorem antichain : ∀ 𝓐 𝓑 A B, (𝓐 AntiChain A) → (𝓑 AntiChain B) → ((𝓐 Cart2CordPO 𝓑) AntiChain (A × B)) :=
   fun (𝓐 𝓑 A B) =>
     fun (h𝓐 : (𝓐 AntiChain A)) =>
       fun (h𝓑 : (𝓑 AntiChain B)) =>
-        let L₀ := (≼(𝓐 CartCordPO 𝓑))
+        let L₀ := (≼(𝓐 Cart2CordPO 𝓑))
         let L₂ := (le_cart 𝓐 𝓑)
         let L₃ := (leq_cart 𝓐 𝓑)
         let S := setPO(𝓐) × setPO(𝓑)
         let cart_po_po := cart_PO_PO 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑)
         let ABsub₀ := cartesian_product_subset A B (setPO(𝓐)) (setPO(𝓑)) (And.left (And.right h𝓐)) (And.left (And.right h𝓑))
-        let ABsub := eq_subst (fun (t) => (A × B) ⊆ t) (setPO(𝓐) × setPO(𝓑)) (setPO(𝓐 CartCordPO 𝓑)) (Eq.symm (setPO_is_setPO (setPO(𝓐) × setPO(𝓑))
+        let ABsub := eq_subst (fun (t) => (A × B) ⊆ t) (setPO(𝓐) × setPO(𝓑)) (setPO(𝓐 Cart2CordPO 𝓑)) (Eq.symm (setPO_is_setPO (setPO(𝓐) × setPO(𝓑))
             (le_cart 𝓐 𝓑) (leq_cart 𝓐 𝓑))) (
               ABsub₀
             )
@@ -7116,8 +7133,8 @@ theorem antichain : ∀ 𝓐 𝓑 A B, (𝓐 AntiChain A) → (𝓑 AntiChain B)
 
                     And.intro (
 
-                      fun (hxy : (x, y) ∈ ≺(𝓐 CartCordPO 𝓑)) =>
-                        let u₁ := Iff.mp (And.left (part_ord_pair_prop (𝓐 CartCordPO 𝓑) cart_po_po x hxcart y hycart)) hxy
+                      fun (hxy : (x, y) ∈ ≺(𝓐 Cart2CordPO 𝓑)) =>
+                        let u₁ := Iff.mp (And.left (part_ord_pair_prop (𝓐 Cart2CordPO 𝓑) cart_po_po x hxcart y hycart)) hxy
                         let u₂ := eq_subst (fun (t) => (x, y) ∈ t) L₀ L₃ (lesseqPO_is_lesseqPO S L₂ L₃) (And.left u₁)
                         let u₃ := Iff.mp (leq_cart_prop 𝓐 𝓑 x (ABsub₀ x hx) y (ABsub₀ y hy)) u₂
                         let u₄ := And.right u₁
@@ -7148,9 +7165,9 @@ theorem antichain : ∀ 𝓐 𝓑 A B, (𝓐 AntiChain A) → (𝓑 AntiChain B)
 
 
                     ) (
-                      fun (hyx : (x, y) ∈ ≻(𝓐 CartCordPO 𝓑)) =>
-                        let hxy : (y, x) ∈ ≺(𝓐 CartCordPO 𝓑) := Iff.mpr (po_less_more (𝓐 CartCordPO 𝓑) (cart_po_po) y x) (hyx)
-                        let u₁ := Iff.mp (And.left (part_ord_pair_prop (𝓐 CartCordPO 𝓑) cart_po_po y hycart x hxcart)) hxy
+                      fun (hyx : (x, y) ∈ ≻(𝓐 Cart2CordPO 𝓑)) =>
+                        let hxy : (y, x) ∈ ≺(𝓐 Cart2CordPO 𝓑) := Iff.mpr (po_less_more (𝓐 Cart2CordPO 𝓑) (cart_po_po) y x) (hyx)
+                        let u₁ := Iff.mp (And.left (part_ord_pair_prop (𝓐 Cart2CordPO 𝓑) cart_po_po y hycart x hxcart)) hxy
                         let u₂ := eq_subst (fun (t) => (y, x) ∈ t) L₀ L₃ (lesseqPO_is_lesseqPO S L₂ L₃) (And.left u₁)
                         let u₃ := Iff.mp (leq_cart_prop 𝓐 𝓑 y (ABsub₀ y hy) x (ABsub₀ x hx)) u₂
                         let u₄ := And.right u₁
@@ -9247,6 +9264,80 @@ theorem poiso_linord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((LinOrd 𝓐) ↔ (
       )
 
 
+theorem poiso_wellfo : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((WellFoundOrd 𝓐) ↔ (WellFoundOrd 𝓑)) :=
+  fun (𝓐 𝓑 hPO) =>
+    let φ := fun (𝓐) => fun (X) => (X ≠ ∅) → 𝓐 MinExi X
+
+    let u₀ := fun (𝓐 𝓑 f X) =>
+                fun (hX : X ⊆ setPO(𝓐)) =>
+                    fun (hf : f PO_ISO_PO 𝓐 To 𝓑) =>
+                      let hiso := And.right (And.right hf)
+                      let hbij := And.left hiso
+                      let hfunc := And.left hbij
+                      Iff.intro
+                      (
+                        fun (h𝓐 : (X ≠ ∅) → (𝓐 MinExi X)) =>
+                          fun (hfX : f.[X] ≠ ∅) =>
+                            Iff.mp (poiso_minexi 𝓐 𝓑 f X hX hf) (
+                              h𝓐 (Iff.mpr (set_non_empty_iff_non_empty X) (
+                                let u₁ := Iff.mp (set_non_empty_iff_non_empty (f.[X])) hfX
+                                Exists.elim u₁ (
+                                  fun (y) =>
+                                    fun (hy) =>
+                                      let u₂ := Iff.mp (image_prop f X y) hy
+                                      Exists.elim u₂ (
+                                        fun (x) =>
+                                          fun (hx) =>
+                                            Exists.intro x (And.left hx)
+                                      )
+                                )
+                              ))
+                            )
+                      )
+                      (
+                        fun (h𝓑 : (f.[X] ≠ ∅) → (𝓑 MinExi (f.[X]))) =>
+                          fun (hXemp : (X ≠ ∅)) =>
+                            Iff.mpr (poiso_minexi 𝓐 𝓑 f X hX hf) (
+                              h𝓑 (
+                                Iff.mpr (set_non_empty_iff_non_empty (f.[X])) (
+                                  let u₂ := Iff.mp (set_non_empty_iff_non_empty X) hXemp
+
+                                  Exists.elim u₂ (
+                                    fun (y) =>
+                                      fun (hy) =>
+                                        Exists.intro ((f⦅y⦆)) (
+                                          Iff.mpr (image_prop f X (f⦅y⦆)) (
+                                            Exists.intro y (
+                                              And.intro (hy) (
+                                                Iff.mpr (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑))
+                                                (hfunc) y (f⦅y⦆) (hX y hy)) (
+                                                  Eq.refl (f⦅y⦆)
+                                                )
+                                              )
+                                            )
+                                          )
+                                        )
+                                  )
+                                )
+                              )
+                            )
+                      )
+
+    let u₁ := poiso_subset_prop φ (u₀) 𝓐 𝓑 hPO
+    Iff.intro
+    (
+      fun (hWell𝓐) =>
+        And.intro (And.left (And.right hPO)) (
+          Iff.mp (u₁) (And.right hWell𝓐)
+        )
+    )
+    (
+      fun (hWell𝓑) =>
+        And.intro (And.left hPO) (
+          Iff.mpr (u₁) (And.right hWell𝓑)
+        )
+    )
+
 
 
 
@@ -9557,7 +9648,7 @@ theorem poiso_inter : ∀ 𝓐 𝓑 𝓒 𝓓 f, (setPO(𝓐) = setPO(𝓒)) →
 
 
 
-theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 CartCordPO 𝓒) P≃O (𝓑 CartCordPO 𝓓)) :=
+theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 𝓓) → ((𝓐 Cart2CordPO 𝓒) P≃O (𝓑 Cart2CordPO 𝓓)) :=
   fun (𝓐 𝓑 𝓒 𝓓 h𝓐𝓑 h𝓒𝓓) =>
     let hpo𝓐𝓑 := And.right (And.right h𝓐𝓑)
     let h𝓐 := And.left h𝓐𝓑
@@ -9666,8 +9757,8 @@ theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 
                   let surjv_prop := And.right surj_prop
                   Exists.intro h (
                     And.intro (
-                      eq_subst (fun (t) => h Bij t To (setPO(𝓑 CartCordPO 𝓓))) (A × C) (setPO(𝓐 CartCordPO 𝓒)) (Eq.symm u₁) (
-                        eq_subst (fun (t) => h Bij (A × C) To t) (B × D) (setPO(𝓑 CartCordPO 𝓓)) (Eq.symm u₂) (
+                      eq_subst (fun (t) => h Bij t To (setPO(𝓑 Cart2CordPO 𝓓))) (A × C) (setPO(𝓐 Cart2CordPO 𝓒)) (Eq.symm u₁) (
+                        eq_subst (fun (t) => h Bij (A × C) To t) (B × D) (setPO(𝓑 Cart2CordPO 𝓓)) (Eq.symm u₂) (
                           And.intro (func_prop) (And.intro (injv_prop) (surjv_prop))
                         )
                       )
@@ -9676,10 +9767,10 @@ theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 
 
                       fun (x hx y hy) =>
 
-                        let hx₁ := eq_subst (fun (t) => x ∈ t) (setPO(𝓐 CartCordPO 𝓒)) (A × C) (u₁) hx
+                        let hx₁ := eq_subst (fun (t) => x ∈ t) (setPO(𝓐 Cart2CordPO 𝓒)) (A × C) (u₁) hx
                         let hx₁₁ := fst_coor_set A C x hx₁
                         let hx₁₂ := snd_coor_set A C x hx₁
-                        let hy₁ := eq_subst (fun (t) => y ∈ t) (setPO(𝓐 CartCordPO 𝓒)) (A × C) (u₁) hy
+                        let hy₁ := eq_subst (fun (t) => y ∈ t) (setPO(𝓐 Cart2CordPO 𝓒)) (A × C) (u₁) hy
                         let hy₁₁ := fst_coor_set A C y hy₁
                         let hy₁₂ := snd_coor_set A C y hy₁
                         let hhx := val_in_B h X Y func_prop x hx₁
@@ -9703,7 +9794,7 @@ theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 
                         Iff.intro
                         (
                           fun (hxy) =>
-                            let v₀₀ := eq_subst (fun (t) => (x, y) ∈ t) (≼(𝓐 CartCordPO 𝓒)) (leq_cart 𝓐 𝓒) (u₁₁) (hxy)
+                            let v₀₀ := eq_subst (fun (t) => (x, y) ∈ t) (≼(𝓐 Cart2CordPO 𝓒)) (leq_cart 𝓐 𝓒) (u₁₁) (hxy)
                             let v₀ := Iff.mp (leq_cart_prop 𝓐 𝓒 x hx₁ y hy₁) v₀₀
                             let v₁ := Iff.mp (hf₄ (π₁ x) (hx₁₁) (π₁ y) (hy₁₁)) (And.left v₀)
                             let v₂ := Iff.mp (hg₄ (π₂ x) (hx₁₂) (π₂ y) (hy₁₂)) (And.right v₀)
@@ -9718,11 +9809,11 @@ theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 
                               And.intro (v₉) (v₉₁)
                             )
 
-                            eq_subst (fun (t) => ((h⦅x⦆), (h⦅y⦆)) ∈ t) (leq_cart 𝓑 𝓓) (≼(𝓑 CartCordPO 𝓓)) (Eq.symm u₂₁) (v)
+                            eq_subst (fun (t) => ((h⦅x⦆), (h⦅y⦆)) ∈ t) (leq_cart 𝓑 𝓓) (≼(𝓑 Cart2CordPO 𝓓)) (Eq.symm u₂₁) (v)
                         )
                         (
                           fun (hfxy) =>
-                            let v₀₀ := eq_subst (fun (t) => ((h⦅x⦆), (h⦅y⦆)) ∈ t) (≼(𝓑 CartCordPO 𝓓)) (leq_cart 𝓑 𝓓) (u₂₁) (hfxy)
+                            let v₀₀ := eq_subst (fun (t) => ((h⦅x⦆), (h⦅y⦆)) ∈ t) (≼(𝓑 Cart2CordPO 𝓓)) (leq_cart 𝓑 𝓓) (u₂₁) (hfxy)
                             let v₀ := Iff.mp (leq_cart_prop 𝓑 𝓓 (h⦅x⦆) hhx (h⦅y⦆) hhy) v₀₀
 
                             let v₉ := eq_subst (fun (t) => (t, (f⦅π₁ y⦆)) ∈ (≼(𝓑))) (π₁ (h⦅x⦆)) (f⦅π₁ x⦆) (v₅) (
@@ -9741,7 +9832,7 @@ theorem poiso_cart : ∀ 𝓐 𝓑 𝓒 𝓓, (𝓐 P≃O 𝓑) → (𝓒 P≃O 
                             let v₁ := Iff.mpr (hf₄ (π₁ x) (hx₁₁) (π₁ y) (hy₁₁)) v₉
                             let v₃ := Iff.mpr (leq_cart_prop 𝓐 𝓒 x hx₁ y hy₁) (And.intro (v₁) (v₂))
 
-                            eq_subst (fun (t) => (x, y) ∈ t) (leq_cart 𝓐 𝓒) (≼(𝓐 CartCordPO 𝓒)) (Eq.symm u₁₁) (v₃)
+                            eq_subst (fun (t) => (x, y) ∈ t) (leq_cart 𝓐 𝓒) (≼(𝓐 Cart2CordPO 𝓒)) (Eq.symm u₁₁) (v₃)
                         )
 
                     )

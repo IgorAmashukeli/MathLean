@@ -540,7 +540,7 @@ theorem disj_in_left : ∀ A B x, (x ∈ A) → ((x, ∅) ∈ (A ⊔ B)) :=
     )
 
 
-theorem disj_in_righ : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B)) :=
+theorem disj_in_right : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B)) :=
   fun (A B x hx) =>
     Iff.mpr (union2_sets_prop (A × {∅}) (B × {{∅}}) (x, {∅})) (
       Or.inr (

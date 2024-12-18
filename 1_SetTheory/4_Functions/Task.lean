@@ -398,16 +398,18 @@ macro_rules
 
 
 theorem DU_is_func : ∀ A I X, (A Fun I To X) → ((DU A) Fun I To (𝒫 (⋃ (rng A) × I))) ∧ (∀ i ∈ I; (DU A) _ i = (A _ i) × {i}) := sorry
-theorem DU_indxfun : ∀ A I i, (i ∈ I) → (A IndxFun I) → ((DU A) IndxFun I) ∧ ((DU A) _ i = (A _ i) × {i}) := sorry
+theorem DU_indxfun : ∀ A I, (A IndxFun I) → ((DU A) IndxFun I) ∧ (∀ i ∈ I; (DU A) _ i = (A _ i) × {i}) := sorry
 
 
 theorem indexed_disjoined_set_is_eq : ∀ A I i, (A IndxFun I) → (i ∈ I) → ((DU A) _ i) = {x ∈ ⨆[ i in I ] A at i | (π₂ x) = i} := sorry
-theorem indexed_dishoined_set_subs : ∀ A I i, (A IndxFun I) → (i ∈ I) → ((DU A) _ i) ⊆ (⨆[ i in I ] A at i) := sorry
+theorem indexed_disjoined_set_subs : ∀ A I i, (A IndxFun I) → (i ∈ I) → ((DU A) _ i) ⊆ (⨆[ i in I ] A at i) := sorry
+theorem indexed_disjoined_set_unin : ∀ A I i, (A IndxFun I) → (i ∈ I) → (x, i) ∈ ((DU A) _ i) := sorry
 theorem indexed_disjoined_set_un : ∀ A I, (A IndxFun I) → (⨆[ i in I ] A at i) = (⋃[i in I] (DU A) at i) := sorry
-theorem indexed_disjoined_set_int : ∀ A I, (A IndxFun I) → (⋂[i in I] (DU A) at i) = ∅ := sorry
+theorem indexed_disjoined_set_int2 : ∀ A I i j, (A IndxFun I) → (i ∈ I) → (j ∈ I) → (i ≠ j) → ((DU A) _ i) ∩ ((DU A) _ j) = ∅ := sorry
+theorem indexed_disjoined_set_int : ∀ A I, (∀ j, I ≠ {j}) → (A IndxFun I) → (⋂[i in I] (DU A) at i) = ∅ := sorry
 
 
--- 41) Indexed product and its properties
+-- 40) Indexed product and its properties
 noncomputable def indexed_product (A I : Set) := {f ∈ ((⋃[ i in I ] A at i) ℙow (I)) | ∀ i ∈ I; f⦅i⦆ ∈ (A _ i)}
 syntax "∏[" term "in" term "]" term "at" term : term
 macro_rules

@@ -185,6 +185,33 @@ noncomputable def binary_relation_between (A B R : Set) : Prop := R ⊆ A × B
 noncomputable def binary_relation_on (A R : Set) : Prop := R ⊆ A × A
 
 
+noncomputable def disjoint_union (A B : Set) := (A × {∅}) ∪ (B × {{∅}})
+syntax term "⊔" term : term
+macro_rules
+| `($A ⊔ $B) => `(disjoint_union $A $B)
+
+
+
+noncomputable def disjoint_union_left (X: Set) := {y ∈ X | (π₂ y) = ∅}
+noncomputable def disjoint_union_right (X : Set) := {y ∈ X | (π₂ y) = {∅}}
+syntax "DUL" term : term
+syntax "DUR" term : term
+macro_rules
+| `(DUL $X) => `(disjoint_union_left $X)
+| `(DUR $X) => `(disjoint_union_right $X)
+
+
+axiom dul_A : ∀ A B, (DUL (A ⊔ B)) = (A × {∅})
+axiom dur_B : ∀ A B, (DUR (A ⊔ B)) = (B × {{∅}})
+axiom dul_subs : ∀ A B, (DUL (A ⊔ B)) ⊆ (A ⊔ B)
+axiom dur_subs : ∀ A B, (DUR (A ⊔ B)) ⊆ (A ⊔ B)
+axiom dulr_un : ∀ A B, (A ⊔ B) = (DUL (A ⊔ B)) ∪ (DUR (A ⊔ B))
+axiom dulr_in : ∀ A B, (DUL (A ⊔ B)) ∩ (DUR (A ⊔ B)) = ∅
+axiom disj_in_left : ∀ A B x, (x ∈ A) → ((x, ∅) ∈ (A ⊔ B))
+axiom disj_in_right : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B))
+axiom disjunion2_pair_prop : ∀ A B x y, (x, y) ∈ (A ⊔ B) ↔ (x ∈ A ∧ y = ∅) ∨ (x ∈ B ∧ y = {∅})
+
+
 syntax "BinRel" term : term
 macro_rules
 |  `(BinRel $R:term) => `(binary_relation $R)
@@ -386,3 +413,96 @@ syntax term "⦅" pair_comprehension "⦆" : term
 macro_rules
 | `($f:term ⦅ $x:term ; $y:term ⦆) =>  `($f⦅($x, $y)⦆)
 | `($f:term ⦅ $x:pair_comprehension ; $y:term ⦆) => `($f⦅⁅ $x ; $y ⁆⦆)
+
+
+
+-- 39) Indexed disjoint union and its properties
+def fun_indexation (A I : Set) : Prop := ∃ X, A Fun I To X
+syntax term "IndxFun" term : term
+macro_rules
+| `($A:term IndxFun $I:term) => `(fun_indexation  $A $I)
+
+noncomputable def indexed_family (A I : Set) := A.[I]
+syntax "{" term "of" term "where" term "in" term "}" : term
+macro_rules
+| `({ $A:term of $i:term where $i:term in $I:term }) => `(indexed_family $A $I)
+
+noncomputable def indexed_set (A i : Set) := A⦅i⦆
+infix:60 (priority := high) "_" => indexed_set
+
+def indexation (A I : Set) : Prop := (∀ x, (x ∈ ({A of i where i in I})) ↔ (∃ i ∈ I; x = (A _ i)))
+syntax term "Indx" term : term
+macro_rules
+| `($A:term Indx $I:term) => `(indexation $A $I)
+axiom fun_indexed_is_indexed :
+∀ A I, (A IndxFun I) → (A Indx I)
+
+
+-- 37) Indexed union and its properties
+noncomputable def indexed_union (A I : Set) := ⋃ (A.[I])
+syntax "⋃[" term "in" term "]" term "at" term : term
+macro_rules
+| `(⋃[ $i:term in $I:term ] $A:term at $i:term) => `(indexed_union $A $I)
+axiom indexed_union_is_union :
+∀ A I, (A Indx I) → ∀ x, (x ∈ (⋃[ i in I ] A at i)) ↔ (∃ i ∈ I; x ∈ (A _ i))
+axiom indexed_sub_indexed_union :
+∀ A I, (A Indx I) → (∀ i ∈ I; (A _ i) ⊆ (⋃[ i in I ] A at i))
+
+
+-- 38) Indexed intersection and its properties
+noncomputable def indexed_intersection (A I : Set) := ⋂ (A.[I])
+syntax "⋂[" term "in" term "]" term "at" term : term
+macro_rules
+| `(⋂[ $i:term in $I:term ] $A:term at $i:term ) => `(indexed_intersection $A $I)
+axiom indexed_intersection_is_intersection :
+∀ A I, (I ≠ ∅) → (A IndxFun I) → ∀ x, (x ∈ (⋂[ i in I ] A at i)) ↔ (∀ i ∈ I; x ∈ (A _ i))
+axiom indexed_intersection_empty :
+∀ A I, (I = ∅) → ((⋂[ i in I ] A at i) = ∅)
+axiom indexed_intersection_sub_indexed:
+∀ A I, (A IndxFun I) → (∀ i ∈ I; (⋂[ i in I ] A at i) ⊆ (A _ i))
+
+
+
+
+-- 39) Indexed disjoint union and its properties
+noncomputable def indexed_disjoined_union (A I : Set) := {s ∈ ((⋃[ i in I ] A at i) × I) | ∃ i ∈ I; ∃ x ∈ (A _ i); s = (x, i)}
+syntax "⨆[" term "in" term "]" term "at" term : term
+macro_rules
+| `( ⨆[$i:term in $I:term ] $A:term at $i:term) => `(indexed_disjoined_union $A $I)
+axiom indexed_disjoined_union_is_disjoined_union :
+∀ A I, (A IndxFun I) → (∀ s, (s ∈ ⨆[ i in I ] A at i) ↔ (∃ i ∈ I; ∃ x ∈ (A _ i); s = (x, i)))
+
+axiom indexed_disjoined_union_pair_prop₁ :
+∀ A I, (A IndxFun I) → (∀ x y, ((x, y) ∈ ⨆[ i in I ] A at i) ↔ (∃ i ∈ I; x ∈ (A _ i) ∧ y = i))
+
+axiom indexed_disjoined_union_pair_prop₂ :
+∀ A I i, (A IndxFun I) → (i ∈ I) → (∀ x, ((x, i) ∈ ⨆[ i in I ] A at i) ↔ (x ∈ (A _ i)))
+
+axiom indexed_disjoined_union_in :
+∀ A I x i, (A IndxFun I) → (i ∈ I) → (x ∈ (A _ i)) → ((x, i) ∈ ⨆[ i in I ] A at i)
+
+noncomputable def indexed_func (A) := lam_fun (dom A) (𝒫 (⋃ (rng A) × dom A)) (fun (i) => (A _ i) × {i})
+syntax "DU" term : term
+macro_rules
+| `(DU $A) => `(indexed_func $A)
+
+
+axiom DU_is_func : ∀ A I X, (A Fun I To X) → ((DU A) Fun I To (𝒫 (⋃ (rng A) × I))) ∧ (∀ i ∈ I; (DU A) _ i = (A _ i) × {i})
+axiom DU_indxfun : ∀ A I, (A IndxFun I) → ((DU A) IndxFun I) ∧ (∀ i ∈ I; (DU A) _ i = (A _ i) × {i})
+
+
+axiom indexed_disjoined_set_is_eq : ∀ A I i, (A IndxFun I) → (i ∈ I) → ((DU A) _ i) = {x ∈ ⨆[ i in I ] A at i | (π₂ x) = i}
+axiom indexed_dishoined_set_subs : ∀ A I i, (A IndxFun I) → (i ∈ I) → ((DU A) _ i) ⊆ (⨆[ i in I ] A at i)
+axiom indexed_disjoined_set_un : ∀ A I, (A IndxFun I) → (⨆[ i in I ] A at i) = (⋃[i in I] (DU A) at i)
+axiom indexed_disjoined_set_int2 : ∀ A I i j, (A IndxFun I) → (i ∈ I) → (j ∈ I) → (i ≠ j) → ((DU A) _ i) ∩ ((DU A) _ j) = ∅
+axiom indexed_disjoined_set_int : ∀ A I, (∀ j, I ≠ {j}) → (A IndxFun I) → (⋂[i in I] (DU A) at i) = ∅
+
+
+-- 40) Indexed product and its properties
+noncomputable def indexed_product (A I : Set) := {f ∈ ((⋃[ i in I ] A at i) ℙow (I)) | ∀ i ∈ I; f⦅i⦆ ∈ (A _ i)}
+syntax "∏[" term "in" term "]" term "at" term : term
+macro_rules
+  |  `(∏[ $i:term in $I:term ] $A:term at $i:term ) => `(indexed_product $A $I)
+
+axiom prod_pow : ∀ A I B, (A Indx I) → (∀ i ∈ I; (A _ i = B)) → (∏[ i in I ] A at i) = B ℙow I
+axiom product_AC_eq : choice_ax ↔ (∀ A I, (A IndxFun I) → (∀ I ∈ I; (A _ I) ≠ ∅) → (∏[ i in I ] A at i) ≠ ∅)

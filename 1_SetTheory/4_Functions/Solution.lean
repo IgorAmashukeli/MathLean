@@ -3241,6 +3241,59 @@ theorem indexed_intersection_is_intersection :
 
           )
 
+theorem indexed_intersection_empty :
+∀ A I, (I = ∅) → ((⋂[ i in I ] A at i) = ∅) :=
+fun (A I) =>
+  fun (hI : (I = ∅)) =>
+    extensionality ((⋂[ i in I ] A at i)) (∅) (
+      fun (t) =>
+        Iff.intro
+        (
+          fun (ht : t ∈ (⋂[ i in I ] A at i)) =>
+            False.elim (
+              let u := And.left (Iff.mp (intersection_set_is_intersection (A.[I]) t) ht)
+              let v := Iff.mp (union_set_is_union (A.[I]) t) u
+              Exists.elim v (
+                fun (y) =>
+                  fun (hy : y ∈ A.[I] ∧ t ∈ y) =>
+                    let s := Iff.mp (image_prop A I y) (And.left hy)
+                    Exists.elim s (
+                      fun (x) =>
+                        fun (hx : x ∈ I ∧ (x, y) ∈ A) =>
+                          let r := eq_subst (fun (r) => x ∈ r) I (∅) hI (And.left hx)
+                          empty_set_is_empty x r
+                    )
+              )
+
+            )
+        )
+        (empty_set_is_subset_any (⋂[ i in I ] A at i) t)
+    )
+
+
+theorem indexed_intersection_sub_indexed :
+∀ A I, (A IndxFun I) → (∀ i ∈ I; (⋂[ i in I ] A at i) ⊆ (A _ i)) :=
+  fun (A I) =>
+    fun (hI : (A IndxFun I)) =>
+      fun (i) =>
+        fun (hi : i ∈ I) =>
+          fun (x) =>
+            fun (hx : x ∈ (⋂[ i in I ] A at i)) =>
+              Or.elim (em (I = ∅))
+              (
+                fun (hIemp : (I = ∅)) =>
+                  let u := indexed_intersection_empty A I hIemp
+                  False.elim (
+                    empty_set_is_empty x (
+                      eq_subst (fun (t) => x ∈ t) (⋂[ i in I ] A at i) (∅) u (hx)
+                    )
+                  )
+              )
+              (
+                fun (hIemp : (I ≠ ∅)) =>
+                  Iff.mp (indexed_intersection_is_intersection A I hIemp hI x) hx i hi
+              )
+
 
 noncomputable def indexed_disjoined_union (A I : Set) := {s ∈ ((⋃[ i in I ] A at i) × I) | ∃ i ∈ I; ∃ x ∈ (A _ i); s = (x, i)}
 syntax "⨆[" term "in" term "]" term "at" term : term
@@ -3376,12 +3429,12 @@ theorem DU_is_func : ∀ A I X, (A Fun I To X) → ((DU A) Fun I To (𝒫 (⋃ (
     eq_subst (fun (t) => ((DU A) Fun t To (𝒫 (⋃ (rng A) × t))) ∧ (∀ i ∈ t; (DU A) _ i = (A _ i) × {i})) (dom A) I (Eq.symm domi) (u₃)
 
 
-theorem DU_indxfun : ∀ A I i, (i ∈ I) → (A IndxFun I) → ((DU A) IndxFun I) ∧ ((DU A) _ i = (A _ i) × {i}) :=
-  fun (A I i hi hAI) =>
+theorem DU_indxfun : ∀ A I, (A IndxFun I) → ((DU A) IndxFun I) ∧ (∀ i ∈ I; (DU A) _ i = (A _ i) × {i}) :=
+  fun (A I hAI) =>
     Exists.elim hAI (
       fun (X hX) =>
         let u₁ := DU_is_func A I X hX
-        And.intro (Exists.intro (𝒫 (⋃ (rng A) × I)) (And.left u₁)) (And.right u₁ i hi)
+        And.intro (Exists.intro (𝒫 (⋃ (rng A) × I)) (And.left u₁)) (fun (i hi) => And.right u₁ i hi)
     )
 
 
@@ -3390,10 +3443,60 @@ theorem DU_indxfun : ∀ A I i, (i ∈ I) → (A IndxFun I) → ((DU A) IndxFun 
 theorem indexed_disjoined_set_is_eq : ∀ A I i, (A IndxFun I) → (i ∈ I) → ((DU A) _ i) = {x ∈ ⨆[ i in I ] A at i | (π₂ x) = i} :=
   fun (A I i hAI hi) =>
     let S := (DU A) _ i
-    let M := {x ∈ ⨆[ i in I ] A at i | (π₂ x) = i}
-    extensionality S M (
-      fun (x) =>
-        sorry
+    let T := (A _ i) × {i}
+    let P := fun (t) => (π₂ t) = i
+    let N := ⨆[ i in I ] A at i
+    let M := {x ∈ N | P x}
+    eq_subst (fun (t) => t = M) T S (Eq.symm (And.right (DU_indxfun A I hAI) i hi)) (
+      extensionality T M (
+        fun (s) =>
+          Iff.intro
+          (
+            fun (hs) =>
+              let u₁ := Iff.mp (cartesian_product_is_cartesian (A _ i) {i} s) hs
+
+              Exists.elim u₁ (
+                fun (x hx) =>
+                  Exists.elim (And.right hx) (
+                    fun (y hy) =>
+                      eq_subst (fun (t) => t ∈ M) (x, y) (s) (Eq.symm (And.right hy)) (
+                        Iff.mpr (spec_is_spec P N (x, y)) (
+                          And.intro (
+
+                            Iff.mpr (indexed_disjoined_union_pair_prop₁ A I hAI x y) (
+                              Exists.intro i (And.intro (hi) (And.intro (And.left hx) (in_singl_elem i y (And.left hy))))
+                            )
+
+                          ) (
+                            eq_subst (fun (t) => t = i) (y) (π₂ (x, y)) (Eq.symm (coordinates_snd_corr x y)) (in_singl_elem i y (And.left hy))
+                          )
+                        )
+                      )
+                  )
+              )
+          )
+          (
+            fun (hs) =>
+              let u₁ := Iff.mp (spec_is_spec P N s) hs
+              let u₂ := Iff.mp (indexed_disjoined_union_is_disjoined_union A I hAI s) (And.left u₁)
+              Exists.elim u₂ (
+                fun (j hj) =>
+                  Exists.elim (And.right hj) (
+                    fun (x hx) =>
+                      let u₃ := eq_subst (fun (t) => t = i) (π₂ s) (j) (
+                        eq_subst (fun (t) => (π₂ t) = j) (x, j) (s) (Eq.symm (And.right hx)) (coordinates_snd_corr x j)
+                      ) (And.right u₁)
+                      eq_subst (fun (t) => t ∈ T) (x, j) (s) (Eq.symm (And.right hx)) (
+                        Iff.mpr (cartesian_product_pair_prop (A _ i) {i} x j) (
+                          And.intro (
+                            eq_subst (fun (t) => x ∈ (A _ t)) (j) (i) (u₃) (And.left hx)
+                          ) (eq_subst (fun (t) => t ∈ {i}) i j (Eq.symm u₃) (elem_in_singl i))
+                        )
+                      )
+                  )
+              )
+          )
+      )
     )
 
 theorem indexed_dishoined_set_subs : ∀ A I i, (A IndxFun I) → (i ∈ I) → ((DU A) _ i) ⊆ (⨆[ i in I ] A at i) :=
@@ -3404,8 +3507,145 @@ theorem indexed_dishoined_set_subs : ∀ A I i, (A IndxFun I) → (i ∈ I) → 
     let u₁ := specification_set_subset P S
     eq_subst (fun (t) => t ⊆ (⨆[ i in I ] A at i)) (M) ((DU A) _ i) (Eq.symm (indexed_disjoined_set_is_eq A I i hAI hi)) (u₁)
 
-theorem indexed_disjoined_set_un : ∀ A I, (A IndxFun I) → (⨆[ i in I ] A at i) = (⋃[i in I] (DU A) at i) := sorry
-theorem indexed_disjoined_set_int : ∀ A I, (A IndxFun I) → (⋂[i in I] (DU A) at i) = ∅ := sorry
+
+theorem indexed_disjoined_set_unin : ∀ A I i, (A IndxFun I) → (i ∈ I) → (x ∈ (A _ i)) → (x, i) ∈ ((DU A) _ i) :=
+  fun (A I i hAI hi hxAi) =>
+    eq_subst (fun (t) => (x, i) ∈ t) ((A _ i) × {i}) ((DU A) _ i) (Eq.symm (And.right (DU_indxfun A I hAI) i hi)) (
+      Iff.mpr (cartesian_product_pair_prop (A _ i) {i} x i) (
+        And.intro (hxAi) (elem_in_singl i)
+      )
+    )
+
+
+theorem indexed_disjoined_set_un : ∀ A I, (A IndxFun I) → (⨆[ i in I ] A at i) = (⋃[i in I] (DU A) at i) :=
+  fun (A I hAI) =>
+    let L := (⨆[ i in I ] A at i)
+    let R := (⋃[i in I] (DU A) at i)
+    let u₀ := And.left (DU_indxfun A I hAI)
+    let u₀₀ := fun_indexed_is_indexed (DU A) I u₀
+    extensionality L R (
+      fun (x) =>
+        Iff.intro
+        (
+          fun (hx) =>
+            let u₁ := Iff.mp (indexed_disjoined_union_is_disjoined_union A I hAI x) hx
+            Iff.mpr (indexed_union_is_union (DU A) I u₀₀ x) (
+              Exists.elim u₁ (
+                fun (i hi) =>
+                  Exists.elim (And.right hi) (
+                    fun (y hy) =>
+                      Exists.intro i (
+                        And.intro (And.left hi) (
+                          let u₂ := And.right (DU_indxfun A I hAI) i (And.left hi)
+                          eq_subst (fun (t) => x ∈ t) ((A _ i) × {i}) ((DU A) _ i) (Eq.symm u₂) (
+                            eq_subst (fun (t) => t ∈ ((A _ i) × {i})) (y, i) (x) (Eq.symm (And.right hy)) (
+                              Iff.mpr (cartesian_product_pair_prop (A _ i) {i} y i) (
+                                And.intro (And.left hy) (elem_in_singl i)
+                              )
+                            )
+                          )
+                        )
+                      )
+                  )
+              )
+            )
+        )
+        (
+          fun (hx) =>
+            let u₁ := Iff.mp (indexed_union_is_union (DU A) I u₀₀ x) hx
+            Exists.elim (u₁) (
+              fun (i hi) =>
+                indexed_dishoined_set_subs A I i hAI (And.left hi) x (And.right hi)
+            )
+        )
+    )
+
+
+theorem indexed_disjoined_set_int2 : ∀ A I i j, (A IndxFun I) → (i ∈ I) → (j ∈ I) → (i ≠ j) → ((DU A) _ i) ∩ ((DU A) _ j) = ∅ :=
+  fun (A I i j hAI hi hj hneq) =>
+    let L₁ := ((DU A) _ i)
+    let L₂ := ((DU A) _ j)
+    let N := ⨆[ i in I ] A at i
+    let P := fun (m x) => (π₂ x) = m
+    let M₁ := {x ∈ N | P i x}
+    let M₂ := {x ∈ N | P j x}
+    let L := L₁ ∩ L₂
+    Iff.mp (subs_subs_eq L ∅) (
+      And.intro (
+        fun (x hx) =>
+          let u₁ := Iff.mp (intersect_2sets_prop L₁ L₂ x) hx
+          let u₂ := eq_subst (fun (t) => x ∈ t) L₁ M₁ (indexed_disjoined_set_is_eq A I i hAI hi) (And.left u₁)
+          let u₃ := eq_subst (fun (t) => x ∈ t) L₂ M₂ (indexed_disjoined_set_is_eq A I j hAI hj) (And.right u₁)
+          let u₄ := And.right (Iff.mp (spec_is_spec (P i) N x) u₂)
+          let u₅ := And.right (Iff.mp (spec_is_spec (P j) N x) u₃)
+          let u₆ := Eq.trans (Eq.symm u₄) (u₅)
+          False.elim (
+            hneq (u₆)
+          )
+      ) (empty_set_is_subset_any L)
+    )
+
+
+theorem indexed_disjoined_set_int : ∀ A I, (∀ j, I ≠ {j}) → (A IndxFun I) → (⋂[i in I] (DU A) at i) = ∅ :=
+  fun (A I hj hAI) =>
+    let L := (⋂[i in I] (DU A) at i)
+    Or.elim (em (I = ∅))
+    (
+      fun (hI) =>
+        indexed_intersection_empty (DU A) I (hI)
+    )
+    (
+      fun (hnI) =>
+        let u₀ := non_empty_then_exi I hnI
+        Exists.elim u₀ (
+          fun (i hi) =>
+            Or.elim (em (∃ j, j ≠ i ∧ j ∈ I))
+            (
+              fun (hexi) =>
+                Exists.elim hexi (
+                fun (j hj) =>
+                  Iff.mp (subs_subs_eq L ∅) (
+                    And.intro (
+                      fun (x hx) =>
+
+                          let u₀₀ := And.left (DU_indxfun A I hAI)
+                          let u₁ := indexed_intersection_sub_indexed (DU A) I u₀₀ i hi x hx
+                          let u₂ := indexed_intersection_sub_indexed (DU A) I u₀₀ j (And.right hj) x hx
+                          let u₃ := Iff.mpr (intersect_2sets_prop ((DU A) _ i) ((DU A) _ j) x) (And.intro u₁ u₂)
+                          let u₄ := indexed_disjoined_set_int2 A I i j hAI hi (And.right hj) (fun (hij) => (And.left hj) (Eq.symm hij))
+                          eq_subst (fun (t) => x ∈ t) (((DU A) _ i) ∩ ((DU A) _ j)) ∅ (u₄) (u₃)
+
+
+                    ) (empty_set_is_subset_any L)
+                  )
+              )
+
+            )
+            (
+              fun (hnexi) =>
+                False.elim (
+                  hj i (
+                    Iff.mp (subs_subs_eq I {i}) (
+                      And.intro (
+                        fun (x hx) =>
+                          eq_subst (fun (t) => t ∈ {i}) i (x) (
+                            Or.elim (em (i = x))
+                            (
+                              fun (hix) => hix
+                            )
+                            (
+                              fun (hnix) =>
+                                let a₁ : x ≠ i := fun (hxieq : x = i) => hnix (Eq.symm hxieq)
+                                False.elim (hnexi (Exists.intro x (And.intro (a₁) (hx))))
+                            )
+                          ) (elem_in_singl i)
+                      ) (singl_subs I i (hi))
+                    )
+                  )
+                )
+            )
+        )
+    )
 
 
 
@@ -4053,58 +4293,8 @@ theorem lemma_power_emp : ∀ A B, (A = ∅) → ((B ℙow A) = {∅}) :=
       )
 
 
-theorem indexed_intersection_empty :
-∀ A I, (I = ∅) → ((⋂[ i in I ] A at i) = ∅) :=
-fun (A I) =>
-  fun (hI : (I = ∅)) =>
-    extensionality ((⋂[ i in I ] A at i)) (∅) (
-      fun (t) =>
-        Iff.intro
-        (
-          fun (ht : t ∈ (⋂[ i in I ] A at i)) =>
-            False.elim (
-              let u := And.left (Iff.mp (intersection_set_is_intersection (A.[I]) t) ht)
-              let v := Iff.mp (union_set_is_union (A.[I]) t) u
-              Exists.elim v (
-                fun (y) =>
-                  fun (hy : y ∈ A.[I] ∧ t ∈ y) =>
-                    let s := Iff.mp (image_prop A I y) (And.left hy)
-                    Exists.elim s (
-                      fun (x) =>
-                        fun (hx : x ∈ I ∧ (x, y) ∈ A) =>
-                          let r := eq_subst (fun (r) => x ∈ r) I (∅) hI (And.left hx)
-                          empty_set_is_empty x r
-                    )
-              )
-
-            )
-        )
-        (empty_set_is_subset_any (⋂[ i in I ] A at i) t)
-    )
 
 
-theorem indexed_intersection_sub_indexed :
-∀ A I, (A IndxFun I) → (∀ i ∈ I; (⋂[ i in I ] A at i) ⊆ (A _ i)) :=
-  fun (A I) =>
-    fun (hI : (A IndxFun I)) =>
-      fun (i) =>
-        fun (hi : i ∈ I) =>
-          fun (x) =>
-            fun (hx : x ∈ (⋂[ i in I ] A at i)) =>
-              Or.elim (em (I = ∅))
-              (
-                fun (hIemp : (I = ∅)) =>
-                  let u := indexed_intersection_empty A I hIemp
-                  False.elim (
-                    empty_set_is_empty x (
-                      eq_subst (fun (t) => x ∈ t) (⋂[ i in I ] A at i) (∅) u (hx)
-                    )
-                  )
-              )
-              (
-                fun (hIemp : (I ≠ ∅)) =>
-                  Iff.mp (indexed_intersection_is_intersection A I hIemp hI x) hx i hi
-              )
 
 
 theorem prod_pow_emp : ∀ A I B, (I = ∅) → (∏[ i in I ] A at i) = B ℙow I :=

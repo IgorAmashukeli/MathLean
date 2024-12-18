@@ -525,6 +525,59 @@ theorem equinum_power_congr_left : ∀ A B C, (A ~ B) → (C ℙow A) ~ (C ℙow
     )
 
 
+
+theorem equinum_cartesian_singl : ∀ A a, A ~ (A × {a}) :=
+  fun (A a) =>
+    let P := fun (x) => (x, a)
+    let ψ := lam_fun A (A × {a}) P
+    let pr₁ := lam_then_fun_prop P A (A × {a}) (
+      fun (x hx) =>
+        Iff.mpr (cartesian_product_pair_prop A {a} x a) (
+          And.intro (hx) (elem_in_singl a)
+        )
+    )
+    Exists.intro ψ (
+      let u₁ := Iff.mpr (func_inj_prop A (A × {a}) ψ (And.left pr₁)) (
+        fun (x hx y hy hxy) =>
+          let a₁ := And.right pr₁ x hx
+          let a₂ := And.right pr₁ y hy
+          let a₃ := Eq.trans (Eq.symm a₁) (Eq.trans (hxy) (a₂))
+          let a₄ := Iff.mp (ordered_pair_set_prop x a y a) a₃
+          And.left a₄
+      )
+      let u₂ := Iff.mpr (func_surj_prop A (A × {a}) ψ (And.left pr₁)) (
+        fun (y hy) =>
+          Exists.intro (π₁ y) (
+            let a₅ := fst_coor_set A {a} y hy
+            And.intro (a₅) (
+              Eq.symm (
+                let a₆ := And.right pr₁ (π₁ y) a₅
+                Eq.trans a₆ (
+                  equal_fst_snd A {a} (P (π₁ y)) y (
+                    Iff.mpr (cartesian_product_pair_prop A {a} (π₁ y) a) (
+                      And.intro (a₅) (elem_in_singl a)
+                    )
+                  ) (hy) (coordinates_fst_coor (π₁ y) a) (
+                    Eq.symm (
+                      let m := coordinates_snd_coor (π₁ y) a
+                      Eq.trans (in_singl_elem a (π₂ y) (snd_coor_set A {a} y (hy))) (Eq.symm m)
+                    )
+                  )
+                )
+              )
+            )
+          )
+      )
+      And.intro (And.left pr₁) (
+        And.intro (And.right u₁) (And.right u₂)
+      )
+    )
+
+
+
+
+
+
 theorem equinum_cartesian_comm : ∀ A B, (A × B) ~ (B × A) :=
   fun (A B) =>
     let ψ := lam_fun (A × B) (B × A) (
@@ -1086,6 +1139,393 @@ theorem equinum_power_cartesian : ∀ A B C, ((A ℙow B) ℙow C) ~ (A ℙow (B
 
 
     ) (second)
+
+
+
+
+
+theorem equinum_dul : ∀ A B, A ~ (DUL (A ⊔ B)) :=
+  fun (A B) =>
+    eq_subst (fun (t) => A ~ t) (A × {∅}) (DUL (A ⊔ B)) (Eq.symm (dul_A A B)) (
+      let P := (fun (t) => (t, ∅))
+      let ψ := lam_fun A (A × {∅}) P
+      let pr₁ := lam_then_fun_prop P A (A × {∅}) (
+        fun (x hx) =>
+          Iff.mpr (cartesian_product_pair_prop A {∅} x ∅) (
+            And.intro (hx) (elem_in_singl ∅)
+          )
+      )
+      let pr₂ : ψ Fun A To (A × {∅}) := And.left pr₁
+      let v₁ := Iff.mpr (func_inj_prop A (A × {∅}) ψ (pr₂)) (
+        fun (x hx y hy hxy) =>
+          let u₁ := And.right pr₁ x hx
+          let u₂ := And.right pr₁ y hy
+          let u₃ := Eq.trans (Eq.symm u₁) (Eq.trans hxy (u₂))
+          let u₄ := Iff.mp (ordered_pair_set_prop x ∅ y ∅) u₃
+          And.left u₄
+      )
+      let v₂ := Iff.mpr (func_surj_prop A (A × {∅}) ψ (pr₂)) (
+        fun (x hx) =>
+          let u₁ := Iff.mp (cartesian_product_is_cartesian A {∅} x) hx
+          Exists.elim u₁ (
+            fun (y hy) =>
+              Exists.elim (And.right hy) (
+                fun (z hz) =>
+                  let u₁ := And.right pr₁ y (And.left hy)
+                  Exists.intro y (And.intro (And.left hy) (Eq.trans (eq_subst (fun (t) => t = P y) (y, z) (x) (Eq.symm (And.right hz)) (
+                    Eq.symm (Iff.mpr (ordered_pair_set_prop y ∅ y z) (
+                      And.intro (Eq.refl y) (Eq.symm (in_singl_elem ∅ z (And.left hz)))
+                    ))
+                  )) (Eq.symm u₁)))
+              )
+          )
+      )
+
+      Exists.intro ψ (
+        And.intro (pr₂) (And.intro (And.right v₁) (And.right v₂))
+      )
+
+    )
+
+
+
+
+
+theorem equinum_dur : ∀ A B, B ~ (DUR (A ⊔ B)) :=
+  fun (A B) =>
+    eq_subst (fun (t) => B ~ t) (B × {{∅}}) (DUR (A ⊔ B)) (Eq.symm (dur_B A B)) (
+      let P := (fun (t) => (t, {∅}))
+      let ψ := lam_fun B (B × {{∅}}) P
+      let pr₁ := lam_then_fun_prop P B (B × {{∅}}) (
+        fun (x hx) =>
+          Iff.mpr (cartesian_product_pair_prop B {{∅}} x {∅}) (
+            And.intro (hx) (elem_in_singl {∅})
+          )
+      )
+      let pr₂ : ψ Fun B To (B × {{∅}}) := And.left pr₁
+      let v₁ := Iff.mpr (func_inj_prop B (B × {{∅}}) ψ (pr₂)) (
+        fun (x hx y hy hxy) =>
+          let u₁ := And.right pr₁ x hx
+          let u₂ := And.right pr₁ y hy
+          let u₃ := Eq.trans (Eq.symm u₁) (Eq.trans hxy (u₂))
+          let u₄ := Iff.mp (ordered_pair_set_prop x {∅} y {∅}) u₃
+          And.left u₄
+      )
+      let v₂ := Iff.mpr (func_surj_prop B (B × {{∅}}) ψ (pr₂)) (
+        fun (x hx) =>
+          let u₁ := Iff.mp (cartesian_product_is_cartesian B {{∅}} x) hx
+          Exists.elim u₁ (
+            fun (y hy) =>
+              Exists.elim (And.right hy) (
+                fun (z hz) =>
+                  let u₁ := And.right pr₁ y (And.left hy)
+                  Exists.intro y (And.intro (And.left hy) (Eq.trans (eq_subst (fun (t) => t = P y) (y, z) (x) (Eq.symm (And.right hz)) (
+                    Eq.symm (Iff.mpr (ordered_pair_set_prop y {∅} y z) (
+                      And.intro (Eq.refl y) (Eq.symm (in_singl_elem {∅} z (And.left hz)))
+                    ))
+                  )) (Eq.symm u₁)))
+              )
+          )
+      )
+
+      Exists.intro ψ (
+        And.intro (pr₂) (And.intro (And.right v₁) (And.right v₂))
+      )
+
+    )
+
+
+theorem equinum_du : ∀ A I i, (A IndxFun I) → (i ∈ I) → (A _ i) ~ (DU A) _ i :=
+  fun (A I i hAI hi) =>
+    let P := fun (t) => (t, i)
+    let u₁ := And.right (DU_indxfun A I hAI) i hi
+    eq_subst (fun (t) => (A _ i) ~ (t)) ((A _ i) × {i}) ((DU A) _ i) (Eq.symm u₁) (
+      let ψ := lam_fun (A _ i) ((A _ i) × {i}) P
+      let pr₁ := lam_then_fun_prop P (A _ i) ((A _ i) × {i}) (
+        fun (x hx) =>
+          Iff.mpr (cartesian_product_pair_prop (A _ i) {i} x i) (
+            And.intro (hx) (elem_in_singl i)
+          )
+      )
+      Exists.intro ψ (
+
+        let u₂ := And.left pr₁
+        let v₁ := Iff.mpr (func_inj_prop (A _ i) ((A _ i) × {i}) ψ u₂) (
+          fun (x hx y hy hxy) =>
+            let s₁ := And.right pr₁ x hx
+            let s₂ := And.right pr₁ y hy
+            let s₃ := Eq.trans (Eq.symm s₁) (Eq.trans hxy (s₂))
+            let u₄ := Iff.mp (ordered_pair_set_prop x i y i) s₃
+            And.left u₄
+        )
+
+        let v₂ := Iff.mpr (func_surj_prop (A _ i) ((A _ i) × {i}) ψ u₂) (
+          fun (x hx) =>
+            let s₄ := Iff.mp (cartesian_product_is_cartesian (A _ i) {i} x) hx
+            Exists.elim (s₄) (
+              fun (y hy) =>
+                Exists.elim (And.right hy) (
+                  fun (z hz) =>
+                    Exists.intro y (
+                      And.intro (And.left hy) (Eq.symm (Eq.trans (And.right pr₁ y (And.left hy)) (
+                        eq_subst (fun (t) => P y = t) (y, z) (x) (Eq.symm (And.right hz)) (
+                          Iff.mpr (ordered_pair_set_prop y i y z) (
+                            And.intro (Eq.refl y) (Eq.symm (in_singl_elem i z (And.left hz)))
+                          )
+                        )
+                      )))
+                    )
+                )
+            )
+        )
+
+
+        And.intro (And.left pr₁) (
+          And.intro (And.right v₁) (And.right v₂)
+
+        )
+      )
+    )
+
+
+
+theorem equin_dsu2u : ∀ A B, (A ∩ B) = ∅ → (A ⊔ B) ~ (A ∪ B) :=
+  fun (A B hAB) =>
+    let P := fun (x) => (π₁ x)
+    let ψ := lam_fun (A ⊔ B) (A ∪ B) P
+    let pr₁ := lam_then_fun_prop P (A ⊔ B) (A ∪ B) (
+      fun (s hs) =>
+        Or.elim (Iff.mp (union2sets_prop (A × {∅}) (B × {{∅}}) s) hs)
+        (
+          fun (hsa) =>
+            Iff.mpr (union2sets_prop A B (P s)) (
+              Or.inl (
+                fst_coor_set A {∅} s (hsa)
+              )
+            )
+        )
+        (
+          fun (hsb) =>
+            Iff.mpr (union2sets_prop A B (P s)) (
+              Or.inr (
+                fst_coor_set B {{∅}} s (hsb)
+              )
+            )
+        )
+    )
+
+    Exists.intro ψ (
+      And.intro (And.left pr₁) (
+        let u₁ := Iff.mpr (func_inj_prop (A ⊔ B) (A ∪ B) ψ (And.left pr₁)) (
+          fun (x hx y hy hxy) =>
+            let u₂ := Eq.trans (Eq.symm (And.right pr₁ x hx)) hxy
+            let u₃ := Eq.trans u₂ (And.right pr₁ y hy)
+            Or.elim (Iff.mp (union2sets_prop (A × {∅}) (B × {{∅}}) x) hx)
+            (
+              fun (hxA) =>
+                Or.elim (Iff.mp (union2sets_prop (A × {∅}) (B × {{∅}}) y) hy)
+                (
+                  fun (hyA) =>
+                    let v₀ := snd_coor_set A {∅} x hxA
+                    let v₁ := in_singl_elem ∅ (π₂ x) v₀
+                    let v₂ := snd_coor_set A {∅} y hyA
+                    let v₃ := in_singl_elem ∅ (π₂ y) v₂
+                    equal_fst_snd A {∅} x y hxA hyA u₃ (Eq.trans (v₁) (Eq.symm v₃))
+                )
+                (
+                  fun (hyB) =>
+                    let v₀ := fst_coor_set A {∅} x hxA
+                    let v₁ := fst_coor_set B {{∅}} y hyB
+                    let v₂ := eq_subst (fun (t) => t ∈ B) (π₁ y) (π₁ x) (Eq.symm u₃) (v₁)
+                    let v₃ := Iff.mpr (intersect_2sets_prop A B (π₁ x)) (
+                      And.intro (v₀) (v₂)
+                    )
+                    let v₄ := eq_subst (fun (t) => (π₁ x) ∈ t) (A ∩ B) (∅) (hAB) (v₃)
+                    False.elim (empty_set_is_empty (π₁ x) (v₄))
+                )
+            )
+            (
+              fun (hxB) =>
+                Or.elim (Iff.mp (union2sets_prop (A × {∅}) (B × {{∅}}) y) hy)
+                (
+                  fun (hyA) =>
+                    let v₀ := fst_coor_set B {{∅}} x hxB
+                    let v₁ := fst_coor_set A {∅} y hyA
+                    let v₂ := eq_subst (fun (t) => t ∈ A) (π₁ y) (π₁ x) (Eq.symm u₃) (v₁)
+                    let v₃ := Iff.mpr (intersect_2sets_prop A B (π₁ x)) (
+                      And.intro (v₂) (v₀)
+                    )
+                    let v₄ := eq_subst (fun (t) => (π₁ x) ∈ t) (A ∩ B) (∅) (hAB) (v₃)
+                    False.elim (empty_set_is_empty (π₁ x) (v₄))
+                )
+                (
+                  fun (hyB) =>
+                    let v₀ := snd_coor_set B {{∅}} x hxB
+                    let v₁ := in_singl_elem {∅} (π₂ x) v₀
+                    let v₂ := snd_coor_set B {{∅}} y hyB
+                    let v₃ := in_singl_elem {∅} (π₂ y) v₂
+                    equal_fst_snd B {{∅}} x y hxB hyB u₃ (Eq.trans (v₁) (Eq.symm v₃))
+                )
+            )
+
+
+        )
+        let u₂ := Iff.mpr (func_surj_prop (A ⊔ B) (A ∪ B) ψ (And.left pr₁)) (
+          fun (y hy) =>
+            Or.elim (Iff.mp (union2sets_prop A B y) hy)
+            (
+              fun (hyA) =>
+                Exists.intro (y, ∅) (
+                  let u₁ := disj_in_left A B y hyA
+                  And.intro (u₁) (Eq.symm (Eq.trans (And.right pr₁ (y, ∅) u₁) (
+                    coordinates_fst_coor y ∅
+                  )))
+                )
+            )
+            (
+              fun (hyB) =>
+                Exists.intro (y, {∅}) (
+                  let u₁ := disj_in_right A B y hyB
+                  And.intro (u₁) (Eq.symm (Eq.trans (And.right pr₁ (y, {∅}) u₁) (
+                    coordinates_fst_coor y {∅}
+                  )))
+                )
+            )
+        )
+        And.intro (And.right u₁) (And.right u₂)
+      )
+    )
+
+
+
+theorem equinum_disjun_un : ∀ A I, (A IndxFun I) → (∀ i j ∈ I; (i ≠ j) → (A _ i) ∩ (A _ j) = ∅) → (⋃[i in I] A at i) ~ (⨆[i in I] A at i) :=
+  fun (A I hAI hintemp) =>
+    let v₀ := And.left (DU_indxfun A I hAI)
+    let v₁ := fun_indexed_is_indexed (DU A) I v₀
+    let q₀ := fun_indexed_is_indexed A I hAI
+    let u₃ := indexed_disjoined_set_un A I hAI
+
+
+    let S := (⋃[i in I] A at i)
+    let T := (⨆[i in I] A at i)
+    let T₂ := (⋃[i in I] (DU A) at i)
+    let eq₁ := eq_subst (fun (t) => t ~ S) T₂ T (Eq.symm u₃) (
+
+      let P := fun (t) => π₁ t
+      let ψ := lam_fun T₂ S P
+
+      let pr₁ := lam_then_fun_prop P T₂ S (
+        fun (x hx) =>
+          let a₀ := Iff.mp (indexed_union_is_union (DU A) I (v₁) x) hx
+          Exists.elim a₀ (
+            fun (i hi) =>
+              Iff.mpr (indexed_union_is_union A I q₀ (P x)) (
+                Exists.intro i (
+                  And.intro (And.left hi) (fst_coor_set (A _ i) {i} x (
+                    eq_subst (fun (t) => x ∈ t) ((DU A) _ i) ((A _ i) × {i}) (And.right (DU_indxfun A I hAI) i (And.left hi)) (And.right hi)
+                  ))
+                )
+              )
+          )
+      )
+
+      let a₁ := Iff.mpr (func_inj_prop T₂ S ψ (And.left pr₁)) (
+        fun (x hx y hy hxy) =>
+          let m₂ := Eq.trans (Eq.symm (And.right pr₁ x hx)) hxy
+          let m₃ := Eq.trans m₂ (And.right pr₁ y hy)
+          let m₄ := Iff.mp (indexed_union_is_union (DU A) I (v₁) x) hx
+          let m₅ := Iff.mp (indexed_union_is_union (DU A) I (v₁) y) hy
+
+          Exists.elim m₄ (
+            fun (i hi) =>
+              Exists.elim m₅ (
+                fun (j hj) =>
+                  let m₆ := eq_subst (fun (t) => x ∈ t) ((DU A) _ i) ((A _ i) × {i}) (And.right (DU_indxfun A I hAI) i (And.left hi)) (And.right hi)
+                  let m₇ := eq_subst (fun (t) => y ∈ t) ((DU A) _ j) ((A _ j) × {j}) (And.right (DU_indxfun A I hAI) j (And.left hj)) (And.right hj)
+                  let m₈ := Iff.mp (cartesian_product_is_cartesian (A _ i) {i} x) m₆
+                  let m₉ := Iff.mp (cartesian_product_is_cartesian (A _ j) {j} y) m₇
+                  Exists.elim m₈ (
+                    fun (z hz) =>
+                      Exists.elim (And.right hz) (
+                        fun (r hr) =>
+                          Exists.elim m₉ (
+                            fun (s hs) =>
+                              Exists.elim (And.right hs) (
+                                fun (e he) =>
+
+                                  let m₁₀ := in_singl_elem i r (And.left hr)
+                                  let m₁₁ := in_singl_elem j e (And.left he)
+                                  let m₁₂ := coordinates_fst_coor z r
+                                  let m₁₃ := eq_subst (fun (t) => (π₁ t) = z) (z, r) x (Eq.symm (And.right hr)) (m₁₂)
+                                  let m₁₄ := coordinates_fst_coor s e
+                                  let m₁₅ := eq_subst (fun (t) => (π₁ t) = s) (s, e) y (Eq.symm (And.right he)) (m₁₄)
+                                  let m₁₆ := Eq.trans (Eq.symm m₁₃) (m₃)
+                                  let m₁₇ := Eq.trans m₁₆ m₁₅
+                                  let m₁₈ := eq_subst (fun (t) => t ∈ (A _ j)) (s) (z) (Eq.symm m₁₇) (And.left hs)
+                                  let m₁₉ := coordinates_snd_coor z r
+                                  let m₂₀ := coordinates_snd_coor s e
+                                  let m₂₁ := eq_subst (fun (t) => (π₂ t) = r) (z, r) x (Eq.symm (And.right hr)) (m₁₉)
+                                  let m₂₂ := eq_subst (fun (t) => (π₂ t) = e) (s, e) y (Eq.symm (And.right he)) (m₂₀)
+                                  let m₂₃ := Eq.trans m₂₁ m₁₀
+                                  let m₂₄ := Eq.trans m₂₂ m₁₁
+                                  Or.elim (em (i = j))
+                                  (
+                                    fun (hij) =>
+                                      equal_fst_snd (A _ i) {i} x y (m₆) (
+                                        eq_subst (fun (t) => y ∈ (A _ t) × {t}) (j) (i) (Eq.symm hij) (m₇)
+                                      ) (m₃) (Eq.trans m₂₃ (Eq.trans (hij) (Eq.symm m₂₄)))
+                                  )
+                                  (
+                                    fun (hnij) =>
+
+                                      let m₂₅ := Iff.mpr (intersect_2sets_prop (A _ i) (A _ j) z) (And.intro (And.left hz) (m₁₈))
+                                      let m₂₆ := hintemp i (And.left hi) j (And.left hj) (hnij)
+                                      let m₂₇ := eq_subst (fun (t) => z ∈ t) ((A _ i) ∩ (A _ j)) ∅ (m₂₆) (m₂₅)
+                                      False.elim (
+                                        empty_set_is_empty z (m₂₇)
+                                      )
+                                  )
+                              )
+                          )
+                      )
+                  )
+              )
+          )
+
+
+      )
+      let a₂ := Iff.mpr (func_surj_prop T₂ S ψ (And.left pr₁)) (
+        fun (x hx) =>
+          let a₃ := Iff.mp (indexed_union_is_union A I q₀ x) hx
+          Exists.elim a₃ (
+            fun (i hi) =>
+
+              let a₄ := Iff.mpr (cartesian_product_pair_prop (A _ i) {i} x i) (
+                And.intro (And.right hi) (elem_in_singl i)
+              )
+              let a₅ := eq_subst (fun (t) => (x, i) ∈ t) ((A _ i) × {i}) ((DU A) _ i) (Eq.symm (And.right (DU_indxfun A I hAI) i (And.left hi))) (a₄)
+
+              let a₆ := Iff.mpr (indexed_union_is_union (DU A) I v₁ (x, i)) (
+                Exists.intro i (And.intro (And.left hi) (a₅))
+              )
+
+              Exists.intro (x, i) (
+
+                And.intro (a₆) (Eq.symm (
+                  Eq.trans (And.right pr₁ (x, i) a₆) (coordinates_fst_coor x i)
+                ))
+              )
+          )
+      )
+
+      Exists.intro ψ (And.intro (And.left pr₁) (
+        And.intro (And.right a₁) (And.right a₂)
+      ))
+
+    )
+    equinum_symm T S (eq₁)
+
+
 
 
 theorem equinum_boolean_congr : ∀ A B, (A ~ B) → (𝒫 A ~ 𝒫 B) :=
