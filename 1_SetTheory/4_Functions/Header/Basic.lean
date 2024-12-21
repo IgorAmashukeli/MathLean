@@ -154,6 +154,8 @@ axiom all_ss_then_union_ss : ∀ A B, (∀ X ∈ A; X ⊆ B) → (⋃ A ⊆ B)
 axiom equality_then_subset : ∀ A B, A = B → A ⊆ B
 axiom difference_subset_prop : (∀ A B, A \ B ⊆ A)
 
+axiom intersect_2sets_is_intersect : (∀ A B, (⋂ {A, B}) = A ∩ B)
+
 axiom singl_subs : ∀ A x, x ∈ A → {x} ⊆ A
 
 
@@ -195,6 +197,33 @@ axiom cartesian_product_subset : ∀ A B C D, A ⊆ C → B ⊆ D → (A × B) �
 axiom fst_coor_set : ∀ A B pr, pr ∈ A × B → fst_coor pr ∈ A
 axiom snd_coor_set : ∀ A B pr, pr ∈ A × B → snd_coor pr ∈ B
 axiom fst_snd_then_unique : ∀ A B pr, pr ∈ A × B → pr = (fst_coor pr, snd_coor pr)
+
+
+noncomputable def disjoint_union (A B : Set) := (A × {∅}) ∪ (B × {{∅}})
+syntax term "⊔" term : term
+macro_rules
+| `($A ⊔ $B) => `(disjoint_union $A $B)
+
+
+
+noncomputable def disjoint_union_left (X: Set) := {y ∈ X | (π₂ y) = ∅}
+noncomputable def disjoint_union_right (X : Set) := {y ∈ X | (π₂ y) = {∅}}
+syntax "DUL" term : term
+syntax "DUR" term : term
+macro_rules
+| `(DUL $X) => `(disjoint_union_left $X)
+| `(DUR $X) => `(disjoint_union_right $X)
+
+
+theorem dul_A : ∀ A B, (DUL (A ⊔ B)) = (A × {∅}) := sorry
+theorem dur_B : ∀ A B, (DUR (A ⊔ B)) = (B × {{∅}}) := sorry
+theorem dul_subs : ∀ A B, (DUL (A ⊔ B)) ⊆ (A ⊔ B) := sorry
+theorem dur_subs : ∀ A B, (DUR (A ⊔ B)) ⊆ (A ⊔ B) := sorry
+theorem dulr_un : ∀ A B, (A ⊔ B) = (DUL (A ⊔ B)) ∪ (DUR (A ⊔ B)) := sorry
+theorem dulr_in : ∀ A B, (DUL (A ⊔ B)) ∩ (DUR (A ⊔ B)) = ∅ := sorry
+theorem disj_in_left : ∀ A B x, (x ∈ A) → ((x, ∅) ∈ (A ⊔ B)) := sorry
+theorem disj_in_right : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B)) := sorry
+theorem disjunion2_pair_prop : ∀ A B x y, (x, y) ∈ (A ⊔ B) ↔ (x ∈ A ∧ y = ∅) ∨ (x ∈ B ∧ y = {∅}) := sorry
 
 -- tuple syntax
 declare_syntax_cat pair_comprehension

@@ -348,6 +348,19 @@ theorem fun_indexed_is_indexed :
 ∀ A I, (A IndxFun I) → (A Indx I) := sorry
 
 
+noncomputable def I2 := {∅, {∅}}
+noncomputable def l2 := ∅
+noncomputable def r2 := {∅}
+noncomputable def X2 (A B) := {A, B}
+noncomputable def ind2_fun (A B) := {(∅, A), ({∅}, B)}
+
+
+
+
+theorem ind2_fun_is_fun : ∀ A B, ((ind2_fun A B) Fun I2 To (X2 A B)) ∧ ((ind2_fun A B)⦅l2⦆ = A) ∧ ((ind2_fun A B)⦅r2⦆ = B) := sorry
+theorem ind2_fun_is_fun_in : ∀ x y M, (x ∈ M) → (y ∈ M) → ((ind2_fun x y) Fun I2 To M) := sorry
+
+
 -- 37) Indexed union and its properties
 noncomputable def indexed_union (A I : Set) := ⋃ (A.[I])
 syntax "⋃[" term "in" term "]" term "at" term : term
@@ -357,6 +370,8 @@ theorem indexed_union_is_union :
 ∀ A I, (A Indx I) → ∀ x, (x ∈ (⋃[ i in I ] A at i)) ↔ (∃ i ∈ I; x ∈ (A _ i)) := sorry
 theorem indexed_sub_indexed_union :
 ∀ A I, (A Indx I) → (∀ i ∈ I; (A _ i) ⊆ (⋃[ i in I ] A at i)) := sorry
+theorem unind_as_ind2 : ∀ A B, (A ∪ B) = (⋃[i in I2] (ind2_fun A B) at i) := sorry
+
 
 
 -- 38) Indexed intersection and its properties
@@ -370,6 +385,7 @@ theorem indexed_intersection_empty :
 ∀ A I, (I = ∅) → ((⋂[ i in I ] A at i) = ∅) := sorry
 theorem indexed_intersection_sub_indexed:
 ∀ A I, (A IndxFun I) → (∀ i ∈ I; (⋂[ i in I ] A at i) ⊆ (A _ i)) := sorry
+theorem intind_as_ind2 : ∀ A B, (A ∩ B) = (⋂[i in I2] (ind2_fun A B) at i) := sorry
 
 
 
@@ -407,6 +423,8 @@ theorem indexed_disjoined_set_unin : ∀ A I i, (A IndxFun I) → (i ∈ I) → 
 theorem indexed_disjoined_set_un : ∀ A I, (A IndxFun I) → (⨆[ i in I ] A at i) = (⋃[i in I] (DU A) at i) := sorry
 theorem indexed_disjoined_set_int2 : ∀ A I i j, (A IndxFun I) → (i ∈ I) → (j ∈ I) → (i ≠ j) → ((DU A) _ i) ∩ ((DU A) _ j) = ∅ := sorry
 theorem indexed_disjoined_set_int : ∀ A I, (∀ j, I ≠ {j}) → (A IndxFun I) → (⋂[i in I] (DU A) at i) = ∅ := sorry
+
+theorem dijunind_as_ind2 : ∀ A B, (A ⊔ B) = (⨆[i in I2] (ind2_fun A B) at i) := sorry
 
 
 -- 40) Indexed product and its properties

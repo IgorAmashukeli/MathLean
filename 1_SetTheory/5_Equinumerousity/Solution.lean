@@ -1142,6 +1142,154 @@ theorem equinum_power_cartesian : ∀ A B C, ((A ℙow B) ℙow C) ~ (A ℙow (B
 
 
 
+theorem equium_2cart_cart : ∀ A B, (A × B) ~ (∏[ i in I2 ] (ind2_fun A B) at i) :=
+  fun (A B) =>
+    let S := (A × B)
+    let f := (ind2_fun A B)
+    let T := (∏[ i in I2 ] f at i)
+    let U := (⋃[ i in I2 ] f at i)
+    let P := fun (t) => {(l2, π₁ t), (r2, π₂ t)}
+    let ψ := lam_fun S T P
+    let Q := fun (g) => ∀ i ∈ I2; g⦅i⦆ ∈ (f _ i)
+    let X :=  (U ℙow (I2))
+    let Uprp := unind_as_ind2 A B
+    let find2 := And.right (ind2_fun_is_fun A B)
+
+    let pr₁ := lam_then_fun_prop P S T (
+      fun (x hx) =>
+
+        let m₁ := fst_coor_set A B x hx
+        let m₂ := snd_coor_set A B x hx
+
+        let Pind2 := And.right (ind2_fun_is_fun (π₁ x) (π₂ x))
+        let Pind2l2 := And.left Pind2
+        let Pind2r2 := And.right Pind2
+
+        let pow_prp := Iff.mpr (power_set_prop I2 U (P x)) (
+          eq_subst (fun (t) => (P x) Fun I2 To t) (A ∪ B) (U) (Uprp) (
+            ind2_fun_is_fun_in (π₁ (x)) (π₂ (x)) (A ∪ B) (And.left (union2sets_subset_prop A B) (π₁ x) (
+              m₁
+            )) (
+              And.right (union2sets_subset_prop A B) (π₂ x) (m₂)
+            )
+          )
+        )
+
+
+        let m₃ : (π₁ x) ∈ f _ l2 := eq_subst (fun (t) => (π₁ x) ∈ t) (A) (f _ l2) (Eq.symm (And.left find2)) (m₁)
+
+        let m₄ : (π₂ x) ∈ f _ r2 := eq_subst (fun (t) => (π₂ x) ∈ t) (B) (f _ r2) (Eq.symm (And.right find2)) (m₂)
+
+        let m₅ : (P x)⦅l2⦆ ∈ f _ l2 := eq_subst (fun (t) => t ∈ (f _ l2)) (π₁ x) ((P x)⦅l2⦆) (Eq.symm (Pind2l2
+        )) (m₃)
+
+        let m₆ : (P x)⦅r2⦆ ∈ f _ r2 := eq_subst (fun (t) => t ∈ (f _ r2)) (π₂ x) ((P x)⦅r2⦆) (Eq.symm (Pind2r2)) (m₄)
+
+
+
+        Iff.mpr (spec_is_spec Q X (P x)) (
+          And.intro (pow_prp) (
+            fun (i hi) =>
+              Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair l2 r2 i) hi)
+              (
+                fun (hil2) =>
+                  eq_subst (fun (t) => (P x)⦅t⦆ ∈ f _ t) l2 i (Eq.symm hil2) (m₅)
+              )
+              (
+                fun (hir2) =>
+                  eq_subst (fun (t) => (P x)⦅t⦆ ∈ f _ t) r2 i (Eq.symm hir2) (m₆)
+              )
+          )
+        )
+    )
+    let func := And.left pr₁
+    let u₁ := And.right (Iff.mpr (func_inj_prop S T ψ func) (
+      fun (x hx y hy hxy) =>
+        let u₀ := And.right pr₁ x hx
+        let u₀₀ := And.right pr₁ y hy
+        let u₁ := val_in_B ψ S T (And.left pr₁) x hx
+        let u₂ := specification_set_subset Q X (ψ⦅x⦆) u₁
+        let u₃ := Iff.mp (power_set_prop I2 U (ψ⦅x⦆)) u₂
+        let u₄ := val_in_B ψ S T (And.left pr₁) y hy
+        let u₅ := specification_set_subset Q X (ψ⦅y⦆) u₄
+        let u₆ := Iff.mp (power_set_prop I2 U (ψ⦅y⦆)) u₅
+        let u₇ := Iff.mp (equal_functions_abc_A (ψ⦅x⦆) (ψ⦅y⦆) I2 U U (u₃) (u₆)) hxy
+        let u₈ := u₇ l2 (left_unordered_pair l2 r2)
+        let u₉ := u₇ r2 (right_unordered_pair l2 r2)
+        let u₁₀ := eq_subst (fun (t) => t⦅l2⦆ = (P y)⦅l2⦆) (ψ⦅x⦆) (P x) (u₀) (
+          eq_subst (fun (t) => (ψ⦅x⦆)⦅l2⦆ = (t)⦅l2⦆) (ψ⦅y⦆) (P y) (u₀₀) (u₈)
+        )
+        let u₁₁ := eq_subst (fun (t) => t⦅r2⦆ = (P y)⦅r2⦆) (ψ⦅x⦆) (P x) (u₀) (
+          eq_subst (fun (t) => (ψ⦅x⦆)⦅r2⦆ = (t)⦅r2⦆) (ψ⦅y⦆) (P y) (u₀₀) (u₉)
+        )
+
+        let u₁₂ : (P x)⦅l2⦆ = (π₁ x) := And.left (And.right (ind2_fun_is_fun (π₁ x) (π₂ x)))
+        let u₁₃ : (P x)⦅r2⦆ = (π₂ x) := And.right (And.right (ind2_fun_is_fun (π₁ x) (π₂ x)))
+        let u₁₄ : (P y)⦅l2⦆ = (π₁ y) := And.left (And.right (ind2_fun_is_fun (π₁ y) (π₂ y)))
+        let u₁₅ : (P y)⦅r2⦆ = (π₂ y) := And.right (And.right (ind2_fun_is_fun (π₁ y) (π₂ y)))
+
+        let u₁₆ := Eq.trans (Eq.symm u₁₂) (Eq.trans (u₁₀) (u₁₄))
+        let u₁₇ := Eq.trans (Eq.symm u₁₃) (Eq.trans (u₁₁) (u₁₅))
+
+
+        equal_fst_snd A B x y hx hy u₁₆ u₁₇
+    ))
+    let u₂ := And.right (Iff.mpr (func_surj_prop S T ψ func) (
+      fun (fnc hfnc) =>
+
+        let s₁ := Iff.mp (spec_is_spec Q X fnc) hfnc
+        let s₂ := And.right s₁ l2 (left_unordered_pair l2 r2)
+        let s₃ := eq_subst (fun (t) => fnc⦅l2⦆ ∈ t) (f _ l2) (A) (And.left find2) (s₂)
+        let s₄ := And.right s₁ r2 (right_unordered_pair l2 r2)
+        let s₅ := eq_subst (fun (t) => fnc⦅r2⦆ ∈ t) (f _ r2) (B) (And.right find2) (s₄)
+        let s₇ := coordinates_fst_coor (fnc⦅l2⦆) (fnc⦅r2⦆)
+        let s₈ := coordinates_snd_coor (fnc⦅l2⦆) (fnc⦅r2⦆)
+
+        let x := (fnc⦅l2⦆, fnc⦅r2⦆)
+
+        Exists.intro (x) (
+          let s₆ := Iff.mpr (cartesian_product_pair_prop A B (fnc⦅l2⦆) (fnc⦅r2⦆)) (And.intro s₃ s₅)
+          And.intro (s₆) (Eq.trans (
+
+            eq_subst (fun (t) => fnc = {(l2, t), (r2, π₂ x)}) (fnc⦅l2⦆) (π₁ x) (Eq.symm s₇) (
+              eq_subst (fun (t) => fnc = {(l2, fnc⦅l2⦆), (r2, t)}) (fnc⦅r2⦆) (π₂ x) (Eq.symm s₈) (
+                let fnc_st := specification_set_subset Q X fnc hfnc
+                let fnc_pow := Iff.mp (power_set_prop I2 U fnc) fnc_st
+                let fnc_pow₂ := eq_subst (fun (t) => fnc Fun I2 To t) (U) (A ∪ B) (Eq.symm Uprp) (fnc_pow)
+                let is_ind2pr := And.right (ind2_fun_is_fun (fnc⦅l2⦆) (fnc⦅r2⦆))
+                let is_ind2prl2 := And.left is_ind2pr
+                let is_ind2prr2 := And.right is_ind2pr
+                let R := ind2_fun (fnc⦅l2⦆) (fnc⦅r2⦆)
+                Iff.mpr (equal_functions_abc_A fnc (ind2_fun (fnc⦅l2⦆) (fnc⦅r2⦆)) I2 (A ∪ B) (A ∪ B) (fnc_pow₂) (
+                  ind2_fun_is_fun_in (fnc⦅l2⦆) (fnc⦅r2⦆) (A ∪ B) (val_in_B fnc I2 (A ∪ B) fnc_pow₂ l2 (left_unordered_pair l2 r2)) (
+                    val_in_B fnc I2 (A ∪ B) fnc_pow₂ r2 (right_unordered_pair l2 r2)
+                  )
+                )) (
+                  fun (x hx) =>
+
+                    Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair l2 r2 x) hx)
+                    (
+
+                      fun (hxl2) =>
+                        eq_subst (fun (t) => fnc⦅t⦆ = R⦅t⦆) (l2) (x) (Eq.symm hxl2) (Eq.symm is_ind2prl2)
+                    )
+                    (
+                      fun (hxr2) =>
+                        eq_subst (fun (t) => fnc⦅t⦆ = R⦅t⦆) (r2) (x) (Eq.symm hxr2) (Eq.symm is_ind2prr2)
+                    )
+                )
+              )
+            )
+
+
+          ) (Eq.symm (And.right pr₁ x s₆))))
+        )
+    )
+
+    Exists.intro ψ (And.intro (func) (
+      And.intro (u₁) (u₂)
+    ))
+
 
 
 theorem equinum_dul : ∀ A B, A ~ (DUL (A ⊔ B)) :=

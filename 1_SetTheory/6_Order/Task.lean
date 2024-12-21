@@ -23,7 +23,6 @@ def asymm (R : Set) : Prop := ∀ x y, ((x . R . y) → ¬ (y . R . x))
 def transit(R : Set) : Prop := ∀ x y z, (x . R . y) ∧ (y . R . z) → (x . R . z)
 def str_conn (R A : Set) : Prop := ∀ x y ∈ A; ((x . R . y) ∨ (y . R . x))
 def wkl_conn (R A : Set) : Prop := ∀ x y ∈ A; ((x ≠ y) → (x . R . y) ∨ (y . R . x))
-def trichotomous (R A : Set) : Prop := ∀ x y ∈ A; ((x = y) ⨁ (x . R . y) ⨁ (y . R . x))
 
 
 -- 3) Criteria of the properties of binary relations on one sets
@@ -151,6 +150,9 @@ macro_rules
 theorem part_ord_nspo_crit : ∀ A R₁ R₂, (R₁ with R₂ PO A) ↔ ((A ≠ ∅) ∧ (R₂ NSPO A) ∧ (R₁ = str A R₂)) := sorry
 theorem part_ord_crit :
 ∀ A R₁ R₂, (R₁ with R₂ PO A) ↔ (A ≠ ∅ ∧ (R₁ SPO A) ∧ (R₂ NSPO A) ∧ (R₂ = nonstr A R₁) ∧ (R₁ = str A R₂)) := sorry
+
+
+-- 17) Partial Order, operations on PO: inverse, subset of a set, intersection of relations, cartesian coordinate
 def is_PO (𝓐 : Set) : Prop := ∃ A R₁ R₂, 𝓐 = ⁅A; R₁; R₂⁆ ∧ (is_partial_order A R₁ R₂)
 syntax "PartOrd" term : term
 macro_rules
@@ -169,6 +171,19 @@ macro_rules
 | `(≼($𝓐:term )) => `(less_eq_PO $𝓐)
 | `(≻($𝓐:term )) => `((≺($𝓐))⁻¹)
 | `(≽($𝓐:term )) => `((≼($𝓐))⁻¹)
+
+
+noncomputable def PO_from_str (A R₁) := ⁅A; R₁; nonstr A R₁⁆
+noncomputable def PO_from_nonstr (A R₂) := ⁅A; str A R₂; R₂⁆
+syntax term "StrIntro" term : term
+syntax term "NoNStrIntro" term : term
+macro_rules
+| `($A StrIntro $R₁:term) => `(PO_from_str $A $R₁)
+| `($A NoNStrIntro $R₂:term) => `(PO_from_nonstr $A $R₂)
+
+
+theorem po_from_str_is_po : ∀ A R₁, (A ≠ ∅) → (R₁ SPO A) → (PartOrd (A StrIntro R₁)) := sorry
+theorem po_from_non_str_is_po : ∀ A R₂, (A ≠ ∅) → (R₂ NSPO A) → (PartOrd (A NoNStrIntro R₂)) := sorry
 
 noncomputable def inv_PO (𝓐) := ⁅setPO(𝓐); ≻(𝓐); ≽(𝓐)⁆
 syntax "invPO" term : term
@@ -198,8 +213,24 @@ macro_rules
 | `($𝓐 Cart2CordPO $𝓑) => `(cartesian2_coordinate_part_ord $𝓐 $𝓑)
 
 
+noncomputable def setpo_disj2 (𝓐 𝓑) := setPO(𝓐) ⊔ setPO(𝓑)
+def disj_pred2_R₁ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧ ((π₁ x) . ≺(𝓐) . (π₁ y))) ∨
+  ((π₂ x) = r2 ∧ (π₂ y) = r2 ∧ ((π₁ x) . ≺(𝓑) . (π₁ y))) ∨
+  ((π₂ x) = l2 ∧ (π₂ y) = r2)
+def disj_pred2_R₂ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧ ((π₁ x) . ≺(𝓐) . (π₁ y))) ∨
+  ((π₂ x) = r2 ∧ (π₂ y) = r2 ∧ ((π₁ x) . ≼(𝓑) . (π₁ y))) ∨
+  ((π₂ x) = l2 ∧ (π₂ y) = r2)
+noncomputable def le_disj2 (𝓐 𝓑) := {(x, y) ∈ (setpo_disj2 𝓐 𝓑) × (setpo_disj2 𝓐 𝓑) | disj_pred2_R₁ 𝓐 𝓑 x y }
+
+noncomputable def po_disj2 (𝓐 𝓑) := ((setpo_disj2 𝓐 𝓑) StrIntro (le_disj2 𝓐 𝓑))
+syntax term "P⨁O" term : term
+macro_rules
+| `($𝓐 P⨁O $𝓑) => `(po_disj2 $𝓐 $𝓑)
 
 
+
+theorem prec_SPO : ∀ 𝓐, (PartOrd 𝓐) → ((≺(𝓐)) SPO (setPO(𝓐))) := sorry
+theorem preceq_NSPO : ∀ 𝓐, (PartOrd 𝓐) → ((≼(𝓐)) NSPO (setPO(𝓐))) := sorry
 theorem setPO_is_setPO : ∀ A R₁ R₂, (setPO(⁅A; R₁; R₂⁆) = A) := sorry
 theorem lessPO_is_lessPO :  ∀ A R₁ R₂, (≺(⁅A; R₁; R₂⁆) = R₁) := sorry
 theorem lesseqPO_is_lesseqPO : ∀ A R₁ R₂, (≼(⁅A; R₁; R₂⁆) = R₂) := sorry
@@ -209,8 +240,11 @@ theorem po_less_more : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≺(𝓐)) . 
 theorem po_lesseq_moreeq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(𝓐)) . y) ↔ (y . ≽(𝓐) . x) := sorry
 theorem po_emp : ∀ 𝓐, (PartOrd 𝓐) → (setPO(𝓐) ≠ ∅) := sorry
 
--- 17) sub of PO, inverse of a PO, intersection of two PO, cartesian product of two PO
+-- 17) sub of PO, inverse of a PO, intersection of two PO, cartesian product of two PO, summ (disjunctive union) of two products is po
+theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 P⨁O 𝓑)) := sorry
+theorem leq_sum : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≼(𝓐) . y) ↔ (disj_pred2_R₂ 𝓐 𝓑 x y))) := sorry
 theorem inv_is_PO : ∀ 𝓐, (PartOrd 𝓐) → (PartOrd (invPO 𝓐) ) := sorry
+theorem invinv_po_is_po : ∀ 𝓐, (PartOrd 𝓐) → ( invPO (invPO 𝓐)) = 𝓐 := sorry
 theorem sub_is_PO : ∀ 𝓐 B, (B ≠ ∅) → (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (PartOrd (𝓐 SubsPO B)) := sorry
 theorem inter_is_PO_PO :
 ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (setPO(𝓐) = setPO(𝓑)) → (PartOrd (𝓐 InterPO 𝓑)) := sorry
@@ -548,7 +582,13 @@ theorem lrc_min : ∀ 𝓐, ∀ a ∈ setPO(𝓐); ∀ b, (PartOrd 𝓐) → (a 
 theorem lrc_max : ∀ 𝓐 a, ∀ b ∈ setPO(𝓐); (PartOrd 𝓐) → (a . ≼(𝓐) . b) → (is_maximum 𝓐 (⟦ a ; b ⟧ of 𝓐) b) := sorry
 
 
--- 32) lattice, complete lattice, monotonic functions on relation, fix point sets and their properties
+-- 32) semilattice, lattice, complete lattice, monotonic functions on relation, fix point sets and their properties
+def is_semilattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
+(∀ x y ∈ (setPO(𝓐)); (𝓐 InfmExi ({x, y})))
+syntax "SemiLatt" term : term
+macro_rules
+| `(SemiLatt $𝓐) => `(is_semilattice $𝓐)
+
 def is_lattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
 (∀ x y ∈ (setPO(𝓐)); (𝓐 SuprExi ({x, y})) ∧ (𝓐 InfmExi ({x, y})))
 syntax "Latt" term : term
@@ -571,9 +611,30 @@ syntax term "FixOn" term : term
 macro_rules
 | `($f:term FixOn $𝓐) => `(fix_point_set $𝓐 $f)
 
+def is_operation (A f : Set) : Prop := f Fun (A × A) To A
+def is_impodent_op (A f : Set) : Prop := ∀ x ∈ A; f⦅x; x⦆ = x
+def is_commut_op (A f : Set) : Prop := ∀ x y ∈ A; f⦅x; y⦆ = f⦅y ; x⦆
+def is_assoc_op (A f : Set) : Prop := ∀ x y z ∈ A; f⦅f⦅x; y⦆; z⦆ = f⦅x; f⦅y;z⦆⦆
+def is_semilattfunc (A f : Set) : Prop := (f Fun (A × A) To A) ∧ is_impodent_op A f ∧ is_commut_op A f ∧ is_assoc_op A f
+syntax term "SemLatFunOn" term : term
+macro_rules
+| `($f SemLatFunOn $A) => `(is_semilattfunc $A $f)
+
+noncomputable def leq_semifunclatt (A f) := {(x, y) ∈ A × A | f⦅x; y⦆ = x}
+
+noncomputable def fun_semilat (A f) := ⁅A; str A (leq_semifunclatt A f); (leq_semifunclatt A f)⁆
+syntax term "SemLatF" term : term
+macro_rules
+| `($A SemLatF $f) => `(fun_semilat $A $f)
+
+theorem semilatt_op : ∀ A f, (f SemLatFunOn A) → (SemiLatt (A SemLatF f)) ∧ (∀ x y ∈ A; f⦅x; y⦆ = (A SemLatF f) Infm {x, y}) := sorry
+theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) := sorry
+theorem latt_is_semilatt : ∀ 𝓐, (Latt 𝓐) → (SemiLatt 𝓐) := sorry
+theorem latt_inv : ∀ 𝓐, (PartOrd 𝓐) → ((Latt 𝓐) ↔ (Latt (invPO 𝓐))) := sorry
+theorem compllatt_inv : ∀ 𝓐, (PartOrd 𝓐) → ((CompLatt 𝓐) ↔ (CompLatt 𝓐)) := sorry
+theorem latt_as_semilatts : ∀ 𝓐, (Latt 𝓐) ↔ ((SemiLatt 𝓐) ∧ (SemiLatt (invPO 𝓐))) := sorry
 theorem boolean_Latt : ∀ A, (Latt (BoolPO A)) := sorry
 theorem compl_latt_inf_crit : ∀ 𝓐, (CompLatt 𝓐) ↔ (∀ X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X)) := sorry
-theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) := sorry
 theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) := sorry
 theorem Knaster_Tarski_lemma₀ : ∀ 𝓐, ∀ a b ∈ setPO(𝓐); (a . ≼(𝓐) . b) → (CompLatt 𝓐) → (CompLatt (𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐))) := sorry
 theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 MaxExi (f FixOn 𝓐)) := sorry
@@ -829,6 +890,7 @@ theorem poiso_subset_prop (φ : Set → Set → Prop) :
 (∀ 𝓐 𝓑 f X, (X ⊆ setPO(𝓐)) → (f PO_ISO_PO 𝓐 To 𝓑) → ((φ 𝓐 X) ↔ (φ 𝓑 (f.[X])))) →
 (∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((∀ X, (X ⊆ setPO(𝓐)) → (φ 𝓐 X)) ↔ (∀ X, (X ⊆ setPO(𝓑)) → (φ 𝓑 X)))) := sorry
 
+theorem poiso_semilatt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((SemiLatt 𝓐) ↔ (SemiLatt 𝓑)) := sorry
 theorem poiso_latt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((Latt 𝓐) ↔ (Latt 𝓑)) := sorry
 theorem poiso_complatt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((CompLatt 𝓐) ↔ (CompLatt 𝓑)) := sorry
 theorem poiso_linord : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((LinOrd 𝓐) ↔ (LinOrd 𝓑)) := sorry

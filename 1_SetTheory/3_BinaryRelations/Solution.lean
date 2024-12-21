@@ -1240,7 +1240,46 @@ theorem inv_rng: ∀ R, (BinRel R) → rng (R⁻¹) = dom R :=
     eq_subst (fun (t) => rng (R⁻¹) = dom t) ((R⁻¹)⁻¹) R (inv_prop R h) second
 
 
+noncomputable def bin_spec (φ : Set → Set → Prop) (A : Set) := {s ∈ A | φ (π₁ s) (π₂ s) }
+syntax "{" "(" ident "," ident ")"  "∈" term "|" term "}" : term
+macro_rules
+  | `({ ($x:ident, $y:ident) ∈ $A:term | $property:term })  => `(bin_spec (fun ($x) => fun($y) => $property) $A)
 
+
+theorem bin_spec_is_spec (φ : Set → Set → Prop) : ∀ A B x y, (x, y) ∈ {(x, y) ∈ A × B | φ x y} ↔ ((x ∈ A ∧ y ∈ B) ∧ (φ x y)) :=
+  fun (A B x y) =>
+    let P := fun (s) => φ (π₁ s) (π₂ s)
+    let M := A × B
+    Iff.intro
+    (
+      fun (hxy) =>
+        let u₁ := Iff.mp (spec_is_spec P M (x, y)) hxy
+        And.intro (Iff.mp (cartesian_product_pair_prop A B x y) (And.left u₁)) (
+          eq_subst (fun (t) => φ t y) (π₁ (x, y)) (x) (coordinates_fst_coor x y) (
+            eq_subst (fun (t) => φ (π₁ (x, y)) t) (π₂ (x, y)) (y) (coordinates_snd_coor x y) (
+              And.right u₁
+            )
+          )
+        )
+    )
+    (
+      fun (hxy) =>
+        Iff.mpr (spec_is_spec P M (x, y)) (
+          And.intro (Iff.mpr (cartesian_product_pair_prop A B x y) (And.intro (And.left (And.left hxy)) (And.right (And.left hxy)))) (
+            eq_subst (fun (t) => φ t (π₂ (x, y))) (x) (π₁ (x, y)) (Eq.symm (coordinates_fst_coor x y)) (
+              eq_subst (fun (t) => φ x t) (y) (π₂ (x, y)) (Eq.symm (coordinates_snd_coor x y)) (
+                And.right hxy
+              )
+            )
+          )
+        )
+    )
+
+
+theorem bin_spec_is_binAB (φ : Set → Set → Prop) : ∀ A B, {(x, y) ∈ A × B | φ x y} BinRelBtw A AND B :=
+  fun (A B) =>
+    let P := fun (s) => φ (π₁ s) (π₂ s)
+    specification_set_subset P (A × B)
 
 
 

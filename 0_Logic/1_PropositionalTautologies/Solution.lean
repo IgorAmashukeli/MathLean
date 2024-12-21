@@ -469,15 +469,13 @@ theorem peirce (p q : Prop) : (((p → q) → p) → p) :=
 
 -- 27) Xor definition
 def xor_pr (p q : Prop) : Prop := (p ∧ ¬q) ∨ (¬p ∧ q)
-syntax term "⨁" term : term
-macro_rules
-| `($p:term ⨁ $q:term) => `(xor_pr $p $q)
+macro l:term:10 " ⊕ " r:term:11 : term => `(xor_pr $l $r)
 
 -- 28) Xor properties
-theorem xor_equiv_def (p q : Prop) : (p ⨁ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))) :=
+theorem xor_equiv_def (p q : Prop) : (p ⊕ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))) :=
    Iff.intro
    (
-      fun (hpq : (p ⨁ q)) =>
+      fun (hpq : (p ⊕ q)) =>
          Or.elim hpq
          (
             fun (hpnq : p ∧ ¬q) =>
@@ -521,8 +519,8 @@ theorem xor_equiv_def (p q : Prop) : (p ⨁ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))
    )
 
 
-theorem xor_equal  (p : Prop): ¬ (p ⨁ p) :=
-   fun (hpp : (p ⨁ p)) =>
+theorem xor_equal  (p : Prop): ¬ (p ⊕ p) :=
+   fun (hpp : (p ⊕ p)) =>
       Or.elim hpp
       (
          fun (hpnp : p ∧ ¬ p) =>
@@ -533,7 +531,7 @@ theorem xor_equal  (p : Prop): ¬ (p ⨁ p) :=
             And.left hnpp (And.right hnpp)
       )
 
-theorem xor_neg  (p : Prop) : (p ⨁ ¬ p) :=
+theorem xor_neg  (p : Prop) : (p ⊕ ¬ p) :=
    Or.elim (tnd p)
    (
       fun (hp : p) =>
@@ -544,8 +542,8 @@ theorem xor_neg  (p : Prop) : (p ⨁ ¬ p) :=
          Or.inr (And.intro hnp hnp)
    )
 
-theorem xor_comm  (p q : Prop) : (p ⨁ q) ↔ (q ⨁ p) :=
-   let first := fun (x) => fun (y) => fun (hxy : (x ⨁ y)) =>
+theorem xor_comm  (p q : Prop) : (p ⊕ q) ↔ (q ⊕ p) :=
+   let first := fun (x : Prop) => fun (y : Prop) => fun (hxy : (x ⊕ y)) =>
          Or.elim hxy
          (
             fun (hxny : x ∧ ¬y) =>
@@ -563,17 +561,17 @@ theorem xor_comm  (p q : Prop) : (p ⨁ q) ↔ (q ⨁ p) :=
       first q p
    )
 
-theorem xor_assoc  (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) :=
-   let first : ∀ p q r, ((p ⨁ q) ⨁ r)  → (p ⨁ (q ⨁ r)) := fun (p) => fun (q) => fun (r) => (
-      fun (hpqr : ((p ⨁ q) ⨁ r)) =>
+theorem xor_assoc  (p q r : Prop) : ((p ⊕ q) ⊕ r) ↔ (p ⊕ (q ⊕ r)) :=
+   let first : ∀ p q r : Prop, ((p ⊕ q) ⊕ r)  → (p ⊕ (q ⊕ r)) := fun (p) => fun (q) => fun (r) => (
+      fun (hpqr : ((p ⊕ q) ⊕ r)) =>
          Or.elim hpqr
          (
-            fun (hpqar : (p ⨁ q) ∧ ¬r) =>
+            fun (hpqar : (p ⊕ q) ∧ ¬r) =>
                Or.elim (And.left hpqar)
                (
                   fun (hpnq : p ∧ ¬q) =>
                      Or.inl (And.intro (And.left hpnq) (
-                        fun (hqr : q ⨁ r) =>
+                        fun (hqr : q ⊕ r) =>
                            Or.elim (And.left (Iff.mp (xor_equiv_def q r) hqr))
                            (
                               fun (hq : q) =>
@@ -595,7 +593,7 @@ theorem xor_assoc  (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) :=
                )
          )
          (
-            fun (hnpqr : ¬(p ⨁ q) ∧ r) =>
+            fun (hnpqr : ¬(p ⊕ q) ∧ r) =>
                Or.elim (tnd q)
                (
                   fun (hq : q) =>
@@ -608,7 +606,7 @@ theorem xor_assoc  (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) :=
                                  )
                            )
                         ) (
-                           fun (hqr : q ⨁ r) =>
+                           fun (hqr : q ⊕ r) =>
                               And.right (Iff.mp (xor_equiv_def q r) hqr) (And.intro (hq) (And.right hnpqr))
                         )
                      )
@@ -631,40 +629,40 @@ theorem xor_assoc  (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) :=
    Iff.intro
    (first p q r)
    (
-      fun (hpqr : (p ⨁ (q ⨁ r))) =>
-         let u := Iff.mp (xor_comm p (q ⨁ r)) hpqr
-         let v : (q ⨁ (r ⨁ p)) := first q r p u
-         let s := Iff.mp (xor_comm q (r ⨁ p)) v
+      fun (hpqr : (p ⊕ (q ⊕ r))) =>
+         let u := Iff.mp (xor_comm p (q ⊕ r)) hpqr
+         let v : (q ⊕ (r ⊕ p)) := first q r p u
+         let s := Iff.mp (xor_comm q (r ⊕ p)) v
          let t := first r p q s
-         Iff.mp (xor_comm r (p ⨁ q)) t
+         Iff.mp (xor_comm r (p ⊕ q)) t
    )
 
 
 
 
-theorem xor_introl (p q : Prop) : (p ∧ ¬q) → (p ⨁ q) :=
+theorem xor_introl (p q : Prop) : (p ∧ ¬q) → (p ⊕ q) :=
    Or.inl
 
 
-theorem xor_intror (p q : Prop) : (¬p ∧ q) → (p ⨁ q) :=
+theorem xor_intror (p q : Prop) : (¬p ∧ q) → (p ⊕ q) :=
    Or.inr
 
-theorem xor_intro (p q : Prop) : (p ∨ q) → (¬ (p ∧ q)) → (p ⨁ q) :=
+theorem xor_intro (p q : Prop) : (p ∨ q) → (¬ (p ∧ q)) → (p ⊕ q) :=
    fun (hpq : p ∨ q) =>
       fun (hnpq : (¬ (p ∧ q))) =>
          Iff.mpr (xor_equiv_def p q) (And.intro hpq hnpq)
 
 
-theorem xor_left (p q : Prop) : (p ⨁ q) → (p ∨ q) :=
-   fun (hpq : p ⨁ q) =>
+theorem xor_left (p q : Prop) : (p ⊕ q) → (p ∨ q) :=
+   fun (hpq : p ⊕ q) =>
       And.left (Iff.mp (xor_equiv_def p q) hpq)
 
-theorem xor_right (p q : Prop) : (p ⨁ q) → (¬ (p ∧ q)) :=
-   fun (hpq : p ⨁ q) =>
+theorem xor_right (p q : Prop) : (p ⊕ q) → (¬ (p ∧ q)) :=
+   fun (hpq : p ⊕ q) =>
       And.right (Iff.mp (xor_equiv_def p q) hpq)
 
-theorem xor_elim (p q r : Prop) : (p ⨁ q) → ((p ∧ ¬q) → r) → ((¬p ∧ q) → r) → r :=
-   fun (hpq : p ⨁ q) =>
+theorem xor_elim (p q r : Prop) : (p ⊕ q) → ((p ∧ ¬q) → r) → ((¬p ∧ q) → r) → r :=
+   fun (hpq : p ⊕ q) =>
       fun (hpnqr : ((p ∧ ¬q) → r)) =>
          fun (hnpqr : ((¬p ∧ q) → r)) =>
             Or.elim hpq

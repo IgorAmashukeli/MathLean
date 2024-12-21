@@ -30,6 +30,7 @@ theorem equinum_power_congr_right : ∀ A B C, (A ~ B) → (A ℙow C) ~ (B ℙo
 theorem equinum_power_congr_left : ∀ A B C, (A ~ B) → (C ℙow A) ~ (C ℙow B) := sorry
 theorem equinum_cartesian_power : ∀ A B C, ((A × B) ℙow C) ~ (A ℙow C) × (B ℙow C) := sorry
 theorem equinum_power_cartesian : ∀ A B C, ((A ℙow B) ℙow C) ~ (A ℙow (B × C)) := sorry
+theorem equium_2cart_cart : ∀ A B, (A × B) ~ (∏[ i in I2 ] (ind2_fun A B) at i) := sorry
 
 
 -- 4) Equinumerousity of disjoint unions:
@@ -46,7 +47,7 @@ theorem equinum_boolean_congr : ∀ A B, (A ~ B) → (𝒫 A ~ 𝒫 B) := sorry
 
 
 -- 6) Equinumerousity of boolean and power sets
-theorem equinum_power_boolean : ∀ A, ({∅, {∅}} ℙow A) ~ 𝒫 A := sorry
+theorem equinum_power_boolean : ∀ A, (I2 ℙow A) ~ 𝒫 A := sorry
 
 
 -- 7) Include definition and properties

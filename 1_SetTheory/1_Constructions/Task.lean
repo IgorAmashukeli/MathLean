@@ -101,6 +101,7 @@ theorem specification (P : Set → Prop) : (∀ A, ∃ B, ∀ x, (x ∈ B ↔ x 
 theorem unique_specification (P : Set → Prop) : (∀ A, ∃! B, ∀ x, (x ∈ B ↔ x ∈ A ∧ P x)) := sorry
 noncomputable def specification_set (P : Set → Prop) : (Set → Set) :=
   fun (A) => set_intro (fun (B) => (∀ x, x ∈ B ↔ x ∈ A ∧ P x)) (unique_specification P A)
+
 syntax "{" ident "∈" term "|" term "}" : term
 macro_rules
   | `({ $x:ident ∈ $A:term | $property:term })  => `(specification_set (fun ($x) => $property) $A)

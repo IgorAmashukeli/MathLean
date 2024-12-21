@@ -129,25 +129,23 @@ theorem peirce (p q : Prop) : (((p → q) → p) → p) := sorry
 
 -- 27) Xor definition
 def xor_pr (p q : Prop) : Prop := (p ∧ ¬q) ∨ (¬p ∧ q)
-syntax term "⨁" term : term
-macro_rules
-| `($p:term ⨁ $q:term) => `(xor_pr $p $q)
+macro l:term:10 " ⊕ " r:term:11 : term => `(xor_pr $l $r)
 
 -- 28) Xor properties
-theorem xor_equiv_def (p q : Prop) : (p ⨁ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))) := sorry
+theorem xor_equiv_def (p q : Prop) : (p ⊕ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))) := sorry
 
-theorem xor_equal (p : Prop) : ¬ (p ⨁ p) := sorry
+theorem xor_equal (p : Prop) : ¬ (p ⊕ p) := sorry
 
-theorem xor_neg (p : Prop) : (p ⨁ ¬ p) := sorry
+theorem xor_neg (p : Prop) : (p ⊕ ¬ p) := sorry
 
-theorem xor_comm (p q : Prop) : (p ⨁ q) ↔ (q ⨁ p) := sorry
+theorem xor_comm (p q : Prop) : (p ⊕ q) ↔ (q ⊕ p) := sorry
 
-theorem xor_assoc (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r)) := sorry
+theorem xor_assoc (p q r : Prop) : ((p ⊕ q) ⊕ r) ↔ (p ⊕ (q ⊕ r)) := sorry
 
 
-theorem xor_introl (p q : Prop) : (p ∧ ¬q) → (p ⨁ q) := sorry
-theorem xor_intror (p q : Prop) : (¬p ∧ q) → (p ⨁ q) := sorry
-theorem xor_intro (p q : Prop) : (p ∨ q) → (¬ (p ∧ q)) → (p ⨁ q) := sorry
-theorem xor_left (p q : Prop) : (p ⨁ q) → (p ∨ q) := sorry
-theorem xor_right (p q : Prop) : (p ⨁ q) → (¬ (p ∧ q)) := sorry
-theorem xor_elim (p q r : Prop) : (p ⨁ q) → ((p ∧ ¬q) → r) → ((¬p ∧ q) → r) → r := sorry
+theorem xor_introl (p q : Prop) : (p ∧ ¬q) → (p ⊕ q) := sorry
+theorem xor_intror (p q : Prop) : (¬p ∧ q) → (p ⊕ q) := sorry
+theorem xor_intro (p q : Prop) : (p ∨ q) → (¬ (p ∧ q)) → (p ⊕ q) := sorry
+theorem xor_left (p q : Prop) : (p ⊕ q) → (p ∨ q) := sorry
+theorem xor_right (p q : Prop) : (p ⊕ q) → (¬ (p ∧ q)) := sorry
+theorem xor_elim (p q r : Prop) : (p ⊕ q) → ((p ∧ ¬q) → r) → ((¬p ∧ q) → r) → r := sorry

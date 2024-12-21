@@ -113,6 +113,7 @@ axiom empty_set_is_subset_any : ∀ A, ∅ ⊆ A
 axiom non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ x ∈ A; P x) → ∃ x ∈ A; P x
 axiom neg_mon_diff : ∀ A B C, (A ⊆ B) → (C \ B) ⊆ (C \ A)
 axiom double_compl (U : Set) (A : Set)  (h : A ⊆ U) : (U \ (U \ A)) = A
+axiom union2sets_subset_prop : (∀ A B, (A ⊆ A ∪ B) ∧ (B ⊆ A ∪ B))
 
 
 
@@ -461,7 +462,16 @@ axiom indexed_intersection_empty :
 axiom indexed_intersection_sub_indexed:
 ∀ A I, (A IndxFun I) → (∀ i ∈ I; (⋂[ i in I ] A at i) ⊆ (A _ i))
 
+noncomputable def I2 := {∅, {∅}}
+noncomputable def l2 := ∅
+noncomputable def r2 := {∅}
+noncomputable def X2 (A B) := {A, B}
+noncomputable def ind2_fun (A B) := {(∅, A), ({∅}, B)}
 
+axiom ind2_fun_is_fun : ∀ A B, ((ind2_fun A B) Fun I2 To (X2 A B)) ∧ ((ind2_fun A B)⦅l2⦆ = A) ∧ ((ind2_fun A B)⦅r2⦆ = B)
+axiom ind2_fun_is_fun_in : ∀ x y M, (x ∈ M) → (y ∈ M) → ((ind2_fun x y) Fun I2 To M)
+
+axiom unind_as_ind2 : ∀ A B, (A ∪ B) = (⋃[i in I2] (ind2_fun A B) at i)
 
 
 -- 39) Indexed disjoint union and its properties

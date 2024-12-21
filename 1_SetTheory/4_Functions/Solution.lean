@@ -3055,6 +3055,141 @@ macro_rules
 
 
 
+noncomputable def I2 := {∅, {∅}}
+noncomputable def l2 := ∅
+noncomputable def r2 := {∅}
+noncomputable def X2 (A B) := {A, B}
+noncomputable def ind2_fun (A B) := {(∅, A), ({∅}, B)}
+
+theorem ind2_fun_is_fun : ∀ A B, ((ind2_fun A B) Fun I2 To (X2 A B)) ∧ ((ind2_fun A B)⦅l2⦆ = A) ∧ ((ind2_fun A B)⦅r2⦆ = B) :=
+  fun (A B) =>
+    let f := ind2_fun A B
+    let X := X2 A B
+    let u₁ := And.intro (And.intro (
+      fun (t ht) =>
+       Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair (∅, A) ({∅}, B) t) ht)
+       (
+        fun (ha) =>
+          eq_subst (fun (m) => m ∈ I2 × (X2 A B)) ((∅, A)) t (Eq.symm (ha)) (
+            Iff.mpr (cartesian_product_pair_prop I2 (X2 A B) ∅ A) (
+              And.intro (left_unordered_pair ∅ {∅}) (left_unordered_pair A B)
+            )
+          )
+       )
+       (
+        fun (hb) =>
+          eq_subst (fun (m) => m ∈ I2 × (X2 A B)) ({∅}, B) t (Eq.symm hb) (
+            Iff.mpr (cartesian_product_pair_prop I2 (X2 A B) {∅} B) (
+              And.intro (right_unordered_pair ∅ {∅}) (right_unordered_pair A B)
+            )
+          )
+       )
+    ) (
+      fun (x y z hxy hxz) =>
+        Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair (∅, A) ({∅}, B) (x, y)) hxy)
+        (
+          fun (hxyA) =>
+            Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair (∅, A) ({∅}, B) (x, z)) hxz)
+            (
+              fun (hxzA) =>
+                let u₁ := And.right (Iff.mp (ordered_pair_set_prop x y ∅ A) hxyA)
+                let u₂ := And.right (Iff.mp (ordered_pair_set_prop x z ∅ A) hxzA)
+                Eq.trans u₁ (Eq.symm u₂)
+            )
+            (
+              fun (hxzB) =>
+                let u₁ := And.left (Iff.mp (ordered_pair_set_prop x y ∅ A) hxyA)
+                let u₂ := And.left (Iff.mp (ordered_pair_set_prop x z {∅} B) hxzB)
+                let u₃ := Eq.trans (Eq.symm u₁) (u₂)
+                let u₄ := eq_subst (fun (t) => ∅ ∈ t) {∅} (∅) (Eq.symm u₃) (elem_in_singl ∅ )
+                False.elim (
+                  empty_set_is_empty ∅ (u₄)
+                )
+            )
+        )
+        (
+          fun (hxyB) =>
+            Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair (∅, A) ({∅}, B) (x, z)) hxz)
+            (
+              fun (hxzA) =>
+                let u₁ := And.left (Iff.mp (ordered_pair_set_prop x y {∅} B) hxyB)
+                let u₂ := And.left (Iff.mp (ordered_pair_set_prop x z ∅ A) hxzA)
+                let u₃ := Eq.trans (Eq.symm u₁) (u₂)
+                let u₄ := eq_subst (fun (t) => ∅ ∈ t) {∅} (∅) (u₃) (elem_in_singl ∅ )
+                False.elim (
+                  empty_set_is_empty ∅ (u₄)
+                )
+            )
+            (
+              fun (hxzB) =>
+                let u₁ := And.right (Iff.mp (ordered_pair_set_prop x y {∅} B) hxyB)
+                let u₂ := And.right (Iff.mp (ordered_pair_set_prop x z {∅} B) hxzB)
+                Eq.trans u₁ (Eq.symm u₂)
+            )
+        )
+
+    )) (
+      fun (y hy) =>
+        Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair l2 r2 y) hy)
+        (
+          fun (hyA) =>
+              let m₁ : ∃ s, (y, s) ∈ (ind2_fun A B) := Exists.intro A (
+                let m : (y, A) ∈ ind2_fun A B := eq_subst (fun (t) => (t, A) ∈ ind2_fun A B) (∅) (y) (Eq.symm hyA) (
+                  left_unordered_pair (l2, A) (r2, B)
+                )
+                m
+              )
+              m₁
+        )
+        (
+          fun (hyA) =>
+            let m₁ : ∃ s, (y, s) ∈ (ind2_fun A B) := Exists.intro B (
+              let m : (y, B) ∈ ind2_fun A B := eq_subst (fun (t) => (t, B) ∈ ind2_fun A B) ({∅}) (y) (Eq.symm hyA) (
+                  right_unordered_pair (l2, A) (r2, B)
+                )
+              m
+            )
+            m₁
+        )
+    )
+
+    And.intro (u₁) (
+
+      And.intro (Eq.symm (Iff.mp (function_equal_value_prop f I2 X u₁ l2 A (left_unordered_pair l2 r2)) (
+        left_unordered_pair (l2, A) (r2, B)
+      ))) (Eq.symm (
+        Iff.mp (function_equal_value_prop f I2 X u₁ r2 B (right_unordered_pair l2 r2)) (
+          right_unordered_pair (l2, A) (r2, B)
+        )
+      ))
+    )
+
+
+theorem ind2_fun_is_fun_in : ∀ x y M, (x ∈ M) → (y ∈ M) → ((ind2_fun x y) Fun I2 To M) :=
+  fun (x y M hx hy) =>
+    let f := ind2_fun x y
+    let u₀ := And.right (ind2_fun_is_fun x y)
+    let u₁ := And.left (ind2_fun_is_fun x y)
+    if_val_in_C f I2 (X2 x y) M u₁ (
+      fun (s hs) =>
+        Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair l2 r2 s) hs)
+        (
+          fun (sl2) =>
+            eq_subst (fun (t) => f⦅t⦆ ∈ M) (l2) (s) (Eq.symm sl2) (
+              eq_subst (fun (t) => t ∈ M) (x) (f⦅l2⦆) (Eq.symm (And.left u₀)) (hx)
+            )
+        )
+        (
+          fun (sr2) =>
+            eq_subst (fun (t) => f⦅t⦆ ∈ M) (r2) (s) (Eq.symm sr2) (
+              eq_subst (fun (t) => t ∈ M) (y) (f⦅r2⦆) (Eq.symm (And.right u₀)) (hy)
+            )
+        )
+    )
+
+
+
+
 theorem fun_indexed_is_indexed :
 ∀ A I, (A IndxFun I) → (A Indx I) :=
   fun (A I) =>
@@ -3166,6 +3301,70 @@ theorem indexed_sub_indexed_union :
               Iff.mpr (indexed_union_is_union A I hI x) (
                 Exists.intro i (And.intro (hi) (hx))
               )
+
+
+theorem ind2fun_rng_AB : ∀ A B, (ind2_fun A B).[I2] = {A, B} :=
+  fun (A B) =>
+    let f := ind2_fun A B
+    let is_f := And.left (ind2_fun_is_fun A B)
+    let valf := And.right (ind2_fun_is_fun A B)
+    extensionality ((ind2_fun A B).[I2]) {A, B} (
+      fun (x) =>
+        Iff.intro
+        (
+          fun (hx) =>
+            let u₁ := Iff.mp (image_prop (ind2_fun A B) I2 x) hx
+            Exists.elim u₁ (
+              fun (s hs) =>
+                let m := val_in_B (f) I2 (X2 A B) (is_f) s (And.left hs)
+                let n := Iff.mp (function_equal_value_prop f I2 (X2 A B) (is_f) s (x) (And.left hs)) (And.right hs)
+                eq_subst (fun (t) => t ∈ (X2 A B)) (f⦅s⦆) x (Eq.symm n) (m)
+            )
+        )
+        (
+          fun (hx) =>
+            Iff.mpr (image_prop f I2 x) (
+              Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair A B x) hx)
+              (
+                fun (hxA) =>
+                  Exists.intro l2 (
+                    let u₀ := left_unordered_pair l2 r2
+                    And.intro (u₀) (
+                      Iff.mpr (function_equal_value_prop f I2 (X2 A B) is_f l2 x u₀) (
+                        Eq.trans hxA (Eq.symm (And.left valf))
+                      )
+                    )
+                  )
+              )
+              (
+                fun (hxB) =>
+                  Exists.intro r2 (
+                    And.intro (right_unordered_pair l2 r2) (
+                      let u₀ := right_unordered_pair l2 r2
+                      Iff.mpr (function_equal_value_prop f I2 (X2 A B) is_f r2 x (u₀)) (
+                        Eq.trans hxB (Eq.symm (And.right valf))
+                      )
+                    )
+                  )
+              )
+            )
+        )
+    )
+
+
+theorem unind_as_ind2 : ∀ A B, (A ∪ B) = (⋃[i in I2] (ind2_fun A B) at i) :=
+  fun (A B) =>
+    let u₁ := ind2fun_rng_AB A B
+    eq_subst (fun (t) => ⋃ {A, B} = ⋃ t) ({A, B}) ((ind2_fun A B).[I2]) (Eq.symm u₁) (Eq.refl (A ∪ B))
+
+
+theorem intind_as_ind2 : ∀ A B, (A ∩ B) = (⋂[i in I2] (ind2_fun A B) at i) :=
+  fun (A B) =>
+    let u₁ := ind2fun_rng_AB A B
+    let u₂ := eq_subst (fun (t) => ⋂ {A, B} = ⋂ t) ({A, B}) ((ind2_fun A B).[I2]) (Eq.symm u₁) (
+      Eq.refl (⋂ {A, B})
+    )
+    Eq.trans (Eq.symm (intersect_2sets_is_intersect A B)) u₂
 
 
 
@@ -3298,7 +3497,7 @@ theorem indexed_intersection_sub_indexed :
 noncomputable def indexed_disjoined_union (A I : Set) := {s ∈ ((⋃[ i in I ] A at i) × I) | ∃ i ∈ I; ∃ x ∈ (A _ i); s = (x, i)}
 syntax "⨆[" term "in" term "]" term "at" term : term
 macro_rules
-| `( ⨆[$i:term in $I:term ] $A:term at $i:term) => `(indexed_disjoined_union $A $I)
+| `( ⨆[$_:term in $I:term ] $A:term at $_:term) => `(indexed_disjoined_union $A $I)
 
 theorem indexed_disjoined_union_is_disjoined_union :
 ∀ A I, (A IndxFun I) → (∀ s, (s ∈ ⨆[ i in I ] A at i) ↔ (∃ i ∈ I; ∃ x ∈ (A _ i); s = (x, i))) :=
@@ -3646,6 +3845,98 @@ theorem indexed_disjoined_set_int : ∀ A I, (∀ j, I ≠ {j}) → (A IndxFun I
             )
         )
     )
+
+
+theorem dijunind_as_ind2 : ∀ A B, (A ⊔ B) = (⨆[i in I2] (ind2_fun A B) at i) :=
+  fun (A B) =>
+    let f := ind2_fun A B
+    let f_r := ind2_fun_is_fun A B
+    let is_f := And.left (f_r)
+    let indxf : (ind2_fun A B) IndxFun I2 := Exists.intro (X2 A B) is_f
+    let u₂ := indexed_disjoined_set_un f I2 (indxf)
+    (Eq.trans (
+      let S := A ⊔ B
+      let T := ⋃[i in I2] DU (f) at i
+
+      let u₃ := DU_indxfun (f) I2 indxf
+
+      let DUF := DU f
+
+      let u₅ := fun_indexed_is_indexed (DUF) I2 (And.left (u₃))
+
+      let u₆ : ∀ x, (x ∈ T) ↔ (∃ i ∈ I2; x ∈ (DUF _ i)) := indexed_union_is_union (DU f) I2 u₅
+      let u₇ := And.right u₃
+
+      extensionality S T (
+        fun (x) =>
+          Iff.intro
+          (
+            fun (hx) =>
+              Iff.mpr (u₆ x) (
+                Or.elim (Iff.mp (union2_sets_prop (A × {l2}) (B × {r2}) x) hx)
+                (
+                  fun (hxA) =>
+                    Exists.intro l2 (
+                      let uli2 := left_unordered_pair l2 r2
+                      And.intro (left_unordered_pair l2 r2) (
+                        eq_subst (fun (t) => x ∈ t) ((f _ l2) × {l2}) (DUF _ l2) (Eq.symm (u₇ l2 uli2)) (
+                          eq_subst (fun (t) => x ∈ (t) × {l2}) (A) (f _ l2) (Eq.symm (And.left (And.right f_r))) (hxA)
+                        )
+                      )
+                    )
+                )
+                (
+                  fun (hxB) =>
+                    Exists.intro r2 (
+                      let uri2 := right_unordered_pair l2 r2
+                      And.intro (right_unordered_pair l2 r2) (
+                        eq_subst (fun (t) => x ∈ t) ((f _ r2) × {r2}) (DUF _ r2) (Eq.symm (u₇ r2 uri2)) (
+                          eq_subst (fun (t) => x ∈ (t) × {r2}) (B) (f _ r2) (Eq.symm (And.right (And.right f_r))) (hxB)
+                        )
+                      )
+                    )
+                )
+              )
+          )
+          (
+            fun (hx) =>
+              Exists.elim (Iff.mp (u₆ x) hx) (
+                fun (i hi) =>
+                  Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair l2 r2 i) (And.left hi))
+                  (
+                    fun (hil2) =>
+                      And.left (union2_sets_subset_prop (A × {l2}) (B × {r2})) x (
+                        eq_subst (fun (t) => x ∈ (A × {t})) i l2 hil2 (
+                          let u₈ := u₇ i (And.left hi)
+                          eq_subst (fun (t) => x ∈ (t × {i})) (f _ i) (A) (
+                            eq_subst (fun (t) => f _ t = A) l2 i (Eq.symm hil2) (And.left (And.right f_r))
+                          ) (
+                            eq_subst (fun (t) => x ∈ t) (DUF _ i) ((f _ i) × {i}) (u₈) (And.right hi)
+                          )
+                        )
+                      )
+                  )
+                  (
+                    fun (hir2) =>
+                      And.right (union2_sets_subset_prop (A × {l2}) (B × {r2})) x (
+                        eq_subst (fun (t) => x ∈ (B × {t})) i r2 hir2 (
+                          let u₈ := u₇ i (And.left hi)
+                          eq_subst (fun (t) => x ∈ (t × {i})) (f _ i) (B) (
+                            eq_subst (fun (t) => f _ t = B) r2 i (Eq.symm hir2) (And.right (And.right f_r))
+                          ) (
+                            eq_subst (fun (t) => x ∈ t) (DUF _ i) ((f _ i) × {i}) (u₈) (And.right hi)
+                          )
+                        )
+                      )
+                  )
+              )
+          )
+      )
+
+
+
+
+    ) (Eq.symm u₂))
 
 
 

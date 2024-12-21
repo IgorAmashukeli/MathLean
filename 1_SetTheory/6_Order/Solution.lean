@@ -1232,6 +1232,19 @@ macro_rules
 | `(≻($𝓐:term )) => `((≺($𝓐))⁻¹)
 | `(≽($𝓐:term )) => `((≼($𝓐))⁻¹)
 
+
+noncomputable def PO_from_str (A R₁) := ⁅A; R₁; nonstr A R₁⁆
+noncomputable def PO_from_nonstr (A R₂) := ⁅A; str A R₂; R₂⁆
+syntax term "StrIntro" term : term
+syntax term "NoNStrIntro" term : term
+macro_rules
+| `($A StrIntro $R₁:term) => `(PO_from_str $A $R₁)
+| `($A NoNStrIntro $R₂:term) => `(PO_from_nonstr $A $R₂)
+
+
+
+
+
 noncomputable def subs_part_ord (𝓐 X) := ⁅X; ≺(𝓐) spec X; ≼(𝓐) spec X⁆
 syntax term "SubsPO" term : term
 macro_rules
@@ -1665,6 +1678,32 @@ theorem part_ord_crit : ∀ A R₁ R₂, (R₁ with R₂ PO A) ↔ ((A ≠ ∅) 
     )
 
 
+theorem po_from_str_is_po : ∀ A R₁, (A ≠ ∅) → (R₁ SPO A) → (PartOrd (A StrIntro R₁)) :=
+  fun (A R₁ hA hR₁) =>
+    Exists.intro A (
+      Exists.intro R₁ (
+        Exists.intro (nonstr A R₁) (
+          And.intro (Eq.refl (A StrIntro R₁)) (
+            And.intro (hA) (And.intro hR₁ (Eq.refl (nonstr A R₁)))
+          )
+        )
+      )
+    )
+
+theorem po_from_non_str_is_po : ∀ A R₂, (A ≠ ∅) → (R₂ NSPO A) → (PartOrd (A NoNStrIntro R₂)) :=
+  fun (A R₂ hA hR₂) =>
+    let R₁ := str A R₂
+    Exists.intro A (
+      Exists.intro R₁ (
+        Exists.intro R₂ (
+          And.intro (Eq.refl (A NoNStrIntro R₂)) (Iff.mpr (part_ord_nspo_crit A R₁ R₂) (
+            And.intro hA (And.intro (hR₂) (Eq.refl (str A R₂)))
+          ))
+        )
+      )
+    )
+
+
 theorem triple_po_is_po : ∀ 𝓐, (PartOrd 𝓐) → (is_partial_order setPO(𝓐) ≺(𝓐) ≼(𝓐)) :=
   fun (𝓐) =>
     fun (PO𝓐 : (PartOrd 𝓐)) =>
@@ -1717,6 +1756,52 @@ theorem lessPO_is_lessPO :  ∀ A R₁ R₂, (≺(⁅A; R₁; R₂⁆) = R₁) :
 theorem lesseqPO_is_lesseqPO : ∀ A R₁ R₂, (≼(⁅A; R₁; R₂⁆) = R₂) :=
   fun (A R₁ R₂) =>
     coordinates_snd_coor (A, R₁) R₂
+
+theorem prec_SPO : ∀ 𝓐, (PartOrd 𝓐) → ((≺(𝓐)) SPO (setPO(𝓐))) :=
+  fun (𝓐 h𝓐) =>
+    Exists.elim h𝓐 (
+      fun (A hA) =>
+        Exists.elim hA (
+          fun (R₁ hR₁) =>
+            Exists.elim hR₁ (
+              fun (R₂ hR₂) =>
+                let u₁ := eq_subst (fun (t) => setPO(t) = A) (⁅A; R₁; R₂⁆) (𝓐) (Eq.symm (And.left hR₂)) (
+                  setPO_is_setPO A R₁ R₂)
+                let u₂ := eq_subst (fun (t) => ≺(t) = R₁) (⁅A; R₁; R₂⁆) (𝓐) (Eq.symm (And.left hR₂)) (
+                  lessPO_is_lessPO A R₁ R₂
+                )
+                let u₄ := And.left (And.right (And.right hR₂))
+                let u₅ := eq_subst (fun (t) => t SPO A) (R₁) (≺(𝓐)) (Eq.symm u₂) (u₄)
+                eq_subst (fun (t) => (≺(𝓐) SPO t)) (A) (setPO(𝓐)) (Eq.symm u₁) (
+                  u₅
+                )
+            )
+        )
+    )
+
+
+theorem preceq_NSPO : ∀ 𝓐, (PartOrd 𝓐) → ((≼(𝓐)) NSPO (setPO(𝓐))) :=
+  fun (𝓐 h𝓐) =>
+    Exists.elim h𝓐 (
+      fun (A hA) =>
+        Exists.elim hA (
+          fun (R₁ hR₁) =>
+            Exists.elim hR₁ (
+              fun (R₂ hR₂) =>
+                let u₁ := eq_subst (fun (t) => setPO(t) = A) (⁅A; R₁; R₂⁆) (𝓐) (Eq.symm (And.left hR₂)) (
+                  setPO_is_setPO A R₁ R₂)
+                let u₃ := eq_subst (fun (t) => ≼(t) = R₂) (⁅A; R₁; R₂⁆) (𝓐) (Eq.symm (And.left hR₂)) (
+                  lesseqPO_is_lesseqPO A R₁ R₂
+                )
+
+                let u₄ := And.left (And.right (Iff.mp (part_ord_nspo_crit A R₁ R₂) (And.right hR₂)))
+                let u₅ := eq_subst (fun (t) => t NSPO A) (R₂) (≼(𝓐)) (Eq.symm u₃) (u₄)
+                eq_subst (fun (t) => (≼(𝓐) NSPO t)) (A) (setPO(𝓐)) (Eq.symm u₁) (
+                  u₅
+                )
+            )
+        )
+    )
 
 theorem po_is_triple_po : ∀ A R₁ R₂, (R₁ with R₂ PO A) → (PartOrd (⁅A; R₁; R₂⁆)) :=
   fun (A R₁ R₂) =>
@@ -2366,6 +2451,214 @@ syntax "invPO" term : term
 macro_rules
 | `(invPO $𝓐:term) => `(inv_PO $𝓐)
 
+noncomputable def setpo_disj2 (𝓐 𝓑) := setPO(𝓐) ⊔ setPO(𝓑)
+def disj_pred2_R₁ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧  ((π₁ x) . ≺(𝓐) . (π₁ y))) ∨
+  ((π₂ x) = r2 ∧ (π₂ y) = r2 ∧ ((π₁ x) . ≺(𝓑) . (π₁ y))) ∨
+  ((π₂ x) = l2 ∧ (π₂ y) = r2)
+
+noncomputable def le_disj2 (𝓐 𝓑) := {(x, y) ∈ (setpo_disj2 𝓐 𝓑) × (setpo_disj2 𝓐 𝓑) | disj_pred2_R₁ 𝓐 𝓑 x y}
+
+noncomputable def po_disj2 (𝓐 𝓑) := ((setpo_disj2 𝓐 𝓑) StrIntro (le_disj2 𝓐 𝓑))
+syntax term "P⨁O" term : term
+macro_rules
+| `($𝓐 P⨁O $𝓑) => `(po_disj2 $𝓐 $𝓑)
+
+
+def disj_pred2_R₂ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧ ((π₁ x) . ≺(𝓐) . (π₁ y))) ∨
+  ((π₂ x) = r2 ∧ (π₂ y) = r2 ∧ ((π₁ x) . ≼(𝓑) . (π₁ y))) ∨
+  ((π₂ x) = l2 ∧ (π₂ y) = r2)
+
+
+theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 P⨁O 𝓑)) :=
+  fun (𝓐 𝓑 h𝓐 h𝓑) =>
+    let A := setpo_disj2 𝓐 𝓑
+    let R₁ := le_disj2 𝓐 𝓑
+    let u₁ := po_emp 𝓐 h𝓐
+    let prop₁ := bin_spec_is_spec (disj_pred2_R₁ 𝓐 𝓑) (setpo_disj2 𝓐 𝓑) (setpo_disj2 𝓐 𝓑)
+    Exists.elim (Iff.mp (set_non_empty_iff_non_empty (setPO(𝓐))) u₁) (
+      fun (x hx) =>
+        po_from_str_is_po A R₁ (Iff.mpr (set_non_empty_iff_non_empty (setpo_disj2 𝓐 𝓑)) (
+          Exists.intro (x, ∅) (disj_in_left setPO(𝓐) setPO(𝓑) x hx)
+        )) (
+          And.intro (bin_spec_is_binAB (disj_pred2_R₁ 𝓐 𝓑) (setpo_disj2 𝓐 𝓑) (setpo_disj2 𝓐 𝓑)) (
+            And.intro (
+              fun (x hx) =>
+                let u₁ := Iff.mp (prop₁ x x) hx
+
+                Or.elim (And.right u₁)
+                (
+                  fun (hpr₁) =>
+                    irrefl_R₁ 𝓐 h𝓐 (π₁ x) (And.right (And.right (hpr₁)))
+                )
+                (
+                  fun (hpr₂) =>
+                    Or.elim (hpr₂)
+                    (
+                      fun (hpr₃) =>
+                        irrefl_R₁ 𝓑 h𝓑 (π₁ x) (And.right (And.right hpr₃))
+                    )
+                    (
+                      fun (hpr₄) =>
+                        let u₂ := Eq.trans (Eq.symm (And.left hpr₄)) (And.right hpr₄)
+                        empty_set_is_empty l2 (
+                          eq_subst (fun (t) => l2 ∈ t) r2 l2 (Eq.symm u₂) (elem_in_singl l2)
+                        )
+                    )
+                )
+            ) (
+              fun (x y z hxyz) =>
+                let u₁ := Iff.mp (prop₁ x y) (And.left hxyz)
+                let u₂ := Iff.mp (prop₁ y z) (And.right hxyz)
+                let hx := And.left (And.left u₁)
+                let hz := And.right (And.left u₂)
+
+                Or.elim (And.right u₁)
+                (
+                  fun (hpr₁) =>
+                    let xl2 := (And.left hpr₁)
+                    let yl2 := (And.left (And.right hpr₁))
+
+                    Or.elim (And.right u₂)
+                    (
+                      fun (hpr₅) =>
+                        let zl2 := (And.left (And.right hpr₅))
+
+                        let u₁ := trans_R₁ 𝓐 h𝓐 (π₁ x) (π₁ y) (π₁ z) (And.right (And.right hpr₁)) (And.right (And.right hpr₅))
+                        Iff.mpr (prop₁ x z) (
+                          And.intro (And.intro (hx) (hz)) (Or.inl (
+                            And.intro (xl2) (And.intro zl2 (u₁))
+                          ))
+                        )
+
+                    )
+                    (
+                      fun (hpr₆) =>
+                        (Or.elim hpr₆)
+                        (
+                          fun (hpr₇) =>
+                            let yr2 := And.left hpr₇
+                            let u₂ := Eq.trans (Eq.symm yl2) (yr2)
+                            False.elim (
+                              empty_set_is_empty l2 (
+                                eq_subst (fun (t) => l2 ∈ t) (r2) (l2) (Eq.symm u₂) (elem_in_singl l2)
+                              )
+                            )
+                        )
+                        (
+                          fun (hpr₈) =>
+                            let zr2 := (And.right hpr₈)
+                            Iff.mpr (prop₁ x z) (
+                              And.intro (And.intro (hx) (hz)) (Or.inr (Or.inr (
+                                And.intro (xl2) (zr2)
+                              )))
+                            )
+                        )
+                    )
+                )
+                (
+                  fun (hpr₂) =>
+                    Or.elim (hpr₂)
+                    (
+                      fun (hpr₃) =>
+                        let xr2 := (And.left hpr₃)
+                        let yr2 := (And.left (And.right hpr₃))
+
+
+                        Or.elim (And.right u₂)
+                        (
+                          fun (hpr₅) =>
+
+                            let yl2 := And.left hpr₅
+                            let l2r2 := Eq.trans (Eq.symm yr2) (yl2)
+
+                            False.elim (
+                              empty_set_is_empty l2 (
+                                eq_subst (fun (t) => l2 ∈ t) (r2) (l2) (l2r2) (elem_in_singl l2)
+                              )
+                            )
+                        )
+                        (
+                          fun (hpr₆) =>
+                            Or.elim (hpr₆)
+                            (
+                              fun (hpr₇) =>
+                                let zr2 := (And.left (And.right hpr₇))
+                                let utr := trans_R₁ 𝓑 h𝓑 (π₁ x) (π₁ y) (π₁ z) (And.right (And.right hpr₃)) (And.right (And.right hpr₇))
+                                Iff.mpr (prop₁ x z) (
+                                And.intro (And.intro (hx) (hz)) (Or.inr (Or.inl (
+                                  And.intro (xr2) (And.intro zr2 (utr))
+                                  )))
+                                )
+
+                            )
+                            (
+                              fun (hpr₈) =>
+                                let yl2 := And.left hpr₈
+                                let l2r2 := Eq.trans (Eq.symm yr2) (yl2)
+                                False.elim (
+                                  empty_set_is_empty l2 (
+                                    eq_subst (fun (t) => l2 ∈ t) (r2) (l2) (l2r2) (elem_in_singl l2)
+                                )
+                              )
+                            )
+                        )
+                    )
+                    (
+                      fun (hpr₄) =>
+                        let xl2 := And.left hpr₄
+                        let yr2 := And.right hpr₄
+                        Or.elim (And.right u₂)
+                        (
+
+                          fun (hpr₅) =>
+                            let yl2 := (And.left hpr₅)
+                            let u₂ := Eq.trans (Eq.symm yr2) yl2
+
+
+                            False.elim (
+                                  empty_set_is_empty l2 (
+                                    eq_subst (fun (t) => l2 ∈ t) (r2) (l2) (u₂) (elem_in_singl l2)
+                                )
+                              )
+
+                        )
+                        (
+                          fun (hpr₆) =>
+                            (Or.elim hpr₆)
+                            (
+                              fun (hpr₇) =>
+                                Iff.mpr (prop₁ x z) (
+                                And.intro (And.intro (hx) (hz)) (
+                                  Or.inr (Or.inr (
+                                    And.intro (xl2) (And.left (And.right hpr₇))
+                                  ))
+                                ) )
+                            )
+                            (
+                              fun (hpr₈) =>
+                                let yl2 := (And.left hpr₈)
+                                let u₂ := Eq.trans (Eq.symm yr2) yl2
+
+                                False.elim (
+                                  empty_set_is_empty l2 (
+                                    eq_subst (fun (t) => l2 ∈ t) (r2) (l2) (u₂) (elem_in_singl l2)
+                                )
+                              )
+                            )
+                        )
+                    )
+                )
+            )
+          )
+        )
+    )
+
+
+theorem leq_sum : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≼(𝓐) . y) ↔ (disj_pred2_R₂ 𝓐 𝓑 x y))) :=
+  fun (𝓐 𝓑 h𝓐 h𝓑) =>
+    sorry
+
+
 theorem inv_is_PO : ∀ 𝓐, (PartOrd 𝓐) → (PartOrd (invPO 𝓐) ) :=
   fun (𝓐) =>
     fun (h𝓐 : (PartOrd 𝓐)) =>
@@ -2419,6 +2712,61 @@ theorem inv_PO_lesseq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(invPO �
           let s := inv_pair_prop (≼(𝓐)) (bin_on_is_bin (setPO(𝓐)) (≼(𝓐)) t) y x
           Iff.intro (Iff.mpr s) (Iff.mp s)
         )
+
+
+theorem invinv_po_is_po : ∀ 𝓐, (PartOrd 𝓐) → (invPO (invPO 𝓐)) = 𝓐 :=
+  fun (𝓐 h𝓐) =>
+    Exists.elim h𝓐 (
+      fun (A hA) =>
+        Exists.elim hA (
+          fun (R₁ hR₁) =>
+            Exists.elim hR₁ (
+              fun (R₂ hR₂) =>
+                eq_subst (fun (t) => ( invPO (invPO 𝓐)) = t) (⁅A; R₁; R₂⁆) (𝓐) (Eq.symm (And.left hR₂)) (
+                  Iff.mpr (ordered_pair_set_prop (setPO(invPO 𝓐), ≻(invPO 𝓐)) (≽(invPO 𝓐)) (A, R₁) (R₂) ) (
+                    And.intro (
+                      let u₀ := (And.left (prec_SPO 𝓐 h𝓐))
+
+                      let u₀₀ := bin_on_is_bin setPO(𝓐) (≺(𝓐)) u₀
+
+                      let u₁ : setPO(invPO 𝓐) = setPO(𝓐) := setPO_is_setPO (setPO(𝓐)) (≻(𝓐)) (≽(𝓐))
+                      let u₂ := eq_subst (fun (t) => setPO(t) = A) (⁅A; R₁; R₂⁆) (𝓐) (Eq.symm (And.left hR₂)) (
+                        setPO_is_setPO A R₁ R₂
+                      )
+                      let u₃ : ≺(invPO 𝓐) = ≻(𝓐) := lessPO_is_lessPO (setPO(𝓐)) (≻(𝓐)) (≽(𝓐))
+                      let u₄ : ≻(invPO 𝓐) = ≺(𝓐) := eq_subst (fun (t) => (t⁻¹) = ≺(𝓐)) (≻(𝓐)) (≺(invPO 𝓐)) (Eq.symm u₃) (
+                        inv_prop (≺(𝓐)) (u₀₀)
+                      )
+
+                      let u₅ := eq_subst (fun (t) => ≺(t) = R₁) (⁅A; R₁; R₂⁆) (𝓐) (Eq.symm (And.left hR₂)) (
+                        lessPO_is_lessPO A R₁ R₂
+                      )
+                      Iff.mpr (ordered_pair_set_prop (setPO(invPO 𝓐)) (≻(invPO 𝓐)) (A) (R₁)) (
+                        And.intro (Eq.trans (u₁) (u₂)) (Eq.trans (u₄) (u₅))
+                      )
+
+                    ) (
+                      let u₆ : ≼(invPO 𝓐) = ≽(𝓐) := lesseqPO_is_lesseqPO (setPO(𝓐)) (≻(𝓐)) (≽(𝓐))
+                      let u₀₀₀ := (And.left (preceq_NSPO 𝓐 h𝓐))
+                      let u₀₁ := bin_on_is_bin setPO(𝓐) (≼(𝓐)) u₀₀₀
+                      let u₇ : ≽(invPO 𝓐) = ≼(𝓐) := eq_subst (fun (t) => (t⁻¹) = ≼(𝓐)) (≽(𝓐)) (≼(invPO 𝓐)) (Eq.symm u₆) (
+                        inv_prop (≼(𝓐)) (u₀₁)
+                      )
+                      let u₈ := eq_subst (fun (t) => ≼(t) = R₂) (⁅A; R₁; R₂⁆) (𝓐) (Eq.symm (And.left hR₂)) (
+                        lesseqPO_is_lesseqPO A R₁ R₂
+                      )
+
+                      Eq.trans (u₇) (u₈))
+                  )
+
+
+
+                )
+            )
+        )
+    )
+
+
 
 noncomputable def po_set_cart (𝓐 𝓑) := setPO(𝓐) × setPO(𝓑)
 
@@ -5216,11 +5564,68 @@ theorem lrc_max : ∀ 𝓐 a, ∀ b ∈ setPO(𝓐); (PartOrd 𝓐) → (a . ≼
                 )
 
 
+def is_semilattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
+(∀ x y ∈ (setPO(𝓐)); (𝓐 InfmExi ({x, y})))
+syntax "SemiLatt" term : term
+macro_rules
+| `(SemiLatt $𝓐) => `(is_semilattice $𝓐)
+
+
+
 def is_lattice (𝓐 : Set) : Prop := (PartOrd 𝓐) ∧
 (∀ x y ∈ (setPO(𝓐)); (𝓐 SuprExi ({x, y})) ∧ (𝓐 InfmExi ({x, y})))
 syntax "Latt" term : term
 macro_rules
 | `(Latt $𝓐:term) => `(is_lattice $𝓐)
+
+
+theorem latt_inv : ∀ 𝓐, (PartOrd 𝓐) → ((Latt 𝓐) ↔ (Latt (invPO 𝓐))) :=
+  fun (𝓐 h𝓐) =>
+    Iff.intro
+    (
+      fun (hlatt) =>
+        let u₁ := And.left hlatt
+        let u₂ := inv_is_PO 𝓐 u₁
+        And.intro (u₂) (
+          fun (x hx y hy) =>
+            let hx₁ := eq_subst (fun (t) => x ∈ t) (setPO(invPO 𝓐)) (setPO(𝓐)) (setPO_is_setPO setPO(𝓐) (≻(𝓐)) (≽(𝓐))) hx
+            let hy₁ := eq_subst (fun (t) => y ∈ t) (setPO(invPO 𝓐)) (setPO(𝓐)) (setPO_is_setPO setPO(𝓐) (≻(𝓐)) (≽(𝓐))) hy
+            let u₃ := And.right hlatt x hx₁ y hy₁
+            Exists.elim (And.left u₃) (
+              fun (sup hsup) =>
+                Exists.elim (And.right u₃) (
+                  fun (inf hinf) =>
+                    And.intro (Exists.intro inf (Iff.mp (inv_is_inf_sup 𝓐 {x, y} h𝓐 inf) (hinf))) (
+                      Exists.intro sup (Iff.mp (inv_is_sup_inf 𝓐 {x, y} h𝓐 sup) (hsup))
+                    )
+                )
+            )
+
+        )
+    )
+    (
+      fun (hlattinv) =>
+        And.intro h𝓐 (
+          fun (x hx y hy) =>
+            let hx₁ := eq_subst (fun (t) => x ∈ t) (setPO(𝓐)) (setPO(invPO 𝓐)) (Eq.symm (setPO_is_setPO setPO(𝓐) (≻(𝓐)) (≽(𝓐)))) hx
+            let hy₁ := eq_subst (fun (t) => y ∈ t) (setPO(𝓐)) (setPO(invPO 𝓐)) (Eq.symm (setPO_is_setPO setPO(𝓐) (≻(𝓐)) (≽(𝓐)))) hy
+            let u₃ := And.right hlattinv x hx₁ y hy₁
+            Exists.elim (And.left u₃) (
+              fun (sup hsup) =>
+                Exists.elim (And.right u₃) (
+                  fun (inf hinf) =>
+                    And.intro (Exists.intro inf (Iff.mpr (inv_is_sup_inf 𝓐 {x, y} h𝓐 inf) (hinf))) (
+                      Exists.intro sup (Iff.mpr (inv_is_inf_sup 𝓐 {x, y} h𝓐 sup) (hsup))
+                    )
+                )
+            )
+        )
+    )
+
+
+theorem latt_is_semilatt : ∀ 𝓐, (Latt 𝓐) → (SemiLatt 𝓐) :=
+  fun (_ h𝓐) =>
+    And.intro (And.left h𝓐) (fun (x hx y hy) => (And.right ((And.right h𝓐) x hx y hy)))
 
 
 theorem boolean_Latt : ∀ A, (Latt (BoolPO A)) :=
@@ -5437,6 +5842,191 @@ theorem compl_latt_inf_crit : ∀ 𝓐, (PartOrd 𝓐) → ((CompLatt 𝓐) ↔ 
     )
 
 
+
+theorem compllatt_inv : ∀ 𝓐, (PartOrd 𝓐) → ((CompLatt 𝓐) ↔ (CompLatt (invPO 𝓐))) :=
+  fun (𝓐 h𝓐) =>
+    Iff.intro
+    (
+      fun (hcomplatt) =>
+        let u₁ := inv_is_PO 𝓐 h𝓐
+        And.intro u₁ (
+          fun (X hX) =>
+            let u₂ := setPO_is_setPO (setPO(𝓐)) (≻(𝓐)) (≽(𝓐))
+            let hsub := eq_subst (fun (t) => X ⊆ t) (setPO(invPO(𝓐))) (setPO(𝓐)) (u₂) (hX)
+            let pr₁ := Iff.mp (compl_latt_inf_crit 𝓐 h𝓐) hcomplatt X hsub
+            Exists.elim (pr₁) (
+              fun (inf hinf) =>
+                Exists.intro inf (Iff.mp (inv_is_inf_sup 𝓐 X h𝓐 inf) (hinf))
+            )
+
+        )
+    )
+    (
+      fun (hcomplattinv) =>
+        And.intro h𝓐 (
+          fun (X hX) =>
+          let u₂ := setPO_is_setPO (setPO(𝓐)) (≻(𝓐)) (≽(𝓐))
+          let hsub := eq_subst (fun (t) => X ⊆ t) (setPO(𝓐)) (setPO(invPO(𝓐))) (Eq.symm u₂) (hX)
+          let pr₁ := Iff.mp (compl_latt_inf_crit (invPO 𝓐) (And.left hcomplattinv)) hcomplattinv X hsub
+          Exists.elim (pr₁) (
+            fun (inf hinf) =>
+              Exists.intro inf (Iff.mpr (inv_is_sup_inf 𝓐 X h𝓐 inf) (hinf))
+          )
+        )
+    )
+
+
+def is_operation (A f : Set) : Prop := f Fun (A × A) To A
+def is_impodent_op (A f : Set) : Prop := ∀ x ∈ A; f⦅x; x⦆ = x
+def is_commut_op (A f : Set) : Prop := ∀ x y ∈ A; f⦅x; y⦆ = f⦅y ; x⦆
+def is_assoc_op (A f : Set) : Prop := ∀ x y z ∈ A; f⦅f⦅x; y⦆; z⦆ = f⦅x; f⦅y;z⦆⦆
+def is_semilattfunc (A f : Set) : Prop := (f Fun (A × A) To A) ∧ is_impodent_op A f ∧ is_commut_op A f ∧ is_assoc_op A f
+syntax term "SemLatFunOn" term : term
+macro_rules
+| `($f SemLatFunOn $A) => `(is_semilattfunc $A $f)
+
+noncomputable def leq_semifunclatt (A f) := {(x, y) ∈ A × A | f⦅x; y⦆ = x}
+syntax term "LSFL" term : term
+macro_rules
+| `($f LSFL $A) => `(leq_semifunclatt $A $f)
+
+
+theorem leq_in : ∀ x y A f, ((x . (f LSFL A) . y)) ↔ ((x ∈ A ∧ y ∈ A) ∧ (f⦅x; y⦆ = x)) :=
+  fun (x y A f) =>
+    bin_spec_is_spec (fun (x) => fun (y) => f⦅x; y⦆ = x) A A x y
+
+
+noncomputable def fun_semilat (A f) := A NoNStrIntro (f LSFL A)
+syntax term "SemLatF" term : term
+macro_rules
+| `($A SemLatF $f) => `(fun_semilat $A $f)
+
+theorem semilatt_op : ∀ A f, (A ≠ ∅) → (f SemLatFunOn A) → (SemiLatt (A SemLatF f)) ∧ (∀ x y ∈ A; f⦅x; y⦆ = (A SemLatF f) Infm {x, y}) :=
+  fun (A f hA hfA) =>
+    let 𝓐 := A SemLatF f
+    let R₂ := f LSFL A
+    let lesseq := lesseqPO_is_lesseqPO A (str A R₂) R₂
+    let setpo := setPO_is_setPO A (str A R₂) R₂
+
+    let u₁ : PartOrd 𝓐 := po_from_non_str_is_po A R₂ hA (
+
+      And.intro (bin_spec_is_binAB (fun (x) => fun (y) => f⦅x; y⦆ = x) A A)
+      (And.intro (
+        fun (x hx) =>
+
+          Iff.mpr (leq_in x x A f) (
+            And.intro (And.intro hx hx) (And.left (And.right hfA) x hx)
+          )
+      ) (And.intro (
+        fun (x y hxy) =>
+          let u₁ := Iff.mp (leq_in x y A f) (And.left hxy)
+          let u₂ := Iff.mp (leq_in y x A f) (And.right hxy)
+          let u₀ := And.left (And.right (And.right hfA)) x (And.left (And.left u₁)) y (And.right (And.left u₁))
+          Eq.trans (Eq.symm (And.right u₁)) (Eq.trans (u₀) (And.right u₂))
+
+      ) (
+        fun (x y z hxyz) =>
+          let u₁ := Iff.mp (leq_in x y A f) (And.left hxyz)
+          let u₂ := Iff.mp (leq_in y z A f) (And.right hxyz)
+          let u₃ := eq_subst (fun (t) => f⦅x; z⦆ = f⦅t; z⦆) x (f⦅x; y⦆) (Eq.symm (And.right u₁)) (Eq.refl (f⦅x; z⦆))
+          let u₄ := And.right (And.right (And.right hfA)) x (And.left (And.left u₁)) y (And.right (And.left u₁)) z (And.right (And.left u₂))
+          let u₅ := eq_subst (fun (t) => f⦅f⦅x; y⦆; z⦆ = f⦅x; t⦆) (f⦅y; z⦆) y (And.right u₂) (u₄)
+
+
+          let u₆ := Eq.trans (u₃) (Eq.trans u₅ (And.right u₁))
+          Iff.mpr (leq_in x z A f) (
+            And.intro (And.intro (And.left (And.left u₁)) (And.right (And.left u₂))) (u₆)
+          )
+      ))
+
+      )
+    )
+
+    let u₂ : ∀ x y ∈ A; is_infimum 𝓐 {x, y} (f⦅x; y⦆) :=
+      fun (x hx y hy) =>
+        let X := {x, y}
+        let m := (f⦅x; y⦆)
+        let m_in := val_in_B f (A × A) A (And.left hfA) (x, y) (Iff.mpr (cartesian_product_pair_prop A A x y) (And.intro (hx) (hy)))
+        let m_in₂ : m ∈ setPO(𝓐) := eq_subst (fun (t) => f⦅x; y⦆ ∈ t) A (setPO(𝓐)) (Eq.symm (setpo)) (m_in)
+        And.intro (Iff.mpr (low_bou_set_is_low_bou 𝓐 X m) (
+          And.intro (m_in₂) (
+            fun (s hs) =>
+              Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair x y s) hs)
+              (
+                fun (hsx) =>
+                  eq_subst (fun (t) => (m . ≼(𝓐) . t)) (x) (s) (Eq.symm hsx) (
+                    eq_subst (fun (t) => (m . t . x)) (R₂) (≼(𝓐)) (Eq.symm (lesseq)) (
+                      Iff.mpr (leq_in m x A f) (
+                        And.intro (And.intro (m_in) (hx)) (
+                          let u₀ := And.left (And.right (And.right hfA)) x hx y hy
+                          let u₀₁ := eq_subst (fun (t) => f⦅m; x⦆ = f⦅t; x⦆) (f⦅x; y⦆) (f⦅y; x⦆) (u₀) (Eq.refl (f⦅m; x⦆))
+                          let u₀₂ := And.right (And.right (And.right hfA)) y hy x hx x hx
+                          let u₀₃ := Eq.trans u₀₁ u₀₂
+                          let u₀₄ := eq_subst (fun (t) => f⦅m; x⦆  = f⦅y; t⦆) (f⦅x; x⦆) x (And.left (And.right hfA) x hx) (u₀₃)
+                          Eq.trans u₀₄ (And.left (And.right (And.right hfA)) y hy x hx)
+                        )
+                      )
+                    )
+
+                  )
+              )
+              (
+                fun (hsy) =>
+                  eq_subst (fun (t) => (m . ≼(𝓐) . t)) (y) (s) (Eq.symm hsy) (
+                    eq_subst (fun (t) => (m . t . y)) (R₂) (≼(𝓐)) (Eq.symm (lesseq)) (
+                      Iff.mpr (leq_in m y A f) (
+                        And.intro (And.intro m_in hy) (
+                          let u₀ := And.right (And.right (And.right hfA)) x hx y hy y hy
+                          eq_subst (fun (t) => f⦅m; y⦆ = f⦅x; t⦆) (f⦅y; y⦆) y (And.left (And.right hfA) y hy) (u₀)
+                        )
+                      )
+                    )
+
+                  )
+              )
+
+          )
+        )) (
+          fun (s hs) =>
+            let u₁₀ := Iff.mp (low_bou_set_is_low_bou 𝓐 X s) hs
+            let u₁₁ := eq_subst (fun (t) => s ∈ t) (setPO(𝓐)) A (setpo) (And.left u₁₀)
+            let m := f⦅x; y⦆
+            let u₀ := leq_in s (f⦅x; y⦆) A f
+            let u₁₂ := And.right (u₁₀) x (left_unordered_pair x y)
+            let u₁₃ := eq_subst (fun (t) => (s . t . x)) (≼(𝓐)) (R₂) lesseq u₁₂
+            let u₁₄ := Iff.mp (leq_in s x A f) u₁₃
+            let u₁₅ := And.right (u₁₀) y (right_unordered_pair x y)
+            let u₁₆ := eq_subst (fun (t) => (s . t . y)) (≼(𝓐)) (R₂) lesseq u₁₅
+            let u₁₇ := Iff.mp (leq_in s y A f) u₁₆
+
+
+            eq_subst (fun (t) => (s . t . m)) (R₂) (≼(𝓐)) (Eq.symm (lesseq)) (
+              Iff.mpr (leq_in s m A f) (
+                And.intro (And.intro (u₁₁) (m_in)) (
+
+                  let u₁₈ := Eq.symm (And.right (And.right (And.right hfA)) s u₁₁ x hx y hy)
+                  let u₁₉ := eq_subst (fun (t) => f⦅s ; m⦆ = f⦅t; y⦆) (f⦅s; x⦆) (s) (And.right u₁₄) (u₁₈)
+                  Eq.trans u₁₉ (And.right u₁₇)
+                )
+              )
+            )
+        )
+
+    let u₃ : ∀ x y ∈ A; 𝓐 InfmExi {x, y} := fun (x hx y hy) => Exists.intro (f⦅x; y⦆) (u₂ x hx y hy)
+
+    let u₄ : ∀ x y ∈ setPO(𝓐); 𝓐 InfmExi {x, y} := eq_subst (fun (t) => ∀ x y ∈ t; (𝓐) InfmExi {x, y}) (A) (setPO(𝓐)) (
+      Eq.symm (setPO_is_setPO (A) (str A (leq_semifunclatt A f)) (leq_semifunclatt A f))
+    ) (u₃)
+
+    let u₅ : (SemiLatt (𝓐)) := And.intro (u₁) (u₄)
+
+    let u₆ : ∀ x y ∈ A; f⦅x; y⦆ = (A SemLatF f) Infm {x, y} := fun (x hx y hy) => Iff.mp (infm_po_crit 𝓐 {x, y} (f⦅x; y⦆) u₁ (u₃ x hx y hy)) (
+      u₂ x hx y hy
+    )
+
+    And.intro u₅ u₆
+
+
 theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) :=
   fun (𝓐) =>
     fun (h𝓐 : (CompLatt 𝓐)) =>
@@ -5461,6 +6051,35 @@ theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) :=
                 And.intro u₁ u₂
       )
 
+
+theorem latt_as_semilatts : ∀ 𝓐, (Latt 𝓐) ↔ ((SemiLatt 𝓐) ∧ (SemiLatt (invPO 𝓐))) :=
+  fun (𝓐) =>
+    Iff.intro
+    (
+      fun (hlatt) =>
+        let u₁ := latt_is_semilatt 𝓐 hlatt
+        let u₂ := Iff.mp (latt_inv 𝓐 (And.left hlatt)) hlatt
+        let u₃ := latt_is_semilatt (invPO 𝓐) u₂
+        And.intro (u₁) (u₃)
+    )
+    (
+      fun (hsemiinv) =>
+        let u₁ := And.right (And.left hsemiinv)
+        let u₂ := And.right (And.right hsemiinv)
+        And.intro (And.left (And.left hsemiinv)) (
+          fun (x hx y hy) =>
+            let hx₁ := eq_subst (fun (t) => x ∈ t) (setPO(𝓐)) (setPO(invPO 𝓐)) (Eq.symm (setPO_is_setPO setPO(𝓐) (≻(𝓐)) (≽(𝓐)))) hx
+            let hy₁ := eq_subst (fun (t) => y ∈ t) (setPO(𝓐)) (setPO(invPO 𝓐)) (Eq.symm (setPO_is_setPO setPO(𝓐) (≻(𝓐)) (≽(𝓐)))) hy
+            let u₃ := u₂ x hx₁ y hy₁
+
+            Exists.elim u₃ (
+              fun (inf hinf) =>
+                let u₄ := Iff.mpr (inv_is_sup_inf 𝓐 {x, y} (And.left (And.left (hsemiinv))) inf) (hinf)
+                And.intro (Exists.intro inf u₄) (u₁ x hx y hy)
+            )
+
+        )
+    )
 
 
 theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) :=
@@ -9027,6 +9646,127 @@ theorem poiso_if_then_iff (φ : Set → Prop) :
 
 
 -- TO DO: prove the following theorems
+
+
+theorem poiso_semilatt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((SemiLatt 𝓐) ↔ (SemiLatt 𝓑)) :=
+  fun (𝓐 𝓑) =>
+    fun (h𝓐𝓑 : 𝓐 P≃O 𝓑) =>
+      let po𝓐 := And.left h𝓐𝓑
+      let po𝓑 := And.left (And.right h𝓐𝓑)
+      let iso := And.right (And.right h𝓐𝓑)
+
+      Exists.elim iso (
+        fun (f) =>
+          fun (hf) =>
+            let hfunc := And.left (And.left hf)
+            let φ₃ := (∀ x y ∈ (setPO(𝓐)); (𝓐 InfmExi ({x, y})))
+            let φ₄ := (∀ x y ∈ (setPO(𝓑)); (𝓑 InfmExi ({x, y})))
+            let φ₅ := fun (x) => (∀ y ∈ (setPO(𝓐)); (𝓐 InfmExi ({x, y})))
+            let φ₆ := fun (x) => (∀ y ∈ (setPO(𝓑)); (𝓑 InfmExi ({x, y})))
+            let u : φ₃ ↔ φ₄ := poiso_allin_equiv φ₅ φ₆ 𝓐 𝓑 f hf (
+              fun (x) =>
+                fun (hx : x ∈ setPO(𝓐)) =>
+                  let φ₇ := fun (y) => 𝓐 InfmExi ({x, y})
+                  let φ₈ := fun (y) => 𝓑 InfmExi ({(f⦅x⦆), y})
+
+                  poiso_allin_equiv φ₇ φ₈ 𝓐 𝓑 f hf (
+                    fun (y) =>
+                      fun (hy : y ∈ setPO(𝓐)) =>
+
+
+                      let u₀ := fun (t) =>
+                        fun (ht : t ∈ {x, y}) =>
+                          Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair x y t) ht)
+                          (
+                            fun (htx : t = x) =>
+                              eq_subst (fun (m) => m ∈ setPO(𝓐)) x t (Eq.symm htx) (hx)
+                          )
+                          (
+                            fun (hty : t = y) =>
+                              eq_subst (fun (m) => m ∈ setPO(𝓐)) y t (Eq.symm hty) (hy)
+                          )
+
+                      let u₁ := extensionality (f.[{x, y}]) ({(f⦅x⦆), (f⦅y⦆)}) (
+                        fun (t) =>
+                          Iff.intro
+                          (
+                            fun (ht : t ∈ (f.[{x, y}])) =>
+                              let u := Iff.mp (image_prop f {x, y} t) ht
+                              Exists.elim u (
+                                fun (s) =>
+                                  fun (hs) =>
+                                    Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair x y s) (And.left hs))
+                                    (
+                                      fun (hsx : s = x) =>
+                                        let u₁ := And.right hs
+                                        let u₂ := eq_subst (fun (m) => (m . f . t)) s x (hsx) u₁
+                                        let u₃ := Iff.mp (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) hfunc x t hx) u₂
+                                        eq_subst (fun (m) => m ∈ {(f⦅x⦆), (f⦅y⦆)}) (f⦅x⦆) t (Eq.symm u₃) (
+                                          left_unordered_pair (f⦅x⦆) (f⦅y⦆)
+                                        )
+                                    )
+                                    (
+                                      fun (hsy : s = y) =>
+                                        let u₁ := And.right hs
+                                        let u₂ := eq_subst (fun (m) => (m . f . t)) s y (hsy) u₁
+                                        let u₃ := Iff.mp (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) hfunc y t hy) u₂
+                                        eq_subst (fun (m) => m ∈ {(f⦅x⦆), (f⦅y⦆)}) (f⦅y⦆) t (Eq.symm u₃) (
+                                          right_unordered_pair (f⦅x⦆) (f⦅y⦆)
+                                        )
+                                    )
+                              )
+                          )
+                          (
+                            fun (ht : t ∈ {(f⦅x⦆), (f⦅y⦆)}) =>
+
+                             Iff.mpr ( image_prop f {x, y} t) (
+
+                              Or.elim (Iff.mp (unordered_pair_set_is_unordered_pair (f⦅x⦆) (f⦅y⦆) t) (ht))
+                              (
+                                fun (ht : t = (f⦅x⦆)) =>
+                                  Exists.intro x (And.intro (left_unordered_pair x y) (
+                                    eq_subst (fun (m) => (x, m) ∈ f) (f⦅x⦆) t (Eq.symm ht) (
+                                      Iff.mpr (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) hfunc x (f⦅x⦆) hx) (
+                                        Eq.refl (f⦅x⦆)
+                                      )
+                                    )
+                                  ))
+                              )
+                              (
+                                fun (ht : t = (f⦅y⦆)) =>
+                                  Exists.intro y (And.intro (right_unordered_pair x y) (
+                                    eq_subst (fun (m) => (y, m) ∈ f) (f⦅y⦆) t (Eq.symm ht) (
+                                      Iff.mpr (function_equal_value_prop f (setPO(𝓐)) (setPO(𝓑)) hfunc y (f⦅y⦆) hy) (
+                                        Eq.refl (f⦅y⦆)
+                                      )
+                                    )
+                                  ))
+                              )
+
+
+
+
+                             )
+                          )
+                      )
+
+
+                        let u₂ := poiso_infexi 𝓐 𝓑 f {x, y} (u₀) (And.intro (po𝓐) (And.intro po𝓑 hf))
+
+                        eq_subst (fun (t) => (𝓐 InfmExi {x, y}) ↔ (𝓑 InfmExi t)) (f.[{x, y}]) ({(f⦅x⦆), (f⦅y⦆)}) (u₁) (u₂)
+
+                  )
+            )
+
+            Iff.intro (
+              fun (hφ₁φ₃) =>
+                And.intro (po𝓑) (Iff.mp (u) (And.right hφ₁φ₃))
+            ) (
+              fun (hφ₂φ₄) =>
+                And.intro (po𝓐) (Iff.mpr (u) (And.right hφ₂φ₄))
+            )
+      )
+
 
 
 theorem poiso_latt : ∀ 𝓐 𝓑, (𝓐 P≃O 𝓑) → ((Latt 𝓐) ↔ (Latt 𝓑)) :=

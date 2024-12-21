@@ -2,30 +2,6 @@ axiom disj_comm (p q : Prop) : (p ∨ q) ↔ (q ∨ p)
 axiom morgan_comm (p q : Prop) : ¬ (p ∧ q) ↔ ¬p ∨ ¬q
 axiom iff_transitivity (p q r : Prop) : (p ↔ q) → (q ↔ r) → (p ↔ r)
 
-def xor_pr (p q : Prop) : Prop := (p ∧ ¬q) ∨ (¬p ∧ q)
-syntax term "⨁" term : term
-macro_rules
-| `($p:term ⨁ $q:term) => `(xor_pr $p $q)
-
--- 28) Xor properties
-axiom xor_equiv_def (p q : Prop) : (p ⨁ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q)))
-
-axiom xor_equal (p : Prop) : ¬ (p ⨁ p)
-
-axiom xor_neg (p : Prop) : (p ⨁ ¬ p)
-
-axiom xor_comm (p q : Prop) : (p ⨁ q) ↔ (q ⨁ p)
-
-axiom xor_assoc (p q r : Prop) : ((p ⨁ q) ⨁ r) ↔ (p ⨁ (q ⨁ r))
-
-
-axiom xor_introl (p q : Prop) : (p ∧ ¬q) → (p ⨁ q)
-axiom xor_intror (p q : Prop) : (¬p ∧ q) → (p ⨁ q)
-axiom xor_intro (p q : Prop) : (p ∨ q) → (¬ (p ∧ q)) → (p ⨁ q)
-axiom xor_left (p q : Prop) : (p ⨁ q) → (p ∨ q)
-axiom xor_right (p q : Prop) : (p ⨁ q) → (¬ (p ∧ q))
-axiom xor_elim (p q r : Prop) : (p ⨁ q) → ((p ∧ ¬q) → r) → ((¬p ∧ q) → r) → r
-
 axiom morgan_conj (p q : Prop) :  ¬(p ∧ q) ↔ ¬p ∨ ¬q
 
 def exists_unique (P : α → Prop) : Prop := (∃ (x : α), P x ∧ (∀ y : α, (P y → x = y)))
@@ -220,6 +196,34 @@ axiom boolean_set_not_empty : ∀ A, 𝒫 A ≠ ∅
 
 
 
+noncomputable def disjoint_union (A B : Set) := (A × {∅}) ∪ (B × {{∅}})
+syntax term "⊔" term : term
+macro_rules
+| `($A ⊔ $B) => `(disjoint_union $A $B)
+
+
+
+noncomputable def disjoint_union_left (X: Set) := {y ∈ X | (π₂ y) = ∅}
+noncomputable def disjoint_union_right (X : Set) := {y ∈ X | (π₂ y) = {∅}}
+syntax "DUL" term : term
+syntax "DUR" term : term
+macro_rules
+| `(DUL $X) => `(disjoint_union_left $X)
+| `(DUR $X) => `(disjoint_union_right $X)
+
+
+theorem dul_A : ∀ A B, (DUL (A ⊔ B)) = (A × {∅}) := sorry
+theorem dur_B : ∀ A B, (DUR (A ⊔ B)) = (B × {{∅}}) := sorry
+theorem dul_subs : ∀ A B, (DUL (A ⊔ B)) ⊆ (A ⊔ B) := sorry
+theorem dur_subs : ∀ A B, (DUR (A ⊔ B)) ⊆ (A ⊔ B) := sorry
+theorem dulr_un : ∀ A B, (A ⊔ B) = (DUL (A ⊔ B)) ∪ (DUR (A ⊔ B)) := sorry
+theorem dulr_in : ∀ A B, (DUL (A ⊔ B)) ∩ (DUR (A ⊔ B)) = ∅ := sorry
+theorem disj_in_left : ∀ A B x, (x ∈ A) → ((x, ∅) ∈ (A ⊔ B)) := sorry
+theorem disj_in_right : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B)) := sorry
+theorem disjunion2_pair_prop : ∀ A B x y, (x, y) ∈ (A ⊔ B) ↔ (x ∈ A ∧ y = ∅) ∨ (x ∈ B ∧ y = {∅}) := sorry
+
+
+
 -- tuple syntax
 declare_syntax_cat pair_comprehension
 syntax  pair_comprehension "; " term : pair_comprehension
@@ -289,6 +293,15 @@ noncomputable def rel_image (X R : Set) := {b ∈ rng R | ∃ a ∈ X; (a . R . 
 syntax  term ".[" term "]" : term
 macro_rules
   | `($R:term .[ $X:term ])  => `(rel_image $X $R)
+
+noncomputable def bin_spec (φ : Set → Set → Prop) (A : Set) := {s ∈ A | φ (π₁ s) (π₂ s) }
+syntax "{" "(" ident "," ident ")"  "∈" term "|" term "}" : term
+macro_rules
+  | `({ ($x:ident, $y:ident) ∈ $A:term | $property:term })  => `(bin_spec (fun ($x) => fun($y) => $property) $A)
+
+
+axiom bin_spec_is_spec (φ : Set → Set → Prop) : ∀ A B x y, (x, y) ∈ {(x, y) ∈ A × B | φ x y} ↔ ((x ∈ A ∧ y ∈ B) ∧ (φ x y))
+axiom bin_spec_is_binAB (φ : Set → Set → Prop) : ∀ A B, {(x, y) ∈ A × B | φ x y} BinRelBtw A AND B
 
 
 axiom id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ (y ∈ A))
@@ -481,6 +494,11 @@ macro_rules
 | `($f:term ⦅ $x:term ; $y:term ⦆) =>  `($f⦅($x, $y)⦆)
 | `($f:term ⦅ $x:pair_comprehension ; $y:term ⦆) => `($f⦅⁅ $x ; $y ⁆⦆)
 
+noncomputable def I2 := {∅, {∅}}
+noncomputable def l2 := ∅
+noncomputable def r2 := {∅}
+noncomputable def X2 (A B) := {A, B}
+noncomputable def ind2_fun (A B) := {(∅, A), ({∅}, B)}
 
 def equinumerous (A B : Set) : Prop := ∃ f, f Bij A To B
 syntax term "~" term : term
