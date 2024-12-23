@@ -857,10 +857,10 @@ theorem specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} �
     And.left ((Iff.mp (spec_is_spec P A t)) g)
 
 
-def inside_predicate (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
-def is_comprehense (P : Set → Prop) (X : Set) := (inside_predicate P ∧ ∀ x, (x ∈ X ↔ P x)) ∨ (¬(inside_predicate P) ∧ X = ∅)
+def is_collective (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
+def is_comprehense (P : Set → Prop) (X : Set) := (is_collective P ∧ ∀ x, (x ∈ X ↔ P x)) ∨ (¬(is_collective P) ∧ X = ∅)
 theorem spec_unique (P : Set → Prop) : ∃! X, is_comprehense P X :=
-  Or.elim (Classical.em (inside_predicate P))
+  Or.elim (Classical.em (is_collective P))
   (
     fun (hins) =>
       Exists.elim hins (
@@ -935,7 +935,7 @@ syntax "{" ident "|" term "}" : term
 macro_rules
   | `({ $x:ident | $property:term })  => `(collect_compreh_set (fun ($x) => $property))
 
-theorem compr_is_compr (P : Set → Prop) : inside_predicate P → (∀ x, (x ∈ {x | P x} ↔ P x)) :=
+theorem compr_is_compr (P : Set → Prop) : is_collective P → (∀ x, (x ∈ {x | P x} ↔ P x)) :=
   fun (hP) =>
     let u₁ : is_comprehense P {x | P x} := And.left (set_intro_prop (fun (X) => is_comprehense P X) (spec_unique P))
 

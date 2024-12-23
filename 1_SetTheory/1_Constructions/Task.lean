@@ -108,15 +108,15 @@ theorem spec_is_spec (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x 
 theorem specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} ⊆ A) := sorry
 
 
--- 12) {x | P x} for collection predicates
-def inside_predicate (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
-def is_comprehense (P : Set → Prop) (X : Set) := (inside_predicate P → ∀ x, (x ∈ X ↔ P x)) ∨ (¬inside_predicate P → X = ∅)
+-- 12) {x | P x} for collective predicates
+def is_collective (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
+def is_comprehense (P : Set → Prop) (X : Set) := (is_collective P → ∀ x, (x ∈ X ↔ P x)) ∨ (is_collective P → X = ∅)
 theorem spec_unique (P : Set → Prop) : ∃! X, is_comprehense P X := sorry
 noncomputable def collect_compreh_set (P : Set → Prop) := set_intro (fun (X) => is_comprehense P X) (spec_unique P)
 syntax "{" ident "|" term "}" : term
 macro_rules
   | `({ $x:ident | $property:term })  => `(collect_compreh_set (fun ($x) => $property))
-theorem compr_is_compr (P : Set → Prop) : inside_predicate P → (∀ x, (x ∈ {x | P x} ↔ P x)) := sorry
+theorem compr_is_compr (P : Set → Prop) : is_collective P → (∀ x, (x ∈ {x | P x} ↔ P x)) := sorry
 
 
 
