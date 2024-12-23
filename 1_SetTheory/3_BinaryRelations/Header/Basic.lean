@@ -81,8 +81,17 @@ macro_rules
 noncomputable def boolean_func_sym : Set → Set :=
   fun (A : Set) => set_intro (fun (B : Set) => ∀ x, (x ∈ B ↔ x ⊆ A)) (unique_boolean A)
 notation (priority := high) "𝒫" => boolean_func_sym
-theorem boolean_set_is_boolean : ∀ A, (∀ x, x ∈ 𝒫 A ↔ x ⊆ A) := sorry
-
+axiom boolean_set_is_boolean : ∀ A, (∀ x, x ∈ 𝒫 A ↔ x ⊆ A)
+def is_collective (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
+def is_collective_A (P : Set → Prop) (A : Set) := ∀ x, (P x) → x ∈ A
+def is_comprehense (P : Set → Prop) (X : Set) := (is_collective P → ∀ x, (x ∈ X ↔ P x)) ∨ (is_collective P → X = ∅)
+axiom spec_unique (P : Set → Prop) : ∃! X, is_comprehense P X
+noncomputable def collect_compreh_set (P : Set → Prop) := set_intro (fun (X) => is_comprehense P X) (spec_unique P)
+syntax "{" ident "|" term "}" : term
+macro_rules
+  | `({ $x:ident | $property:term })  => `(collect_compreh_set (fun ($x) => $property))
+axiom compr_is_compr (P : Set → Prop) : is_collective P → (∀ x, (x ∈ {x | P x} ↔ P x))
+axiom compr_subs (P : Set → Prop) (A : Set) : is_collective_A P A → ({x | P x} ⊆ A)
 
 -- previous axioms:
 

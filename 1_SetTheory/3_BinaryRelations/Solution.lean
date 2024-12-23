@@ -1305,6 +1305,35 @@ theorem bin_spec_is_binAB (φ : Set → Set → Prop) : ∀ A B, {(x, y) ∈ A �
     let P := fun (s) => φ (π₁ s) (π₂ s)
     specification_set_subset P (A × B)
 
+noncomputable def bin_compr (φ : Set → Set → Prop) := {s | φ (π₁ s) (π₂ s) }
+syntax "{" "(" ident "," ident ")"  "|" term "}" : term
+macro_rules
+  | `({ ($x:ident, $y:ident) | $property:term })  => `(bin_compr (fun ($x) => fun($y) => $property))
+
+def is_collective_pair (φ : Set → Set → Prop) := ∃ A, ∀ x, (φ (π₁ x) (π₂ x)) → x ∈ A
+def is_collective_pair_A (φ : Set → Set → Prop) (A : Set) := ∀ x, (φ (π₁ x) (π₂ x)) → x ∈ A
+
+
+theorem bin_compr_is_spec (φ : Set → Set → Prop) : (is_collective_pair φ) → ∀ x, x ∈ {(x, y) | φ x y} ↔ ((φ (π₁ x) (π₂ x))) :=
+  fun (hcoll x) =>
+    compr_is_compr (fun (x) => (φ (π₁ x) (π₂ x))) (hcoll) x
+
+
+theorem bin_compr_pair (φ : Set → Set → Prop) : (is_collective_pair φ) → ∀ x y, (x, y) ∈ {(x, y) | φ x y} ↔ (φ x y) :=
+  fun (hcoll x y) =>
+    let u₁ := bin_compr_is_spec φ hcoll (x, y)
+    eq_subst (fun (t) => (x, y) ∈ {(x, y) | φ x y} ↔ (φ t (y))) (π₁ (x, y)) x (coordinates_fst_coor x y) (
+      eq_subst (fun (t) => (x, y) ∈ {(x, y) | φ x y} ↔ (φ (π₁ (x, y)) (t))) (π₂ (x, y)) y (coordinates_snd_coor x y) (
+        u₁
+      )
+    )
+
+
+
+theorem bin_compr_is_binAB (φ : Set → Set → Prop) : ∀ A B, (is_collective_pair_A φ (A × B)) → {(x, y) | φ x y} BinRelBtw A AND B :=
+  fun (A B hcoll) =>
+    fun (x hx) =>
+      hcoll x (Iff.mp (bin_compr_is_spec φ (Exists.intro (A × B) hcoll) x) hx)
 
 
 noncomputable def composition (P Q : Set) : Set := {pr ∈ dom Q × rng P | ∃ x y, (pr = (x, y)) ∧ ∃ z, (x . Q . z) ∧ (z . P . y)}

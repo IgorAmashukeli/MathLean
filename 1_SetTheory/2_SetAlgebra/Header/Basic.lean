@@ -5,8 +5,8 @@ axiom Set : Type
 axiom membership : Set → Set → Prop
 infix:50 (priority := high) " ∈ " => membership
 infix:50 (priority := high) " ∉ " => (fun (x : Set) => (fun (y : Set) => ¬ membership x y))
-axiom prop_to_set (P : Set → Prop) (h : ∃! x, P x) : Set
-axiom set_to_prop (P : Set → Prop) (h : ∃! x, P x) : P (prop_to_set P h) ∧ ∀ x, x ≠ prop_to_set P h → ¬P x
+axiom set_intro (P : Set → Prop) (h : ∃! x, P x) : Set
+axiom set_to_prop (P : Set → Prop) (h : ∃! x, P x) : P (set_intro P h) ∧ ∀ x, x ≠ set_intro P h → ¬P x
 def forall_in_A (P : Set → Prop) (A : Set) : Prop := (∀ x, (x ∈ A → P x))
 def exists_in_A (P : Set → Prop) (A : Set) : Prop := (∃ x, (x ∈ A ∧ P x))
 def exists_uniq_in_A (P : Set → Prop) (A : Set) : Prop := (∃! x, (x ∈ A ∧ P x))
@@ -32,13 +32,13 @@ axiom exists_unique_empty : (∃! x, empty x)
 axiom unique_unordered_pair : (∀ a₁ a₂, ∃! C, ∀ x, (x ∈ C ↔ x = a₁ ∨ x = a₂))
 axiom unique_union : ∀ A, ∃! B, ∀ x, (x ∈ B ↔ ∃ y ∈ A; x ∈ y)
 axiom unique_specification (P : Set → Prop) : (∀ A, ∃! B, ∀ x, (x ∈ B ↔ x ∈ A ∧ P x))
-noncomputable def empty_set := prop_to_set empty exists_unique_empty
+noncomputable def empty_set := set_intro empty exists_unique_empty
 noncomputable def unordered_pair_set : (Set → Set → Set) := fun (a₁ : Set) => fun (a₂ : Set) =>
-  prop_to_set (fun (B) => ∀ x, (x ∈ B ↔ x = a₁ ∨ x = a₂)) (unique_unordered_pair a₁ a₂)
+  set_intro (fun (B) => ∀ x, (x ∈ B ↔ x = a₁ ∨ x = a₂)) (unique_unordered_pair a₁ a₂)
 noncomputable def singleton_set : (Set → Set) := fun (a) => unordered_pair_set a a
-noncomputable def union_set : (Set → Set) := fun (A) => prop_to_set (fun (B) => ∀ x, (x ∈ B ↔ ∃ y ∈ A; x ∈ y)) (unique_union A)
+noncomputable def union_set : (Set → Set) := fun (A) => set_intro (fun (B) => ∀ x, (x ∈ B ↔ ∃ y ∈ A; x ∈ y)) (unique_union A)
 noncomputable def specification_set (P : Set → Prop) : (Set → Set) :=
-  fun (A) => prop_to_set (fun (B) => (∀ x, x ∈ B ↔ x ∈ A ∧ P x)) (unique_specification P A)
+  fun (A) => set_intro (fun (B) => (∀ x, x ∈ B ↔ x ∈ A ∧ P x)) (unique_specification P A)
 notation (priority := high) "∅" => empty_set
 notation (priority := high) "{" a₁ ", " a₂ "}" => unordered_pair_set a₁ a₂
 notation (priority := high) "{" a "}" => singleton_set a
@@ -46,6 +46,16 @@ notation (priority := high) "⋃" => union_set
 syntax "{" ident "∈" term "|" term "}" : term
 macro_rules
   | `({ $x:ident ∈ $A:term | $property:term })  => `(specification_set (fun ($x) => $property) $A)
+def is_collective (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
+def is_collective_A (P : Set → Prop) (A : Set) := ∀ x, (P x) → x ∈ A
+def is_comprehense (P : Set → Prop) (X : Set) := (is_collective P → ∀ x, (x ∈ X ↔ P x)) ∨ (is_collective P → X = ∅)
+axiom spec_unique (P : Set → Prop) : ∃! X, is_comprehense P X
+noncomputable def collect_compreh_set (P : Set → Prop) := set_intro (fun (X) => is_comprehense P X) (spec_unique P)
+syntax "{" ident "|" term "}" : term
+macro_rules
+  | `({ $x:ident | $property:term })  => `(collect_compreh_set (fun ($x) => $property))
+axiom compr_is_compr (P : Set → Prop) : is_collective P → (∀ x, (x ∈ {x | P x} ↔ P x))
+axiom compr_subs (P : Set → Prop) (A : Set) : is_collective_A P A → ({x | P x} ⊆ A)
 
 
 -- you can clean this axioms add some your own previous theorems as axioms here:

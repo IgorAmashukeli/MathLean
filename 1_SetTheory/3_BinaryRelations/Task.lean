@@ -166,9 +166,19 @@ theorem bin_spec_is_spec (φ : Set → Set → Prop) : ∀ A B x y, (x, y) ∈ {
 theorem bin_spec_is_binAB (φ : Set → Set → Prop) : ∀ A B, {(x, y) ∈ A × B | φ x y} BinRelBtw A AND B := sorry
 
 
+-- 16) comprehension defined binary relation
+noncomputable def bin_compr (φ : Set → Set → Prop) := {s | φ (π₁ s) (π₂ s) }
+syntax "{" "(" ident "," ident ")"  "|" term "}" : term
+macro_rules
+  | `({ ($x:ident, $y:ident) | $property:term })  => `(bin_compr (fun ($x) => fun($y) => $property))
 
+def is_collective_pair (φ : Set → Set → Prop) := ∃ A, ∀ x, (φ (π₁ x) (π₂ x)) → x ∈ A
+def is_collective_pair_A (φ : Set → Set → Prop) (A : Set) := ∀ x, (φ (π₁ x) (π₂ x)) → x ∈ A
+theorem bin_compr_is_spec (φ : Set → Set → Prop) : (is_collective_pair φ) → ∀ x, x ∈ {(x, y) | φ x y} ↔ ((φ (π₁ x) (π₂ x))) := sorry
+theorem bin_compr_pair (φ : Set → Set → Prop) : (is_collective_pair φ) → ∀ x y, (x, y) ∈ {(x, y) | φ x y} ↔ (φ x y) := sorry
+theorem bin_compr_is_binAB (φ : Set → Set → Prop) : ∀ A B, (is_collective_pair_A φ (A × B)) → {(x, y) | φ x y} BinRelBtw A AND B := sorry
 
--- 15) Inverse and other operations
+-- 17) Inverse and other operations
 theorem inv_composition_pair_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (∀ x y, (x . ((P ∘ Q)⁻¹) . y) ↔ (x . ((Q⁻¹) ∘ P⁻¹) . y)) := sorry
 theorem inv_composition_prop : ∀ P Q, (BinRel P) → (BinRel Q) → (P ∘ Q)⁻¹ = ((Q⁻¹) ∘ (P⁻¹)) := sorry
 theorem inv_union_pair_prop : ∀ P Q, (BinRel P) → (BinRel Q) → ∀ x y, (x . ((P ∪ Q)⁻¹) . y) ↔ (x . (P⁻¹ ∪ Q⁻¹) . y) := sorry
@@ -177,7 +187,7 @@ theorem comp_inv_prop_pair : ∀ P A B, (P  BinRelBtw A AND B) → ∀ x y, (x .
 theorem comp_inv_prop : ∀ P A B, (P  BinRelBtw A AND B) → comp A B (P⁻¹) = (comp B A P)⁻¹ := sorry
 
 
--- 16) Composition and other operations
+-- 18) Composition and other operations
 theorem union_composition_pair_prop_right : ∀ P Q R, ∀ x y, (x . ((P ∪ Q) ∘ R) . y) ↔ (x . ((P ∘ R) ∪ (Q ∘ R)) . y) := sorry
 theorem union_composition_prop_right : ∀ P Q R, ((P ∪ Q) ∘ R) = ((P ∘ R) ∪ (Q ∘ R))  := sorry
 theorem union_composition_pair_prop_left : ∀ P Q R, ∀ x y, (x . (P ∘ (Q ∪ R)) . y) ↔ (x . ((P ∘ Q) ∪ (P ∘ R)) . y) := sorry
@@ -190,7 +200,7 @@ theorem intersect2_composition_prop_right: ∀ P Q R, (P ∩ Q) ∘ R ⊆ (P ∘
 theorem intersect2_composition_prop_left: ∀ P Q R, P ∘ (Q ∩ R) ⊆ (P ∘ Q) ∩ (P ∘ R) := sorry
 
 
--- 17) Identical binary relation andits properties
+-- 19) Identical binary relation andits properties
 noncomputable def id_ (A : Set) : Set := {t ∈ (A × A) | ∃ x : Set, t = (x, x)}
 theorem id_is_rel : ∀ A, binary_relation (id_ A) := sorry
 theorem id_prop : ∀ A x y, (x . (id_ A) . y) → (((x = y) ∧ (x ∈ A)) ∧ (y ∈ A)) := sorry
@@ -200,30 +210,30 @@ theorem id_rel_composition_right : ∀ A B R, (R BinRelBtw A AND B) → (R ∘ (
 theorem id_rel_composition_left : ∀ A B R, (R BinRelBtw A AND B) → ((id_ B) ∘ R) = R := sorry
 
 
--- 18) Image of a binary relation construction
+-- 20) Image of a binary relation construction
 noncomputable def rel_image (X R : Set) := {b ∈ rng R | ∃ a ∈ X; (a . R . b)}
 syntax  term ".[" term "]" : term
 macro_rules
   | `($R:term .[ $X:term ])  => `(rel_image $X $R)
 
 
--- 19) Preimage is just image of inverse
+-- 21) Preimage is just image of inverse
 -- but it can be deined differently
 theorem rel_pre_image_eq : ∀ Y R, (BinRel R) → R⁻¹.[Y] = {a ∈ dom R | ∃ b ∈ Y; (a . R . b)} := sorry
 
 
--- 20) Image and preimage main properties
+-- 22) Image and preimage main properties
 theorem image_prop : ∀ R y X, (y ∈ R.[X] ↔ ∃ x ∈ X; (x . R . y)) := sorry
 theorem preimage_prop : ∀ R Y, (BinRel R) → ∀ x, (x ∈ R⁻¹.[Y] ↔ ∃ y ∈ Y; (x . R . y)) := sorry
 
 
 
--- 21) Range and domain as image and preimage
+-- 23) Range and domain as image and preimage
 theorem rng_is_rel_image : ∀ R, (BinRel R) → rng R = R.[dom R] := sorry
 theorem dom_preimage : ∀ A B P, (P  BinRelBtw A AND B) → dom P = P⁻¹.[B] := sorry
 
 
--- 22) Image and preimage other properties
+-- 24) Image and preimage other properties
 theorem rel_image_id : ∀ A X, (X ⊆ A) → (id_ A).[X] = X := sorry
 theorem rel_image_union : ∀ X Y R, (BinRel R) → R.[X ∪ Y] = R.[X] ∪ R.[Y] := sorry
 theorem rel_preimage_union : ∀ X Y R , (BinRel R) → R⁻¹.[X ∪ Y] = R⁻¹.[X] ∪ R⁻¹.[Y] := sorry

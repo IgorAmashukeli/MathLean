@@ -35,12 +35,21 @@ macro_rules
   | `(∃! $idnt:ident $idnts:idents ∈ $A:term; $b:term) => `(exists_uniq_in_A (fun $idnt:ident => (∃ $idnts:idents ∈ $A; $b)) $A)
 
 
--- 4) Empty and non-empty definitions
+
+-- 4) The problem of naive set theory
+-- comprehension axiom doesn't actually hold
+-- you will prove it later
+def comprehension_axiom := ∀ P : Set → Prop, ∃ A, ∀ x, (x ∈ A ↔ P x)
+theorem comprehension_axiom_is_wrong : ¬(comprehension_axiom) := sorry
+
+
+
+-- 5) Empty and non-empty definitions
 def empty (A : Set) : Prop := ∀ b, (b ∉ A)
 def non_empty (A : Set) : Prop := ∃ b, (b ∈ A)
 
 
--- 5) Subset notation
+-- 6) Subset notation
 def subset (A B : Set) : Prop := ∀ x ∈ A; x ∈ B
 infix:50 (priority := high) " ⊆ " => subset
 def neq_subset (A B : Set) : Prop := (A ⊆ B) ∧ (A ≠ B)
@@ -49,13 +58,13 @@ def no_subset (A B : Set) : Prop := ¬ (A ⊆ B)
 infix:50 (priority := high) " ⊈ " => no_subset
 
 
--- 6) Some useful definitions before listing ZF axioms
+-- 7) Some useful definitions before listing ZF axioms
 def set_equality (A B : Set) := ∀ x, (x ∈ A ↔ x ∈ B)
 def functional_predicate (A : Set) (P : Set → Set → Prop) : Prop := ∀ x ∈ A; ∃! y, P x y
 def is_successor (m n : Set) : Prop := ∀ x, (x ∈ n ↔ x ∈ m ∨ x = m)
 
 
--- 7) ZF axioms
+-- 8) ZF axioms
 -- set equality implies logical equality of objects of type Set
 axiom extensionality : ∀ A B, set_equality A B → (A = B)
 -- there exists a set of all subsets of a set

@@ -1,24 +1,18 @@
 import «Header»
 
 
--- 1) The problem of naive set theory
--- comprehension axiom doesn't actually hold
-def comprehension_axiom := ∀ P : Set → Prop, ∃ A, ∀ x, (x ∈ A ↔ P x)
-theorem comprehension_axiom_is_wrong : ¬(comprehension_axiom) := sorry
-
-
--- 2) Subset theorems
+-- 1) Subset theorems
 theorem subset_refl : ∀ A, A ⊆ A := sorry
 theorem subset_trans : ∀ A B C, A ⊆ B → B ⊆ C → A ⊆ C := sorry
 theorem empty_subset_any : ∀ A B, empty A → A ⊆ B := sorry
 
 
--- 3) Subset and equality relation
+-- 2) Subset and equality relation
 theorem subs_subs_eq : ∀ A B, A ⊆ B ∧ B ⊆ A ↔ A = B := sorry
 theorem equality_then_subset : ∀ A B, A = B → A ⊆ B := sorry
 
 
--- 4) construction of ∅ (empty set) and its properties
+-- 3) construction of ∅ (empty set) and its properties
 theorem exists_empty : (∃ x, empty x) := sorry
 theorem exists_unique_empty : (∃! x, empty x) := sorry
 noncomputable def empty_set := set_intro empty exists_unique_empty
@@ -30,7 +24,7 @@ theorem set_empty_iff_empty : ∀ A, (A = ∅) ↔ (∀ x, x ∉ A) := sorry
 theorem set_non_empty_iff_non_empty : ∀ A, (A ≠ ∅) ↔ ∃ x, x ∈ A := sorry
 
 
--- 5) construction of 𝒫 A from A (boolean set)
+-- 4) construction of 𝒫 A from A (boolean set)
 theorem unique_boolean : (∀ A, ∃! B, ∀ x, (x ∈ B ↔ x ⊆ A)) := sorry
 noncomputable def boolean_func_sym : Set → Set :=
   fun (A : Set) => set_intro (fun (B : Set) => ∀ x, (x ∈ B ↔ x ⊆ A)) (unique_boolean A)
@@ -40,7 +34,7 @@ theorem empty_elem_boolean : ∀ A, ∅ ∈ 𝒫 A := sorry
 theorem boolean_set_not_empty : ∀ A, 𝒫 A ≠ ∅ := sorry
 
 
--- 6) construction of a set, that exists by axiom of replacement and its properties
+-- 5) construction of a set, that exists by axiom of replacement and its properties
 theorem unique_replacement (P : Set → Set → Prop) : ∀ A, functional_predicate A P → ∃! B, ∀ y, (y ∈ B ↔ ∃ x ∈ A; P x y) := sorry
 noncomputable def replacement_set (P : Set → Set → Prop) (A : Set) (h : functional_predicate A P) : Set :=
   set_intro (fun (B) => ∀ y, (y ∈ B ↔ ∃ x ∈ A; P x y)) (unique_replacement P A h)
@@ -52,7 +46,7 @@ theorem replacement_set_is_replacement (p : Set → Set → Prop) (A : Set) (h :
 
 
 
--- 7) construction of {a₁, a₂} (unordered set) and its properties
+-- 6) construction of {a₁, a₂} (unordered set) and its properties
 theorem exists_unordered_pair : ∀ a₁ a₂, ∃ C, ∀ x, (x ∈ C ↔ x = a₁ ∨ x = a₂) := sorry
 theorem unique_unordered_pair : (∀ a₁ a₂, ∃! C, ∀ x, (x ∈ C ↔ x = a₁ ∨ x = a₂)) := sorry
 noncomputable def unordered_pair_set : (Set → Set → Set) := fun (a₁ : Set) => fun (a₂ : Set) =>
@@ -65,7 +59,7 @@ theorem unordered_pair_is_unordered : ∀ a₁ a₂, {a₁, a₂} = {a₂, a₁}
 theorem unordered_pair_subs : ∀ a₁ a₂ A, (a₁ ∈ A) → (a₂ ∈ A) → ({a₁, a₂} ⊆ A) := sorry
 
 
--- 8) construction of {a} (singleton set) and its properties
+-- 7) construction of {a} (singleton set) and its properties
 noncomputable def singleton_set : (Set → Set) := fun (a) => unordered_pair_set a a
 notation (priority := high) "{" a "}" => singleton_set a
 theorem singleton_a_elem_is_a : ∀ a x, x ∈ {a} ↔ x = a := sorry
@@ -74,12 +68,12 @@ theorem singleton_non_empty : ∀ x, non_empty {x} := sorry
 theorem singl_subs : ∀ A x, x ∈ A → {x} ⊆ A := sorry
 
 
--- 9) regularity properties
+-- 8) regularity properties
 theorem neg_notin_refl : ∀ x, x ∉ x := sorry
 theorem no_universal_set : ¬∃ A, ∀ x, x ∈ A := sorry
 
 
--- 10) ⋃ A (union set) construction and its properties
+-- 9) ⋃ A (union set) construction and its properties
 theorem unique_union : ∀ A, ∃! B, ∀ x, (x ∈ B ↔ ∃ y ∈ A; x ∈ y) := sorry
 noncomputable def union_set : (Set → Set) := fun (A) => set_intro (fun (B) => ∀ x, (x ∈ B ↔ ∃ y ∈ A; x ∈ y)) (unique_union A)
 notation (priority := high) "⋃" => union_set
@@ -94,7 +88,7 @@ theorem all_ss_then_union_ss : ∀ A B, (∀ X ∈ A; X ⊆ B) → (⋃ A ⊆ B)
 theorem union_subset_monotonic : ∀ A B, A ⊆ B → ⋃ A ⊆ ⋃ B := sorry
 
 
--- 11) {x ∈ A | P x} (specification set) construction and its properties
+-- 10) {x ∈ A | P x} (specification set) construction and its properties
 theorem specification_simple (P : Set → Prop) :  (∀ A, (¬∃ x ∈ A; P x) → ∃ B, ∀ x, (x ∈ B ↔ x ∈ A ∧ P x)) := sorry
 theorem specification_hard (P : Set → Prop) : (∀ A, (∃ x ∈ A; P x) → ∃ B, ∀ x, (x ∈ B ↔ x ∈ A ∧ P x)) := sorry
 theorem specification (P : Set → Prop) : (∀ A, ∃ B, ∀ x, (x ∈ B ↔ x ∈ A ∧ P x)) := sorry
@@ -108,8 +102,9 @@ theorem spec_is_spec (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x 
 theorem specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} ⊆ A) := sorry
 
 
--- 12) {x | P x} for collective predicates
+-- 11) {x | P x} for collective predicates only
 def is_collective (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
+def is_collective_A (P : Set → Prop) (A : Set) := ∀ x, (P x) → x ∈ A
 def is_comprehense (P : Set → Prop) (X : Set) := (is_collective P → ∀ x, (x ∈ X ↔ P x)) ∨ (is_collective P → X = ∅)
 theorem spec_unique (P : Set → Prop) : ∃! X, is_comprehense P X := sorry
 noncomputable def collect_compreh_set (P : Set → Prop) := set_intro (fun (X) => is_comprehense P X) (spec_unique P)
@@ -117,11 +112,12 @@ syntax "{" ident "|" term "}" : term
 macro_rules
   | `({ $x:ident | $property:term })  => `(collect_compreh_set (fun ($x) => $property))
 theorem compr_is_compr (P : Set → Prop) : is_collective P → (∀ x, (x ∈ {x | P x} ↔ P x)) := sorry
+theorem compr_subs (P : Set → Prop) (A : Set) : is_collective_A P A → ({x | P x} ⊆ A) := sorry
 
 
 
 
--- 13) ⋂ A (intersection set) construction and its properties
+-- 12) ⋂ A (intersection set) construction and its properties
 noncomputable def intersection_set : Set → Set := fun (A) => {x ∈ ⋃ A | ∀ y ∈ A; x ∈ y}
 notation (priority := high) "⋂" => intersection_set
 theorem intersection_sub_union : ∀ A, (⋂ A) ⊆ (⋃ A) := sorry
@@ -130,7 +126,7 @@ theorem intersection_non_empty : ∀ A, (A ≠ ∅ → ∀ x, (x ∈ ⋂ A) ↔ 
 theorem intersect_subset_monotonic : ∀ A B, (A ≠ ∅) → (A ⊆ B) → (⋂ B ⊆ ⋂ A) := sorry
 
 
--- 14) Set of all singletons
+-- 13) Set of all singletons
 
 noncomputable def singlbool_set (A) := {S ∈ 𝒫 (A) | ∃ x ∈ A; S = {x}}
 syntax "𝒫₁" term : term

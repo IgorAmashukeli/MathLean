@@ -1,24 +1,6 @@
 import «Header»
 
 
-theorem Russel_paradox : ¬ ∃ A, ∀ x, (x ∈ A ↔ x ∉ x) :=
-  fun (h : ∃ A, ∀ x, (x ∈ A ↔ x ∉ x)) =>
-    Exists.elim h
-    (
-      fun (Russel) =>
-        fun (hw : ∀ x, (x ∈ Russel ↔ x ∉ x)) =>
-          (negation_not_equiv (Russel ∈ Russel)) (hw Russel)
-    )
-
-def comprehension_axiom := ∀ P : Set → Prop, ∃ A, ∀ x, (x ∈ A ↔ P x)
-theorem comprehension_axiom_is_wrong : ¬(comprehension_axiom) :=
-  fun (hcomp) =>
-    let badP := fun (x) => x ∉ x
-    Russel_paradox (
-      hcomp badP
-    )
-
-
 
 
 theorem subset_refl : ∀ A, A ⊆ A :=
@@ -858,6 +840,7 @@ theorem specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} �
 
 
 def is_collective (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
+def is_collective_A (P : Set → Prop) (A : Set) := ∀ x, (P x) → x ∈ A
 def is_comprehense (P : Set → Prop) (X : Set) := (is_collective P ∧ ∀ x, (x ∈ X ↔ P x)) ∨ (¬(is_collective P) ∧ X = ∅)
 theorem spec_unique (P : Set → Prop) : ∃! X, is_comprehense P X :=
   Or.elim (Classical.em (is_collective P))
@@ -938,7 +921,6 @@ macro_rules
 theorem compr_is_compr (P : Set → Prop) : is_collective P → (∀ x, (x ∈ {x | P x} ↔ P x)) :=
   fun (hP) =>
     let u₁ : is_comprehense P {x | P x} := And.left (set_intro_prop (fun (X) => is_comprehense P X) (spec_unique P))
-
     Or.elim u₁ (
       fun (hinsP) =>
         And.right hinsP
@@ -947,6 +929,12 @@ theorem compr_is_compr (P : Set → Prop) : is_collective P → (∀ x, (x ∈ {
         False.elim ((And.left hninsP) (hP))
     )
 
+
+theorem compr_subs (P : Set → Prop) (A : Set) : is_collective_A P A → ({x | P x} ⊆ A) :=
+  fun (hPA) =>
+    fun (x) =>
+      fun (hx) =>
+        hPA x (Iff.mp (compr_is_compr P (Exists.intro A hPA) x) hx)
 
 noncomputable def intersection_set : Set → Set := fun (A) => {x ∈ ⋃ A | ∀ y ∈ A; x ∈ y}
 
