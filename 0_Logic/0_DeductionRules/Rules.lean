@@ -36,8 +36,7 @@ theorem neg_elim (p : Prop) (hp : p) (hnp : ¬p) : False := hnp hp
 
 
 -- 7) Classical rule of contradiction
-open Classical
-theorem by_contradiction (p : Prop) (hnnp : ¬¬p) : p := byContradiction hnnp
+theorem by_contradiction (p : Prop) (hnnp : ¬¬p) : p := Classical.byContradiction hnnp
 
 
 -- 8) Universal quantifier rules

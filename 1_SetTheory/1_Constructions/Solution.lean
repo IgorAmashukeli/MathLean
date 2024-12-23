@@ -1,8 +1,6 @@
 import «Header»
 
 
-
-
 theorem Russel_paradox : ¬ ∃ A, ∀ x, (x ∈ A ↔ x ∉ x) :=
   fun (h : ∃ A, ∀ x, (x ∈ A ↔ x ∉ x)) =>
     Exists.elim h
@@ -11,6 +9,15 @@ theorem Russel_paradox : ¬ ∃ A, ∀ x, (x ∈ A ↔ x ∉ x) :=
         fun (hw : ∀ x, (x ∈ Russel ↔ x ∉ x)) =>
           (negation_not_equiv (Russel ∈ Russel)) (hw Russel)
     )
+
+def comprehension_axiom := ∀ P : Set → Prop, ∃ A, ∀ x, (x ∈ A ↔ P x)
+theorem comprehension_axiom_is_wrong : ¬(comprehension_axiom) :=
+  fun (hcomp) =>
+    let badP := fun (x) => x ∉ x
+    Russel_paradox (
+      hcomp badP
+    )
+
 
 
 
@@ -121,12 +128,11 @@ theorem unique_boolean : (∀ A, ∃! B, ∀ x, (x ∈ B ↔ x ⊆ A)) :=
           ))
     )
 
-open Classical
 
 theorem non_empty_uni_then_exi (P : Set → Prop) : ∀ A, (A ≠ ∅) → (∀ x ∈ A; P x) → ∃ x ∈ A; P x :=
   fun (A) => fun (h : A ≠ ∅) =>
     fun (g : ∀ x ∈ A; P x) =>
-      byContradiction
+      Classical.byContradiction
       fun (s : ¬∃ x ∈ A; P x) =>
         let first := Iff.mpr (morgan_uni Set (fun (x) => x ∈ A ∧ P x)) s
         let third : ∀ (x), (x ∈ A) → P x := g
@@ -269,7 +275,7 @@ noncomputable def Pow_Pow_empty : Set := 𝒫 (𝒫 ∅)
 theorem functional_func_pred_pick (a₁ : Set) (a₂ : Set) : functional_predicate Pow_Pow_empty (functional_predicate_picker a₁ a₂) :=
     fun (x) =>
       fun (_ : x ∈ 𝒫 (𝒫 ∅)) =>
-        Or.elim (em (x = ∅))
+        Or.elim (Classical.em (x = ∅))
         (
           fun (h : x = ∅) =>
             Exists.intro a₁ (And.intro
@@ -317,7 +323,7 @@ theorem exists_unordered_pair : ∀ a₁ a₂, ∃ C, ∀ x, (x ∈ C ↔ x = a�
                   Exists.elim first
                   (
                     fun (w) => fun (hw : (w ∈ Pow_Pow_empty) ∧ ((w = ∅ → y = a₁) ∧ (w ≠ ∅ → y = a₂))) =>
-                      Or.elim (em (w = ∅))
+                      Or.elim (Classical.em (w = ∅))
                       (
                         fun (h₁ : w = ∅) =>
                         (Or.inl : y = a₁ → (y = a₁ ∨ y = a₂))
@@ -722,7 +728,7 @@ def functional_predicate_selector (P : Set → Prop) (e : Set)  : Set → Set �
 def functional_func_pred_sel (A : Set) (P : Set → Prop) (e : Set) : functional_predicate A (functional_predicate_selector P e) :=
   fun (x) =>
     fun (_ : x ∈ A) =>
-      Or.elim (em (P x))
+      Or.elim (Classical.em (P x))
       (fun (g₁ : P x) =>
         Exists.intro x (And.intro (And.intro (fun (_ : P x) => Eq.refl x) (fun (s : ¬P x) => (False.elim : False → x = e) (s g₁))) (
           fun (y) => fun (hy : (P x → y = x) ∧ (¬P x → y = e)) =>
@@ -767,7 +773,7 @@ theorem specification_hard (P : Set → Prop) : (∀ A, (∃ x ∈ A; P x) → �
                       (
                         fun (u) =>
                           fun (hu : u ∈ A ∧ (P u → x = u) ∧ (¬ P u → x = e)) =>
-                          Or.elim (em (P u))
+                          Or.elim (Classical.em (P u))
                           (
                             fun (h₁ : P u) =>
                               let third := (And.left (And.right hu) (h₁))
@@ -807,7 +813,7 @@ theorem specification_hard (P : Set → Prop) : (∀ A, (∃ x ∈ A; P x) → �
 
 theorem specification (P : Set → Prop) : (∀ A, ∃ B, ∀ x, (x ∈ B ↔ x ∈ A ∧ P x)) :=
   fun (A) =>
-    Or.elim (em (∃ x ∈ A; P x))
+    Or.elim (Classical.em (∃ x ∈ A; P x))
     (specification_hard P A)
     (specification_simple P A)
 
@@ -849,6 +855,97 @@ theorem spec_is_spec (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x 
 theorem specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} ⊆ A) :=
   fun (A) => fun(t) => fun (g : (t ∈ {x ∈ A | P x})) =>
     And.left ((Iff.mp (spec_is_spec P A t)) g)
+
+
+def inside_predicate (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
+def is_comprehense (P : Set → Prop) (X : Set) := (inside_predicate P ∧ ∀ x, (x ∈ X ↔ P x)) ∨ (¬(inside_predicate P) ∧ X = ∅)
+theorem spec_unique (P : Set → Prop) : ∃! X, is_comprehense P X :=
+  Or.elim (Classical.em (inside_predicate P))
+  (
+    fun (hins) =>
+      Exists.elim hins (
+        fun (A hA) =>
+          Exists.intro {x ∈ A | P x} (
+                let u₁ := fun (x) => Iff.intro (
+                    fun (hx) =>
+                      And.right (Iff.mp (spec_is_spec P A x) hx)
+                  ) (
+                    fun (hx) =>
+                      Iff.mpr (spec_is_spec P A x) (
+                        And.intro (hA x hx) (hx)
+                      )
+                  )
+            And.intro (Or.inl (
+              And.intro (hins) (
+                u₁
+              )
+            )) (
+              fun (y hy) =>
+                Or.elim hy
+                (
+                  fun (hinsP) =>
+                    extensionality {x ∈ A | P x} y (
+                      fun (x) =>
+                        Iff.intro
+                        (
+                          fun (hx) =>
+                            let u₂ := Iff.mp (u₁ x) hx
+                            Iff.mpr (And.right hinsP x) u₂
+                        )
+                        (
+                          fun (hx) =>
+                            Iff.mpr (u₁ x) (
+                              Iff.mp (And.right hinsP x) (hx)
+                            )
+                        )
+                    )
+
+                )
+                (
+                  fun (hninsemp) =>
+                    False.elim ((And.left hninsemp) (hins))
+                )
+            )
+          )
+      )
+  )
+  (
+    fun (hnins) =>
+      Exists.intro ∅ (
+        And.intro (Or.inr (And.intro hnins (Eq.refl ∅))) (
+          fun (y hy) =>
+            Or.elim (hy)
+            (
+              fun (hinsP) =>
+                False.elim (hnins (And.left hinsP))
+            )
+            (
+              fun (hninsemp) =>
+                Eq.symm (And.right hninsemp)
+            )
+        )
+      )
+  )
+
+
+
+
+noncomputable def collect_compreh_set (P : Set → Prop) := set_intro (fun (X) => is_comprehense P X) (spec_unique P)
+syntax "{" ident "|" term "}" : term
+macro_rules
+  | `({ $x:ident | $property:term })  => `(collect_compreh_set (fun ($x) => $property))
+
+theorem compr_is_compr (P : Set → Prop) : inside_predicate P → (∀ x, (x ∈ {x | P x} ↔ P x)) :=
+  fun (hP) =>
+    let u₁ : is_comprehense P {x | P x} := And.left (set_intro_prop (fun (X) => is_comprehense P X) (spec_unique P))
+
+    Or.elim u₁ (
+      fun (hinsP) =>
+        And.right hinsP
+    ) (
+      fun (hninsP) =>
+        False.elim ((And.left hninsP) (hP))
+    )
 
 
 noncomputable def intersection_set : Set → Set := fun (A) => {x ∈ ⋃ A | ∀ y ∈ A; x ∈ y}

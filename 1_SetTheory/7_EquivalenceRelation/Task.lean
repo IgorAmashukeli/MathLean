@@ -143,7 +143,7 @@ theorem kernatind_uni : ∀ A B R f, (R EquivRel A) → (f Fun A To B) → (R = 
 theorem factor_kernel_equin : ∀ A B f, (f Fun A To B) → (A ./ (ker f On A)) ~ (rng f) := sorry
 
 
--- 11) Compatible relation, function and operation on factorset
+-- 11) Compatible relation, function and operation on factorsets
 
 def fac_rel_compat (A R S) := (∀ r₁ r₂ ∈ (A ./ R); (r₁ . (S) . r₂) ↔ (∃ x₁ ∈ r₁; ∃ x₂ ∈ r₂; (x₁ . (R) . x₂)))
 syntax term "FacCompRelWith" term "On" term : term

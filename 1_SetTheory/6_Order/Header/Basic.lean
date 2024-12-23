@@ -212,15 +212,16 @@ macro_rules
 | `(DUR $X) => `(disjoint_union_right $X)
 
 
-theorem dul_A : ∀ A B, (DUL (A ⊔ B)) = (A × {∅}) := sorry
-theorem dur_B : ∀ A B, (DUR (A ⊔ B)) = (B × {{∅}}) := sorry
-theorem dul_subs : ∀ A B, (DUL (A ⊔ B)) ⊆ (A ⊔ B) := sorry
-theorem dur_subs : ∀ A B, (DUR (A ⊔ B)) ⊆ (A ⊔ B) := sorry
-theorem dulr_un : ∀ A B, (A ⊔ B) = (DUL (A ⊔ B)) ∪ (DUR (A ⊔ B)) := sorry
-theorem dulr_in : ∀ A B, (DUL (A ⊔ B)) ∩ (DUR (A ⊔ B)) = ∅ := sorry
-theorem disj_in_left : ∀ A B x, (x ∈ A) → ((x, ∅) ∈ (A ⊔ B)) := sorry
-theorem disj_in_right : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B)) := sorry
-theorem disjunion2_pair_prop : ∀ A B x y, (x, y) ∈ (A ⊔ B) ↔ (x ∈ A ∧ y = ∅) ∨ (x ∈ B ∧ y = {∅}) := sorry
+axiom dul_A : ∀ A B, (DUL (A ⊔ B)) = (A × {∅})
+axiom dur_B : ∀ A B, (DUR (A ⊔ B)) = (B × {{∅}})
+axiom dul_subs : ∀ A B, (DUL (A ⊔ B)) ⊆ (A ⊔ B)
+axiom dur_subs : ∀ A B, (DUR (A ⊔ B)) ⊆ (A ⊔ B)
+axiom dulr_un : ∀ A B, (A ⊔ B) = (DUL (A ⊔ B)) ∪ (DUR (A ⊔ B))
+axiom dulr_in : ∀ A B, (DUL (A ⊔ B)) ∩ (DUR (A ⊔ B)) = ∅
+axiom disj_in_left : ∀ A B x, (x ∈ A) → ((x, ∅) ∈ (A ⊔ B))
+axiom disj_in_right : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B))
+axiom disjunion2_pair_prop : ∀ A B x y, (x, y) ∈ (A ⊔ B) ↔ (x ∈ A ∧ y = ∅) ∨ (x ∈ B ∧ y = {∅})
+axiom disj2_xAB_in : ∀ A B x, (x ∈ (A ⊔ B)) → (((π₁ x) ∈ A) ∧ ((π₂ x) = ∅) ∨ (((π₁ x) ∈ B) ∧ ((π₂ x) = {∅})))
 
 
 

@@ -240,7 +240,7 @@ theorem po_less_more : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≺(𝓐)) . 
 theorem po_lesseq_moreeq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(𝓐)) . y) ↔ (y . ≽(𝓐) . x) := sorry
 theorem po_emp : ∀ 𝓐, (PartOrd 𝓐) → (setPO(𝓐) ≠ ∅) := sorry
 
--- 17) sub of PO, inverse of a PO, intersection of two PO, cartesian product of two PO, summ (disjunctive union) of two products is po
+-- 18) sub of PO, inverse of a PO, intersection of two PO, cartesian product of two PO, summ (disjunctive union) of two products is po
 theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 P⨁O 𝓑)) := sorry
 theorem leq_sum : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≼(𝓐) . y) ↔ (disj_pred2_R₂ 𝓐 𝓑 x y))) := sorry
 theorem inv_is_PO : ∀ 𝓐, (PartOrd 𝓐) → (PartOrd (invPO 𝓐) ) := sorry
@@ -253,7 +253,7 @@ theorem inv_PO_lesseq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(invPO �
 theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 Cart2CordPO 𝓑)) := sorry
 
 
--- 18) partial order pair properties
+-- 19) partial order pair properties
 def noncomparable_nonstr (𝓐 x y : Set) : Prop := (¬ (x . (≼(𝓐)) . y)) ∧ (¬ (x . (≽(𝓐)) . y))
 def noncomparable_str (𝓐 x y : Set) : Prop := (¬ (x . (≺(𝓐)) . y)) ∧ (¬ (x . (≻(𝓐)) . y))
 theorem part_ord_pair_prop :
@@ -277,7 +277,7 @@ theorem PO_noncomp :
 
 
 
--- 19) (𝒫 A, ⊊, ⊆) is a partial order
+-- 20) (𝒫 A, ⊊, ⊆) is a partial order
 
 
 
@@ -293,7 +293,7 @@ theorem SNSPO_bool_pair_prop : ∀ A, ∀ B C ∈ 𝒫 A; (B, C) ∈ (subneq_bin
 theorem boolean_PO : ∀ A, (PartOrd (BoolPO A)) := sorry
 
 
--- 20) maximal (minimal) and maximum (minimim) elements, maximal and minimal sets
+-- 21) maximal (minimal) and maximum (minimim) elements, maximal and minimal sets
 def is_maximal (𝓐 B x : Set) : Prop := (x ∈ B) ∧ (∀ y ∈ B; ¬ (x . (≺(𝓐)) . y))
 def is_minimal (𝓐 B x : Set) : Prop := (x ∈ B) ∧ (∀ y ∈ B; ¬ (y . (≺(𝓐)) . y))
 def is_maximum (𝓐 B x : Set) : Prop := (x ∈ B) ∧ (∀ y ∈ B; (y . (≼(𝓐)) . x))
@@ -303,7 +303,6 @@ def is_minimum (𝓐 B x : Set) : Prop := (x ∈ B) ∧ (∀ y ∈ B; (x . (≼(
 noncomputable def max_set (𝓐 B) := {z ∈ B | is_maximal 𝓐 B z }
 noncomputable def min_set (𝓐 B) := {z ∈ B | is_minimal 𝓐 B z }
 
--- 21) basic properties of maxsets and minsets
 theorem max_set_is_max_set : ∀ 𝓐 B x, ((x ∈ max_set 𝓐 B) ↔ (is_maximal 𝓐 B x)) := sorry
 theorem min_set_is_min_set : ∀ 𝓐 B x, ((x ∈ min_set 𝓐 B) ↔ (is_minimal 𝓐 B x)) := sorry
 
@@ -651,6 +650,7 @@ macro_rules
 
 theorem inv_is_LO : ∀ 𝓐, (LinOrd 𝓐) → (LinOrd (invPO 𝓐)) := sorry
 theorem sub_is_LO : ∀ 𝓐 B, (B ≠ ∅) → (LinOrd 𝓐) → (B ⊆ setPO(𝓐)) → (LinOrd (𝓐 SubsPO B)) := sorry
+theorem summ_is_LO : ∀ 𝓐 𝓑, (LinOrd 𝓐) → (LinOrd 𝓑) → (LinOrd (𝓐 P⨁O 𝓑)) := sorry
 
 
 theorem lin_ord_prop : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (x . (≼(𝓐)) . y) ∨ (y . (≼(𝓐)) . x)) := sorry

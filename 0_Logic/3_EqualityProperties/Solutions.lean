@@ -116,7 +116,6 @@ theorem forall_eq_C_PC_then_P (P : α → Prop) : (∀ x : α, x = C) → (P C) 
 
 
 
-open Classical
 
 
 theorem uni_eq_partition (P : α → α → Prop) : (∀ x : α, ∀ y : α, P x y) ↔ ((∀ x : α, P x x) ∧ ∀ x : α, ∀ y : α, (x ≠ y → P x y)) :=
@@ -128,7 +127,7 @@ theorem uni_eq_partition (P : α → α → Prop) : (∀ x : α, ∀ y : α, P x
    (
       fun (h : ((∀ x : α, P x x) ∧ ∀ x : α, ∀ y : α, (x ≠ y → P x y))) =>
          fun (x : α) => fun (y : α) =>
-            Or.elim (em (x = y))
+            Or.elim (Classical.em (x = y))
             (fun (g : x = y) =>
                eq_subst (fun (t : α) => P x t) x y g (And.left h x)
             )
@@ -151,7 +150,7 @@ theorem exi_eq_partition (P : α → α → Prop) : (∃ x : α, ∃ y : α, P x
                   (
                      fun (u : α) =>
                         fun (hu : P w u) =>
-                           Or.elim (em (w = u))
+                           Or.elim (Classical.em (w = u))
                               (fun (g : (w = u)) =>
                                  (Or.inl : (∃ x : α, P x x) → (∃ x : α, P x x) ∨ ∃ x : α, ∃ y : α, (x ≠ y ∧  P x y))
                                  (Exists.intro u (eq_subst (fun (t : α) => P t u) w u g hu))

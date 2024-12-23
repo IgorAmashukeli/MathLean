@@ -117,7 +117,7 @@ theorem equinum_image : ∀ A B X f, X ⊆ A → (f Inj A To B) → X ~ f.[X] :=
     )
 
 
-open Classical
+
 
 theorem equinum_partition : ∀ A B X Y, (X ⊆ A) → (Y ⊆ B) → (X ~ Y) → ((A \ X) ~ (B \ Y)) → (A ~ B) :=
   fun (A B X Y) =>
@@ -190,7 +190,7 @@ theorem equinum_partition : ∀ A B X Y, (X ⊆ A) → (Y ⊆ B) → (X ~ Y) →
                               )
                       )) (
                         fun (s) => fun (h₁ : s ∈ A) =>
-                          Or.elim (em (s ∈ X))
+                          Or.elim (Classical.em (s ∈ X))
                           (fun (hf₂ : s ∈ X) =>
                             Exists.intro (f⦅s⦆) (
                               let prop₁ := function_value_pick_property f X Y s hf₂ (And.left hf)
@@ -248,7 +248,7 @@ theorem equinum_partition : ∀ A B X Y, (X ⊆ A) → (Y ⊆ B) → (X ~ Y) →
 
                       ) (
                           fun (s) => fun (h₁ : s ∈ B) =>
-                          Or.elim (em (s ∈ Y))
+                          Or.elim (Classical.em (s ∈ Y))
                           (fun (hf₂ : s ∈ Y) =>
                             let res₁ := And.right (And.right hf) s hf₂
                             Exists.elim res₁
@@ -1616,7 +1616,7 @@ theorem equinum_disjun_un : ∀ A I, (A IndxFun I) → (∀ i j ∈ I; (i ≠ j)
                                   let m₂₂ := eq_subst (fun (t) => (π₂ t) = e) (s, e) y (Eq.symm (And.right he)) (m₂₀)
                                   let m₂₃ := Eq.trans m₂₁ m₁₀
                                   let m₂₄ := Eq.trans m₂₂ m₁₁
-                                  Or.elim (em (i = j))
+                                  Or.elim (Classical.em (i = j))
                                   (
                                     fun (hij) =>
                                       equal_fst_snd (A _ i) {i} x y (m₆) (
@@ -1821,6 +1821,51 @@ theorem equinum_boolean_congr : ∀ A B, (A ~ B) → (𝒫 A ~ 𝒫 B) :=
       )
 
 
+noncomputable def bool_compl_bij (A) := lam_fun (𝒫 A) (𝒫 A) (fun (X) => A \ X)
+syntax "BoolCompBij" term : term
+macro_rules
+| `(BoolCompBij $A) => `(bool_compl_bij $A)
+
+theorem boolcompbij_is_bij : ∀ A, (BoolCompBij A) Bij (𝒫 A) To (𝒫 A) :=
+  fun (A) =>
+    let P := fun (X) => A \ X
+    let f := (BoolCompBij A)
+    let u₁ := lam_then_fun_prop P (𝒫 A) (𝒫 A) (
+      fun (X _) =>
+        let u₂ := difference_subset_prop A X
+        Iff.mpr (boolean_set_is_boolean A (A \ X)) u₂
+
+    )
+    let func := And.left u₁
+
+    Iff.mp (rev_criterion f (𝒫 A) (𝒫 A)) (
+
+      And.intro (func) (
+        Exists.intro (f) (
+          And.intro (func) (
+
+            let u₀ := function_composition_A f f (𝒫 A) (𝒫 A) (𝒫 A) func func
+            let u₁ := Iff.mpr (equal_functions_abc_A (f ∘ f) (id_ (𝒫 A)) (𝒫 A) (𝒫 A) (𝒫 A) (And.left u₀) (And.left (id_is_bij (𝒫 A)))) (
+              fun (x hx) =>
+                let u₀₀ := And.right u₀ x hx
+                let pr₁ := val_in_B f (𝒫 A) (𝒫 A) func x hx
+                Eq.trans (u₀₀) (Eq.trans (Eq.trans (And.right u₁ (f⦅x⦆) (pr₁)) (
+                  eq_subst (fun (t) => A \ t = x) (A \ x) (f⦅x⦆) (Eq.symm (And.right u₁ x hx)) (
+                    double_compl A x (Iff.mp (boolean_set_is_boolean A x) hx)
+                  )
+                )) (Eq.symm (id_val_prop (𝒫 A) x hx)))
+            )
+
+            And.intro (u₁) (u₁)
+          )
+        )
+      )
+    )
+
+
+
+
+
 
 theorem equinum_power_boolean : ∀ A, ({∅, {∅}} ℙow A) ~ 𝒫 A :=
   let X := ∅
@@ -1883,7 +1928,7 @@ theorem equinum_power_boolean : ∀ A, ({∅, {∅}} ℙow A) ~ 𝒫 A :=
                           (
                             fun (hX : f⦅x⦆ = X) =>
                               let second : g⦅x⦆ = X :=
-                                byContradiction (
+                                Classical.byContradiction (
                                   fun (gxnX : g⦅x⦆ ≠ X) =>
                                     let m := val_in_B g A {X, Y} g_func  x hx
                                     let n := Iff.mp (unordered_pair_set_is_unordered_pair X Y (g⦅x⦆)) m
@@ -1962,7 +2007,7 @@ theorem equinum_power_boolean : ∀ A, ({∅, {∅}} ℙow A) ~ 𝒫 A :=
                         fun (hs : s ∈ P f) =>
                           let R := fun (r) => f⦅r⦆ = Y
                           let pf_pr := Iff.mp (spec_is_spec R A s) hs
-                          Or.elim (em (s ∈ M))
+                          Or.elim (Classical.em (s ∈ M))
                           (
                             fun (hs : s ∈ M) =>
                               hs
@@ -2139,7 +2184,7 @@ theorem equinum_then_cov : ∀ A B, (A ~ B) → A ≿ B :=
 theorem subs_then_cov : ∀ A B, (A ⊆ B) → ((B ≿ A) ∨ (A = ∅ ∧ B ≠ ∅)) :=
   fun (A B) =>
     fun (hAB : A ⊆ B) =>
-      Or.elim (em (A = ∅ ∧ B ≠ ∅))
+      Or.elim (Classical.em (A = ∅ ∧ B ≠ ∅))
       (
         fun (hABemp : A = ∅ ∧ B ≠ ∅) =>
           Or.inr hABemp
@@ -2192,7 +2237,7 @@ theorem subs_then_cov : ∀ A B, (A ⊆ B) → ((B ≿ A) ∨ (A = ∅ ∧ B ≠
           (
             fun (Bnnemp : ¬ (B ≠ ∅)) =>
               Or.inl (
-                let v := byContradiction Bnnemp
+                let v := Classical.byContradiction Bnnemp
                 let r := extensionality A (∅) (fun (x) => Iff.intro (
                   fun (hx : x ∈ A) =>
                     eq_subst (fun (t) => x ∈ t) (B) (∅) (v) (hAB x (hx))
@@ -2232,7 +2277,7 @@ theorem incl_cov_prop_AC : choice_ax → (∀ A B, (A ≾ B) ↔ ((B ≿ A) ∨ 
           Exists.elim hAB (
             fun (f) =>
               fun (hf : f Inj A To B) =>
-                Or.elim (em ((A = ∅ ∧ B ≠ ∅)))
+                Or.elim (Classical.em ((A = ∅ ∧ B ≠ ∅)))
                 (
                   fun (habemp : (A = ∅ ∧ B ≠ ∅)) =>
                     Or.inr habemp
@@ -2246,7 +2291,7 @@ theorem incl_cov_prop_AC : choice_ax → (∀ A B, (A ≾ B) ↔ ((B ≿ A) ∨ 
                         (Or.inl)
                         (
                           fun (hnnb : ¬ B ≠ ∅) =>
-                            Or.inr (byContradiction hnnb)
+                            Or.inr (Classical.byContradiction hnnb)
                         )
 
                       )
@@ -2378,7 +2423,7 @@ theorem cantor_theorem : ∀ A, 𝒫 A ⋠ A :=
 
             let v := Iff.mp (func_inj_prop (𝒫 A) A f (And.left hf)) hf
 
-            Or.elim (em (f⦅Y⦆ ∈ Y))
+            Or.elim (Classical.em (f⦅Y⦆ ∈ Y))
             (
               fun (hfy : f⦅Y⦆ ∈ Y) =>
                 let u := And.right (Iff.mp (spec_is_spec P (A) (f⦅Y⦆)) hfy)

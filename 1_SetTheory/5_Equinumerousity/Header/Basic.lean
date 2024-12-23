@@ -346,6 +346,7 @@ axiom func_surj_prop : ∀ A B f, (f Fun A To B) → ((f Surj A To B) ↔ (∀ y
 
 
 axiom id_is_bij : ∀ A, (id_ A) Bij A To A
+axiom id_val_prop : ∀ A x, (x ∈ A) → (id_ A⦅x⦆ = x)
 axiom bijection_inv_mp : ∀ f A B, ((f Bij A To B) → (f⁻¹ Bij B To A))
 axiom bijection_composition : ∀ f g A B C, (f Bij A To B) → (g Bij B To C) → ((g ∘ f) Bij A To C)
 axiom lam_then_fun_prop (P : Set → Set) : ∀ A B, (∀ x ∈ A; P x ∈ B) →  (((lam_fun A B P) Fun A To B) ∧ (∀ x ∈ A; (lam_fun A B P)⦅x⦆ = P x))
@@ -355,6 +356,8 @@ axiom injection_composition : ∀ f g A B C, (f Inj A To B) → (g Inj B To C) �
 axiom surjection_composition : ∀ f g A B C, (f Surj A To B) → (g Surj B To C) → (((g ∘ f) Surj A To C))
 axiom func_surj_crit : ∀ A B f, (f Fun A To B) → ((f Surj A To B) ↔ rng f = B)
 axiom part_func_img_prop : ∀ f A B, (f PartFun A To B) → ∀ X, f.[X] ⊆ B
+axiom function_composition_A :
+∀ f g A B C, (f Fun A To B) → (g Fun B To C) → (((g ∘ f) Fun A To C) ∧ (∀ x ∈ A; (g ∘ f)⦅x⦆ = g⦅f⦅x⦆⦆))
 
 axiom monotonic_operator_fix_point : ∀ A F, (F Fun 𝒫 A To 𝒫 A) → (∀ X Y ∈ 𝒫 A; X ⊆ Y → F⦅X⦆ ⊆ F⦅Y⦆) → (∃ Z ∈ 𝒫 A; F⦅Z⦆ = Z)
 
@@ -394,6 +397,7 @@ noncomputable def choice_function (A f : Set) : Prop := (f Fun A To (⋃ A)) ∧
 syntax term "Choice" term : term
 infix:60 (priority := high) " Choice " => fun (f) => fun (A) => choice_function A f
 
+axiom rev_criterion : ∀ f A B, (f Rev A To B) ↔ (f Bij A To B)
 axiom leftrev_criterion:
   ∀ f A B, (f LeftRev A To B) ↔ ((f Inj A To B) ∧ (A ≠ ∅ ∨ B = ∅))
 

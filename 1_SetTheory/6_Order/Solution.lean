@@ -1,5 +1,4 @@
 import «Header»
-open Classical
 
 noncomputable def rel_specification (R B) := R ∩ (B × B)
 syntax term "spec" term : term
@@ -416,7 +415,7 @@ theorem strcon_iff_wkcon_refl : ∀ A R, binary_relation_on A R → ((str_conn R
             fun (hx : x ∈ A) =>
               fun (y) =>
                 fun (hy : y ∈ A) =>
-                  Or.elim (em (x = y))
+                  Or.elim (Classical.em (x = y))
                   (
                     fun (hxy : (x = y)) =>
                       Or.inl (
@@ -446,7 +445,7 @@ theorem emp_refl_irrefl : ∀ A R, binary_relation_on A R → ((A = ∅) ↔ (re
           ) (
             fun (x) =>
               fun (hxR : (x . R . x)) =>
-                Or.elim (em (x ∈ A))
+                Or.elim (Classical.em (x ∈ A))
                 (
                   fun (hx : x ∈ A) =>
                   False.elim (
@@ -1326,7 +1325,7 @@ theorem nspo_then_spo : ∀ A R, (R NSPO A) → ((str A R) SPO A) :=
         let irreflRdiffid := fun (x) =>
             fun (hx : (x . (R \ (id_ A)) . x)) =>
               let u := Iff.mp (difference_prop R (id_ A) (x, x)) hx
-              Or.elim (em (x ∈ A))
+              Or.elim (Classical.em (x ∈ A))
               (
                 fun (hxA : x ∈ A) =>
                   (And.right u) (prop_then_id A x hxA)
@@ -1444,7 +1443,7 @@ theorem nonstr_str_id : ∀ A R, (R NSPO A) → ((nonstr A (str A R)) = R) :=
           (
             fun (hpr : pr ∈ R) =>
               Iff.mpr (union2sets_prop (R \ (id_ A)) (id_ A) pr) (
-                Or.elim (em (pr ∈ (id_ A)))
+                Or.elim (Classical.em (pr ∈ (id_ A)))
                 (
                   fun (hprida : pr ∈ (id_ A)) =>
                     Or.inr hprida
@@ -1898,7 +1897,7 @@ theorem part_ord_pair_prop : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y ∈ (setPO(�
           Iff.intro
           (
             fun (hxy : (x . R₂ . y)) =>
-              Or.elim (em (x = y))
+              Or.elim (Classical.em (x = y))
               (
                 fun (hxyeq : x = y) =>
                   Or.inr hxyeq
@@ -2102,10 +2101,10 @@ theorem stabil_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≼(𝓐)) 
         fun (hxy : (x . R₂ . y)) =>
           fun (hyz : (y . R₂ . z)) =>
             fun (hxz : (x = z)) =>
-              Or.elim (em (x = y))
+              Or.elim (Classical.em (x = y))
               (
                 fun (hxyeq : x = y) =>
-                  Or.elim (em (y = z))
+                  Or.elim (Classical.em (y = z))
                   (
                     fun (hyzeq : y = z) =>
                       And.intro (hxyeq) (hyzeq)
@@ -2113,7 +2112,7 @@ theorem stabil_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≼(𝓐)) 
                   (
                     fun (_ : y ≠ z) =>
                       And.intro (hxyeq) (
-                        byContradiction (
+                        Classical.byContradiction (
                           fun (hyzneq₂ : y ≠ z) =>
                             let u := part_ord_pair_prop_neqR₂R₁ 𝓐 h𝓐 y z (And.intro (hyz) (hyzneq₂))
                             let v := eq_subst (fun (t) => (t, z) ∈ R₁) y x (Eq.symm hxyeq) (u)
@@ -2126,11 +2125,11 @@ theorem stabil_R₂ : ∀ 𝓐, (PartOrd 𝓐) → (∀ x y z, (x . (≼(𝓐)) 
               )
               (
                 fun (hxyneq : x ≠ y) =>
-                  Or.elim (em (y = z))
+                  Or.elim (Classical.em (y = z))
                   (
                     fun (hyzeq : y = z) =>
                       And.intro (
-                        byContradiction (
+                        Classical.byContradiction (
                           fun (hxyneq : x ≠ y) =>
                             let u := part_ord_pair_prop_neqR₂R₁ 𝓐 h𝓐 x y (And.intro (hxy) (hxyneq))
                             let v := eq_subst (fun (t) => (x, t) ∈ R₁) y z (hyzeq) (u)
@@ -2654,9 +2653,29 @@ theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOr
     )
 
 
-theorem leq_sum : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≼(𝓐) . y) ↔ (disj_pred2_R₂ 𝓐 𝓑 x y))) :=
-  fun (𝓐 𝓑 h𝓐 h𝓑) =>
-    sorry
+theorem leq_sum : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≼(𝓐 P⨁O 𝓑) . y) ↔ (disj_pred2_R₂ 𝓐 𝓑 x y))) :=
+  fun (𝓐 𝓑 h𝓐 h𝓑 x hx y hy) =>
+    Iff.intro
+    (
+      fun (hxy) =>
+        let u₀ := (sum_is_PO 𝓐 𝓑 h𝓐 h𝓑)
+        let u₁ := Iff.mp (And.right (part_ord_pair_prop (𝓐 P⨁O 𝓑) u₀ x hx y hy)) hxy
+        Or.elim (u₁)
+        (
+          fun (hxy₁) =>
+            sorry
+
+        )
+        (
+          fun (hxy₁) =>
+            sorry
+        )
+
+    )
+    (
+      fun (hxy) =>
+        sorry
+    )
 
 
 theorem inv_is_PO : ∀ 𝓐, (PartOrd 𝓐) → (PartOrd (invPO 𝓐) ) :=
@@ -3652,7 +3671,7 @@ theorem max_um_maxset_singl : ∀ 𝓐 B x, (PartOrd 𝓐) → (is_maximum 𝓐 
 
 
                     eq_subst (fun (t) => t ∈ {x}) x y (
-                      byContradiction (
+                      Classical.byContradiction (
                         fun (hxyneq : x ≠ y) =>
                           let s := part_ord_pair_prop_neqR₂R₁ 𝓐 h𝓐 y x (And.intro (
                             Iff.mpr (po_lesseq_moreeq 𝓐 h𝓐 y x) (
@@ -3713,7 +3732,7 @@ theorem min_um_minset_singl : ∀ 𝓐 B x, (PartOrd 𝓐) → (is_minimum 𝓐 
 
 
                     eq_subst (fun (t) => t ∈ {x}) x y (
-                      byContradiction (
+                      Classical.byContradiction (
                         fun (hxyneq : x ≠ y) =>
                           let s := part_ord_pair_prop_neqR₂R₁ 𝓐 h𝓐 x y (And.intro (
                             Iff.mpr (po_lesseq_moreeq 𝓐 h𝓐 x y) v₂
@@ -6171,7 +6190,7 @@ theorem Knaster_Tarski_lemma₀ :
                       let u₃ := eq_subst (fun (m) => ((𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) ▴ X) ⊆ m) setPO(𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐)) (⟦ a ; b ⟧ of 𝓐) u₀ u₂
 
 
-                      Or.elim (em (X = ∅))
+                      Or.elim (Classical.em (X = ∅))
                       (
                         fun (hemp : (X = ∅)) =>
                           let v₁ :=
@@ -6957,8 +6976,6 @@ theorem sub_is_LO : ∀ 𝓐 B, (B ≠ ∅) → (LinOrd 𝓐) → (B ⊆ setPO(�
                         ))
                     )
           )
-
-
 
 
 

@@ -42,9 +42,12 @@ theorem equin_dsu2u : ∀ A B, (A ∩ B) = ∅ → (A ⊔ B) ~ (A ∪ B) := sorr
 theorem equinum_disjun_un : ∀ A I, (A IndxFun I) → (∀ i j ∈ I; (i ≠ j) → (A _ i) ∩ (A _ j) = ∅) → (⋃[i in I] A at i) ~ (⨆[i in I] A at i) := sorry
 
 
--- 5) Boolean congr. equinumerousity property
+-- 5) Boolean congr. equinumerousity property and typical complement bijection
 theorem equinum_boolean_congr : ∀ A B, (A ~ B) → (𝒫 A ~ 𝒫 B) := sorry
-
+noncomputable def bool_compl_bij (A) := lam_fun (𝒫 A) (𝒫 A) (fun (X) => A \ X)
+syntax "BoolCompBij" term : term
+macro_rules
+| `(BoolCompBij $A) => `(bool_compl_bij $A)
 
 -- 6) Equinumerousity of boolean and power sets
 theorem equinum_power_boolean : ∀ A, (I2 ℙow A) ~ 𝒫 A := sorry

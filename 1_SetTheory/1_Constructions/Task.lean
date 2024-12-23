@@ -2,9 +2,9 @@ import «Header»
 
 
 -- 1) The problem of naive set theory
--- {x | P x} may not exists
--- for example {x | x ∉ x} doesn't exist
-theorem Russel_paradox : ¬ ∃ A, ∀ x, (x ∈ A ↔ x ∉ x) := sorry
+-- comprehension axiom doesn't actually hold
+def comprehension_axiom := ∀ P : Set → Prop, ∃ A, ∀ x, (x ∈ A ↔ P x)
+theorem comprehension_axiom_is_wrong : ¬(comprehension_axiom) := sorry
 
 
 -- 2) Subset theorems
@@ -101,7 +101,6 @@ theorem specification (P : Set → Prop) : (∀ A, ∃ B, ∀ x, (x ∈ B ↔ x 
 theorem unique_specification (P : Set → Prop) : (∀ A, ∃! B, ∀ x, (x ∈ B ↔ x ∈ A ∧ P x)) := sorry
 noncomputable def specification_set (P : Set → Prop) : (Set → Set) :=
   fun (A) => set_intro (fun (B) => (∀ x, x ∈ B ↔ x ∈ A ∧ P x)) (unique_specification P A)
-
 syntax "{" ident "∈" term "|" term "}" : term
 macro_rules
   | `({ $x:ident ∈ $A:term | $property:term })  => `(specification_set (fun ($x) => $property) $A)
@@ -109,7 +108,20 @@ theorem spec_is_spec (P : Set → Prop) : (∀ A x, x ∈ {x ∈ A | P x} ↔ x 
 theorem specification_set_subset (P : Set → Prop) : (∀ A, {x ∈ A | P x} ⊆ A) := sorry
 
 
--- 12) ⋂ A (intersection set) construction and its properties
+-- 12) {x | P x} for collection predicates
+def inside_predicate (P : Set → Prop) := ∃ A, ∀ x, (P x) → x ∈ A
+def is_comprehense (P : Set → Prop) (X : Set) := (inside_predicate P → ∀ x, (x ∈ X ↔ P x)) ∨ (¬inside_predicate P → X = ∅)
+theorem spec_unique (P : Set → Prop) : ∃! X, is_comprehense P X := sorry
+noncomputable def collect_compreh_set (P : Set → Prop) := set_intro (fun (X) => is_comprehense P X) (spec_unique P)
+syntax "{" ident "|" term "}" : term
+macro_rules
+  | `({ $x:ident | $property:term })  => `(collect_compreh_set (fun ($x) => $property))
+theorem compr_is_compr (P : Set → Prop) : inside_predicate P → (∀ x, (x ∈ {x | P x} ↔ P x)) := sorry
+
+
+
+
+-- 13) ⋂ A (intersection set) construction and its properties
 noncomputable def intersection_set : Set → Set := fun (A) => {x ∈ ⋃ A | ∀ y ∈ A; x ∈ y}
 notation (priority := high) "⋂" => intersection_set
 theorem intersection_sub_union : ∀ A, (⋂ A) ⊆ (⋃ A) := sorry
@@ -118,7 +130,7 @@ theorem intersection_non_empty : ∀ A, (A ≠ ∅ → ∀ x, (x ∈ ⋂ A) ↔ 
 theorem intersect_subset_monotonic : ∀ A B, (A ≠ ∅) → (A ⊆ B) → (⋂ B ⊆ ⋂ A) := sorry
 
 
--- 13) Set of all singletons
+-- 14) Set of all singletons
 
 noncomputable def singlbool_set (A) := {S ∈ 𝒫 (A) | ∃ x ∈ A; S = {x}}
 syntax "𝒫₁" term : term

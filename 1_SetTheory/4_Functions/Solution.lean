@@ -622,7 +622,7 @@ theorem image_inter_inject : ∀ R, (BinRel R) → ((is_injective R) ↔ (∀ X 
           Iff.mpr (inj_inv_func R hR) (res₃)
       )
 
-open Classical
+
 
 
 theorem preimage_diff_func : ∀ R, (BinRel R) → ((is_functional R) ↔ (∀ X Y, R⁻¹.[X \ Y] = (R⁻¹.[X]) \ (R⁻¹.[Y]))) :=
@@ -675,7 +675,7 @@ theorem preimage_diff_func : ∀ R, (BinRel R) → ((is_functional R) ↔ (∀ X
                 let A := R⁻¹.[{y} \ {z}]
                 let B := (R⁻¹.[{y}] \ R⁻¹.[{z}])
                 let u := him {y} {z}
-                Or.elim (em (y = z))
+                Or.elim (Classical.em (y = z))
                 (fun (hyz : y = z) => hyz)
                 (
                   fun (hnyz : y ≠ z) =>
@@ -1092,7 +1092,7 @@ theorem partial_equal_functions : ∀ f g A B C D, (f PartFun A To B) → (g Par
     (
       fun (prop₁ : f = g) =>
         fun (x) =>
-        Or.elim (em (f ↓↓ x))
+        Or.elim (Classical.em (f ↓↓ x))
         (
           fun (s : f ↓↓ x) =>
             let first := eq_subst (fun (u) => u ↓↓ x) f g (prop₁) (s)
@@ -1171,7 +1171,7 @@ theorem equal_functions_abcd : ∀ f g A B C D, (f Fun A To B) → (g Fun C To D
     (
       fun (t : dom f = dom g ∧ ∀ x, f⦅x⦆ = g⦅x⦆) =>
         Iff.mpr (partial_equal_functions f g A B C D (And.left h₁) (And.left h₂)) (fun (x) =>
-            Or.elim (em (f ↓↓ x))
+            Or.elim (Classical.em (f ↓↓ x))
             (
               fun (r : f ↓↓ x) =>
                 let first: g ↓↓ x := eq_subst (fun (u) => x ∈ u) (dom f) (dom g) (And.left t) (r)
@@ -1213,7 +1213,7 @@ theorem equal_functions_abc_A:  ∀ f g A B C, (f Fun A To B) → (g Fun A To C)
       fun (t : ∀ x ∈ A; f⦅x⦆ = g⦅x⦆) =>
         Iff.mpr (equal_functions_abc f g A B C h₁ h₂) (
           fun (x) =>
-            Or.elim (em (x ∈ A))
+            Or.elim (Classical.em (x ∈ A))
             (
               fun (hx : x ∈ A) =>
                 t x hx
@@ -1416,7 +1416,7 @@ theorem partial_composition : ∀ f g A B C, (f PartFun A To B) → (g PartFun B
 
           let h₄: (g ↓↓ f⦅x⦆) ↔ (x ∈ f⁻¹.[dom g]) := part_func_val_preimage_prop f A B (dom g) (h₁) x r
 
-          Or.elim (em (x ∈ f⁻¹.[dom g]))
+          Or.elim (Classical.em (x ∈ f⁻¹.[dom g]))
           (
             fun (t : x ∈ f⁻¹.[dom g]) =>
               let h₅ := Iff.mpr (h₄) (t)
@@ -1500,7 +1500,7 @@ theorem function_composition : ∀ f g A B C, (f Fun A To B) → (g Fun B To C) 
         let a₇ := dom_function g B C h₂
         let a₈ := val_in_B f A B h₁ x a₄
         let _ : g ↓↓ (f⦅x⦆) := eq_subst (fun (u) => f⦅x⦆ ∈ u) (B) (dom g) (a₇) (a₈)
-        Or.elim (em ((g ∘ f) ↓↓ x))
+        Or.elim (Classical.em ((g ∘ f) ↓↓ x))
         (
           fun (_ : (g ∘ f) ↓↓ x) =>
             let b₁ := And.right h₃ x t
@@ -1608,7 +1608,7 @@ theorem lam_then_fun_prop (P : Set → Set) : ∀ A B, (∀ x ∈ A; P x ∈ B) 
     And.intro (h₄) (h₅)
 
 
-open Classical
+
 
 
 theorem prop_then_lam_part_fun (P : Set → Set) : ∀ A B f, (f PartFun A To B) → (∀ x ∈ dom f; f⦅x⦆ = P x) → (∀ x, x ∉ dom f → (P x ∉ B)) → (f = lam_fun A B P) :=
@@ -1647,7 +1647,7 @@ theorem prop_then_lam_part_fun (P : Set → Set) : ∀ A B f, (f PartFun A To B)
               fun (w) =>
                 fun (hw : x = (w, P w)) =>
                   let h₅ := And.right (Iff.mp (cartesian_product_pair_prop A B w (P w)) (eq_subst (fun (u) => u ∈ (A × B)) x (w, P w) (hw) (h₂)))
-                  let h₆ := byContradiction (fun (m : w ∉ dom f) => r w m h₅)
+                  let h₆ := Classical.byContradiction (fun (m : w ∉ dom f) => r w m h₅)
                   let h₄ := Iff.mpr (partial_function_equal_value_prop f A B g w (P w) (h₆)) (Eq.symm (h w h₆))
 
                   eq_subst (fun (u) => u ∈ f) (w, P w) x (Eq.symm (hw)) (h₄)
@@ -1729,9 +1729,9 @@ theorem lam_cond_part_fun_prop : ∀ A B : Set, ∀ P : Set → Prop, ∀ c d : 
               (
                 fun (u) =>
                   fun (hu : (P u → (x, z) = (u, c u)) ∧ (¬P u → (x, z) = (u, d u))) =>
-                    Or.elim (em (P w))
+                    Or.elim (Classical.em (P w))
                         (fun (h₅ : P w) =>
-                          Or.elim (em (P u))
+                          Or.elim (Classical.em (P u))
                             (fun (h₆ : P u) =>
                               let h₇ := And.left hw h₅
                               let h₈ := Iff.mp (ordered_pair_set_prop x y w (c w)) h₇
@@ -1755,7 +1755,7 @@ theorem lam_cond_part_fun_prop : ∀ A B : Set, ∀ P : Set → Prop, ∀ c d : 
 
                         )
                         (fun (h₅ : ¬P w) =>
-                            Or.elim (em (P u))
+                            Or.elim (Classical.em (P u))
                               (fun (h₆ : P u) =>
                                 let h₇ := And.right hw h₅
                                 let h₈ := Iff.mp (ordered_pair_set_prop x y w (d w)) h₇
@@ -1798,7 +1798,7 @@ theorem lam_cond_part_fun_prop : ∀ A B : Set, ∀ P : Set → Prop, ∀ c d : 
                         (
                           fun (u) =>
                             fun (hu : ((P u → (x, w) = (u, c u)) ∧ (¬P u → (x, w) = (u, d u)))) =>
-                              Or.elim (em (P u))
+                              Or.elim (Classical.em (P u))
                               (fun (e : P u) =>
                                 let m := And.left hu e
                                 let n := Iff.mp (ordered_pair_set_prop x w u (c u)) m
@@ -1830,7 +1830,7 @@ theorem lam_cond_part_fun_prop : ∀ A B : Set, ∀ P : Set → Prop, ∀ c d : 
                           (
                             fun (u) =>
                               fun (hu : ((P u → (x, w) = (u, c u)) ∧ (¬P u → (x, w) = (u, d u)))) =>
-                                 Or.elim (em (P u))
+                                 Or.elim (Classical.em (P u))
                                  (fun (e : P u) =>
                                     let m := And.left hu e
                                     let n := Iff.mp (ordered_pair_set_prop x w u (c u)) m
@@ -1862,7 +1862,7 @@ theorem lam_cond_fun_prop : ∀ A B : Set, ∀ P : Set → Prop, ∀ c d : Set �
 
       let part_func_prop := And.left (lam_cond_part_fun_prop A B P c d)
       let total_prop : is_total (lam_cond_fun A B P c d) A := fun (x) => fun (h₁ : x ∈ A) =>
-        Or.elim (em (P x))
+        Or.elim (Classical.em (P x))
         (fun (h₂ : P x) =>
           let h₃ := Iff.mpr (spec_is_spec pred (A × B) (x, c x))
 
@@ -2715,7 +2715,7 @@ theorem left_reverse_property :
     fun (f A B) =>
       fun (hleftrev : (f LeftRev A To B)) =>
         let h₀ := And.right hleftrev
-        Or.elim (em (A = ∅))
+        Or.elim (Classical.em (A = ∅))
         (
           fun (g₀ : A = ∅) =>
             Or.inr (
@@ -2725,7 +2725,7 @@ theorem left_reverse_property :
                 fun (g) =>
                   fun (hg : (g Fun B To A) ∧ (g ∘ f = id_ A)) =>
                     let hg₀ := And.left hg
-                    byContradiction (
+                    Classical.byContradiction (
                       fun (hB : B ≠ ∅) =>
                         let u : ¬ empty B := fun (g₀ : empty B) => (
                           hB (Iff.mp (subs_subs_eq B ∅) (And.intro (
@@ -2737,7 +2737,7 @@ theorem left_reverse_property :
                         let v₂ := Exists.elim v (
                           fun (x₀) =>
                             fun (hx₀ : ¬x₀ ∉ B) =>
-                              Exists.intro x₀ (byContradiction hx₀)
+                              Exists.intro x₀ (Classical.byContradiction hx₀)
                         )
 
                         Exists.elim v₂
@@ -2835,7 +2835,7 @@ theorem injection_property_hard :
             let hm₂ : ∃ x, x ∈ A := Exists.elim hm (
               fun (y) =>
                 fun (hy : ¬ y ∉ A) =>
-                  Exists.intro y (byContradiction hy)
+                  Exists.intro y (Classical.byContradiction hy)
             )
             Exists.elim hm₂
             (
@@ -2885,7 +2885,7 @@ theorem injection_property_hard :
                                 let second := And.right (function_composition_A f g A B A (h) (g_func)) x hxA
                                 Eq.trans (Eq.trans (second) (
 
-                                  Or.elim (em (P (f⦅x⦆)))
+                                  Or.elim (Classical.em (P (f⦅x⦆)))
                                   (
                                     fun (hpfx : P ( f⦅x⦆ )) =>
 
@@ -3380,7 +3380,7 @@ theorem indexed_intersection_is_intersection :
                   Inonempty (Iff.mp (subs_subs_eq I (∅)) (And.intro (fun (y) => fun (hy : y ∈ I) => False.elim (hempty y hy))
                   (empty_set_is_subset_any I)))
               )
-        let second := Exists.elim (first) (fun (y) => fun (hy : ¬ y ∉ I) => Exists.intro y (byContradiction hy))
+        let second := Exists.elim (first) (fun (y) => fun (hy : ¬ y ∉ I) => Exists.intro y (Classical.byContradiction hy))
         Exists.elim hindxFun
         (
           fun (X) =>
@@ -3478,7 +3478,7 @@ theorem indexed_intersection_sub_indexed :
         fun (hi : i ∈ I) =>
           fun (x) =>
             fun (hx : x ∈ (⋂[ i in I ] A at i)) =>
-              Or.elim (em (I = ∅))
+              Or.elim (Classical.em (I = ∅))
               (
                 fun (hIemp : (I = ∅)) =>
                   let u := indexed_intersection_empty A I hIemp
@@ -3788,7 +3788,7 @@ theorem indexed_disjoined_set_int2 : ∀ A I i j, (A IndxFun I) → (i ∈ I) �
 theorem indexed_disjoined_set_int : ∀ A I, (∀ j, I ≠ {j}) → (A IndxFun I) → (⋂[i in I] (DU A) at i) = ∅ :=
   fun (A I hj hAI) =>
     let L := (⋂[i in I] (DU A) at i)
-    Or.elim (em (I = ∅))
+    Or.elim (Classical.em (I = ∅))
     (
       fun (hI) =>
         indexed_intersection_empty (DU A) I (hI)
@@ -3798,7 +3798,7 @@ theorem indexed_disjoined_set_int : ∀ A I, (∀ j, I ≠ {j}) → (A IndxFun I
         let u₀ := non_empty_then_exi I hnI
         Exists.elim u₀ (
           fun (i hi) =>
-            Or.elim (em (∃ j, j ≠ i ∧ j ∈ I))
+            Or.elim (Classical.em (∃ j, j ≠ i ∧ j ∈ I))
             (
               fun (hexi) =>
                 Exists.elim hexi (
@@ -3828,7 +3828,7 @@ theorem indexed_disjoined_set_int : ∀ A I, (∀ j, I ≠ {j}) → (A IndxFun I
                       And.intro (
                         fun (x hx) =>
                           eq_subst (fun (t) => t ∈ {i}) i (x) (
-                            Or.elim (em (i = x))
+                            Or.elim (Classical.em (i = x))
                             (
                               fun (hix) => hix
                             )
@@ -4053,7 +4053,7 @@ theorem AC_inter_eq_AC : choice_ax ↔ all_not_inter_choice_prop :=
                                   let e := Eq.trans (And.right hi) (Eq.trans (d) (Eq.symm (And.right hj)))
                                   hbc e
 
-                                byContradiction (
+                                Classical.byContradiction (
                                   fun (hbcnemp : b ∩ c ≠ ∅) =>
                                     let bcexi := non_empty_uni_then_exi (fun (_) => True) (b ∩ c) hbcnemp (fun (x) => fun (_ : x ∈ (b ∩ c)) => True.intro)
                                     Exists.elim bcexi
@@ -4349,7 +4349,7 @@ theorem rightrev_criterion_AC_eq:
                       Exists.intro y (And.intro (hy) (
                         fun (z) =>
                           fun (hz : z ∈ A ∧ a ∈ z) =>
-                            Or.elim (em (y = z))
+                            Or.elim (Classical.em (y = z))
                             (
                               fun (hyz : (y = z)) =>
                                 hyz
@@ -4378,7 +4378,7 @@ theorem rightrev_criterion_AC_eq:
               let g_func_prop : is_functional g := fun (x y z) =>
                 fun (hxy : (x . g . y)) =>
                   fun (hxz : (x . g . z)) =>
-                    Or.elim (em (x ∈ ⋃ A))
+                    Or.elim (Classical.em (x ∈ ⋃ A))
                     (
                       fun (hxA : x ∈ ⋃ A) =>
                         let exi_uni_prop := exi_uni_property x hxA
@@ -4697,7 +4697,7 @@ theorem prod_pow : ∀ A I B, (A Indx I) → (∀ i ∈ I; (A _ i = B)) → (∏
   fun (A I B) =>
     fun (hI : (A Indx I)) =>
       fun (hi : (∀ i ∈ I; (A _ i = B))) =>
-        Or.elim (em (I = ∅))
+        Or.elim (Classical.em (I = ∅))
         (
           fun (hemp : (I = ∅)) =>
             prod_pow_emp A I B hemp
@@ -4807,7 +4807,7 @@ theorem product_AC_eq : choice_ax ↔ product_non_empty_prop :=
 
         let nine := Exists.elim eight (
           fun (t) => fun (ht :  ¬ (t ∉ (∏[ i in B ] Afunc at i))) =>
-            Exists.intro t (byContradiction ht)
+            Exists.intro t (Classical.byContradiction ht)
         )
 
         Exists.elim nine (

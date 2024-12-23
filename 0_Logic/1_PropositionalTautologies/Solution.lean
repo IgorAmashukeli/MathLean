@@ -379,16 +379,15 @@ theorem negation_not_equiv (p : Prop) : ¬(p ↔ ¬p) :=
    fun (h : p ↔ ¬ p) => (not_equiv_then_not_p p h) (Iff.mpr h (not_equiv_then_not_p p h))
 
 
-open Classical
 
 theorem double_negation (p : Prop) : p ↔ ¬¬p :=
    Iff.intro
    (double_negation_mp p)
-   byContradiction
+   Classical.byContradiction
 
 
 theorem tnd (p : Prop) : p ∨ ¬ p :=
-   byContradiction (
+   Classical.byContradiction (
       fun (h : ¬ (p ∨ ¬ p)) =>
         (And.right ((Iff.mp (morgan_disj p ¬ p)) h))
         (And.left ((Iff.mp (morgan_disj p ¬ p)) h))
@@ -599,7 +598,7 @@ theorem xor_assoc  (p q r : Prop) : ((p ⊕ q) ⊕ r) ↔ (p ⊕ (q ⊕ r)) :=
                   fun (hq : q) =>
                      Or.inl (
                         And.intro (
-                           byContradiction (
+                           Classical.byContradiction (
                               fun (hnp : ¬ p) =>
                                  And.left hnpqr (
                                     Or.inr (And.intro hnp hq)

@@ -610,7 +610,6 @@ theorem inter_to_empty: ∀ U A, (A ∩ (U \ A) = ∅) :=
       )
   )
 
-open Classical
 
 
 theorem difference_inter_prop (U A B : Set) (h : A ⊆ U) : (A \ B = A ∩ (U \ B)) :=
@@ -651,7 +650,7 @@ theorem union_to_universum (U A : Set) (h : A ⊆ U) : (A ∪ (U \ A) = U) :=
     )
     (
       fun (g : (x ∈ U)) =>
-        Or.elim (em (x ∈ A))
+        Or.elim (Classical.em (x ∈ A))
         (
           fun (s : x ∈ A) =>
             Iff.mpr (union2_sets_prop A (U \ A) x) ((Or.inl : (x ∈ A → (x ∈ A ∨ x ∈ (U \ A)) )) (s))

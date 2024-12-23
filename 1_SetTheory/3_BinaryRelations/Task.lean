@@ -63,7 +63,7 @@ theorem dulr_in : ∀ A B, (DUL (A ⊔ B)) ∩ (DUR (A ⊔ B)) = ∅ := sorry
 theorem disj_in_left : ∀ A B x, (x ∈ A) → ((x, ∅) ∈ (A ⊔ B)) := sorry
 theorem disj_in_right : ∀ A B x, (x ∈ B) → ((x, {∅}) ∈ (A ⊔ B)) := sorry
 theorem disjunion2_pair_prop : ∀ A B x y, (x, y) ∈ (A ⊔ B) ↔ (x ∈ A ∧ y = ∅) ∨ (x ∈ B ∧ y = {∅}) := sorry
-
+theorem disj2_xAB_in : ∀ A B x, (x ∈ (A ⊔ B)) → (((π₁ x) ∈ A) ∧ ((π₂ x) = ∅) ∨ (((π₁ x) ∈ B) ∧ ((π₂ x) = {∅}))) := sorry
 
 
 

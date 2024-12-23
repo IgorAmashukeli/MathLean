@@ -221,7 +221,6 @@ theorem union_pair_is_all_coords : ∀ a b, ⋃ (a, b) = {a, b} :=
 
 
 
-open Classical
 
 
 theorem coordinates_snd_corr_lemma : ∀ a b, {x ∈ ⋃ (a, b) | ⋃ (a, b) ≠ ⋂ (a, b) → x ∉ ⋂ (a, b)} = {b} :=
@@ -240,7 +239,7 @@ theorem coordinates_snd_corr_lemma : ∀ a b, {x ∈ ⋃ (a, b) | ⋃ (a, b) ≠
           Or.elim fifth
           (
             fun (t : x = a) =>
-              Or.elim (em (⋃ (a, b) = ⋂ (a, b)))
+              Or.elim (Classical.em (⋃ (a, b) = ⋂ (a, b)))
               (
                 fun (r : ⋃ (a, b) = ⋂ (a, b)) =>
                 let fourth := eq_subst (fun (u) => ⋃ (a, b) = u) (⋂ (a, b)) {a} (inter_pair_is_singl_fst a b) (r)
@@ -595,6 +594,31 @@ theorem disjunion2_pair_prop : ∀ A B x y, (x, y) ∈ (A ⊔ B) ↔ (x ∈ A �
                 )
               )
             )
+        )
+    )
+
+
+theorem disj2_xAB_in : ∀ A B x, (x ∈ (A ⊔ B)) → (((π₁ x) ∈ A) ∧ ((π₂ x) = ∅) ∨ (((π₁ x) ∈ B) ∧ ((π₂ x) = {∅}))) :=
+  fun (A B x hxAB) =>
+    let S := (A × {∅})
+    let T := (B × {{∅}})
+    Or.elim (Iff.mp (union2_sets_prop S T x) hxAB)
+    (
+      fun (hxA) =>
+        Or.inl (
+          let u₁ := Iff.mp (cartesian_product_pair_prop A {∅} (π₁ x) (π₂ x)) (
+            eq_subst (fun (t) => t ∈ S) (x) (π₁ x, π₂ x) (fst_snd_then_unique A {∅} x (hxA)) (hxA)
+          )
+          And.intro (And.left u₁) (in_singl_elem ∅ (π₂ x) (And.right u₁))
+        )
+    )
+    (
+      fun (hxB) =>
+        Or.inr (
+          let u₁ := Iff.mp (cartesian_product_pair_prop B {{∅}} (π₁ x) (π₂ x)) (
+            eq_subst (fun (t) => t ∈ T) (x) (π₁ x, π₂ x) (fst_snd_then_unique B {{∅}} x (hxB)) (hxB)
+          )
+          And.intro (And.left u₁) (in_singl_elem {∅} (π₂ x) (And.right u₁))
         )
     )
 

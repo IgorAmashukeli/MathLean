@@ -414,14 +414,13 @@ theorem inh_brackets_exi_disj (α : Type) [Inhabited α] (P : Prop) (Q : α → 
 
 
 
-open Classical
 
 
 theorem brackets_uni_disj (α : Type) (P : Prop) (Q : α → Prop) : (∀ x : α, P ∨ Q x) ↔ (P ∨ ∀ x : α, Q x) :=
    Iff.intro
    (
       fun (h : (∀ x : α, P ∨ Q x)) =>
-         Or.elim (em P)
+         Or.elim (Classical.em P)
          (fun (g : P) => (Or.inl : (P → P ∨ ∀ x : α, Q x)) g)
          (fun (g : ¬P) => (Or.inr : (∀ x : α, Q x) → P ∨ ∀ x : α, Q x) (fun (s : α) =>
                Or.elim (h s)
@@ -442,12 +441,12 @@ theorem morgan_exi (α : Type) (P : α → Prop) : (∃ x : α, ¬ P x) ↔ (¬ 
    (morgan_exi_mp α P)
    (
       fun (h : (¬ ∀ x : α, P x)) =>
-         byContradiction
+         Classical.byContradiction
          (
             fun (s : ¬ ∃ t : α, ¬ P t) =>
                h (
                   fun (x : α) =>
-                     byContradiction
+                     Classical.byContradiction
                         (fun (t : ¬ P x) =>
                            s (Exists.intro x t))
                )
@@ -461,7 +460,7 @@ theorem inh_brackets_left_exi_impl (α : Type) [Inhabited α] (P : Prop) (Q : α
    Iff.intro
    (
       fun (h : (P → ∃ x : α, Q x)) =>
-         Or.elim (em P)
+         Or.elim (Classical.em P)
          (fun (g : P) =>
             Exists.elim (h g)
             (
@@ -482,7 +481,7 @@ theorem inh_brackets_right_uni_impl (α : Type) [Inhabited α] (P: α → Prop) 
    Iff.intro
    (
       fun (h : ((∀ x : α, P x) → Q)) =>
-      Or.elim (em Q)
+      Or.elim (Classical.em Q)
       (fun (t : Q) =>
          Exists.intro
             (Inhabited.default : α)
