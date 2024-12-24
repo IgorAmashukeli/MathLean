@@ -216,10 +216,10 @@ macro_rules
 noncomputable def setpo_disj2 (𝓐 𝓑) := setPO(𝓐) ⊔ setPO(𝓑)
 def disj_pred2_R₁ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧ ((π₁ x) . ≺(𝓐) . (π₁ y))) ∨
   ((π₂ x) = r2 ∧ (π₂ y) = r2 ∧ ((π₁ x) . ≺(𝓑) . (π₁ y))) ∨
-  ((π₂ x) = l2 ∧ (π₂ y) = r2)
-def disj_pred2_R₂ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧ ((π₁ x) . ≺(𝓐) . (π₁ y))) ∨
+  ((π₁ x) ∈ setPO(𝓐) ∧ (π₁ y) ∈ setPO(𝓑) ∧ (π₂ x) = l2 ∧ (π₂ y) = r2)
+def disj_pred2_R₂ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧ ((π₁ x) . ≼(𝓐) . (π₁ y))) ∨
   ((π₂ x) = r2 ∧ (π₂ y) = r2 ∧ ((π₁ x) . ≼(𝓑) . (π₁ y))) ∨
-  ((π₂ x) = l2 ∧ (π₂ y) = r2)
+  ((π₁ x) ∈ setPO(𝓐) ∧ (π₁ y) ∈ setPO(𝓑) ∧ (π₂ x) = l2 ∧ (π₂ y) = r2)
 noncomputable def le_disj2 (𝓐 𝓑) := {(x, y) ∈ (setpo_disj2 𝓐 𝓑) × (setpo_disj2 𝓐 𝓑) | disj_pred2_R₁ 𝓐 𝓑 x y }
 
 noncomputable def po_disj2 (𝓐 𝓑) := ((setpo_disj2 𝓐 𝓑) StrIntro (le_disj2 𝓐 𝓑))
@@ -242,7 +242,6 @@ theorem po_emp : ∀ 𝓐, (PartOrd 𝓐) → (setPO(𝓐) ≠ ∅) := sorry
 
 -- 18) sub of PO, inverse of a PO, intersection of two PO, cartesian product of two PO, summ (disjunctive union) of two products is po
 theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 P⨁O 𝓑)) := sorry
-theorem leq_sum : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≼(𝓐) . y) ↔ (disj_pred2_R₂ 𝓐 𝓑 x y))) := sorry
 theorem inv_is_PO : ∀ 𝓐, (PartOrd 𝓐) → (PartOrd (invPO 𝓐) ) := sorry
 theorem invinv_po_is_po : ∀ 𝓐, (PartOrd 𝓐) → ( invPO (invPO 𝓐)) = 𝓐 := sorry
 theorem sub_is_PO : ∀ 𝓐 B, (B ≠ ∅) → (PartOrd 𝓐) → (B ⊆ (setPO(𝓐))) → (PartOrd (𝓐 SubsPO B)) := sorry
@@ -250,6 +249,8 @@ theorem inter_is_PO_PO :
 ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (setPO(𝓐) = setPO(𝓑)) → (PartOrd (𝓐 InterPO 𝓑)) := sorry
 theorem inv_PO_less : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≺(invPO 𝓐)) . y) ↔ (y . (≺(𝓐)) . x) := sorry
 theorem inv_PO_lesseq : ∀ 𝓐, (PartOrd 𝓐) → ∀ x y, (x . (≼(invPO 𝓐)) . y) ↔ (y . (≼(𝓐)) . x)  := sorry
+theorem sum_PO_less : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≺(𝓐 P⨁O 𝓑) . y) ↔ (disj_pred2_R₁ 𝓐 𝓑 x y))) := sorry
+theorem sum_PO_lesseq : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≼(𝓐 P⨁O 𝓑) . y) ↔ (disj_pred2_R₂ 𝓐 𝓑 x y))) := sorry
 theorem cart_PO_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 Cart2CordPO 𝓑)) := sorry
 
 
@@ -626,19 +627,28 @@ syntax term "SemLatF" term : term
 macro_rules
 | `($A SemLatF $f) => `(fun_semilat $A $f)
 
+
+
 theorem semilatt_op : ∀ A f, (f SemLatFunOn A) → (SemiLatt (A SemLatF f)) ∧ (∀ x y ∈ A; f⦅x; y⦆ = (A SemLatF f) Infm {x, y}) := sorry
 theorem compl_latt_is_latt : ∀ 𝓐, (CompLatt 𝓐) → (Latt 𝓐) := sorry
 theorem latt_is_semilatt : ∀ 𝓐, (Latt 𝓐) → (SemiLatt 𝓐) := sorry
 theorem latt_inv : ∀ 𝓐, (PartOrd 𝓐) → ((Latt 𝓐) ↔ (Latt (invPO 𝓐))) := sorry
 theorem compllatt_inv : ∀ 𝓐, (PartOrd 𝓐) → ((CompLatt 𝓐) ↔ (CompLatt 𝓐)) := sorry
 theorem latt_as_semilatts : ∀ 𝓐, (Latt 𝓐) ↔ ((SemiLatt 𝓐) ∧ (SemiLatt (invPO 𝓐))) := sorry
+theorem sum_semilatt : ∀ 𝓐 𝓑, (SemiLatt 𝓐) → (SemiLatt 𝓑) → (SemiLatt (𝓐 P⨁O 𝓑)) := sorry
+
+
 theorem boolean_Latt : ∀ A, (Latt (BoolPO A)) := sorry
+
+theorem sum_latt : ∀ 𝓐 𝓑, (Latt 𝓐) → (Latt 𝓑) → (Latt (𝓐 P⨁O 𝓑)) := sorry
+theorem sum_complatt : ∀ 𝓐 𝓑, (CompLatt 𝓐) → (CompLatt 𝓑) → (CompLatt (𝓐 P⨁O 𝓑)) := sorry
 theorem compl_latt_inf_crit : ∀ 𝓐, (CompLatt 𝓐) ↔ (∀ X, (X ⊆ setPO(𝓐)) → (𝓐 InfmExi X)) := sorry
 theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) := sorry
 theorem Knaster_Tarski_lemma₀ : ∀ 𝓐, ∀ a b ∈ setPO(𝓐); (a . ≼(𝓐) . b) → (CompLatt 𝓐) → (CompLatt (𝓐 SubsPO (⟦ a ; b ⟧ of 𝓐))) := sorry
 theorem Knaster_Tarski_lemma₁ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (𝓐 MaxExi (f FixOn 𝓐)) := sorry
 theorem Knaster_Tarski_lemma₂ : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → ((f FixOn 𝓐) ≠ ∅) := sorry
 theorem Knaster_Tarski_theorem : ∀ 𝓐 f, (CompLatt 𝓐) → (f MotFunRelOn 𝓐) → (CompLatt (𝓐 SubsPO (f FixOn 𝓐))) := sorry
+
 
 
 -- 33) linear order and it's main properties
@@ -650,7 +660,7 @@ macro_rules
 
 theorem inv_is_LO : ∀ 𝓐, (LinOrd 𝓐) → (LinOrd (invPO 𝓐)) := sorry
 theorem sub_is_LO : ∀ 𝓐 B, (B ≠ ∅) → (LinOrd 𝓐) → (B ⊆ setPO(𝓐)) → (LinOrd (𝓐 SubsPO B)) := sorry
-theorem summ_is_LO : ∀ 𝓐 𝓑, (LinOrd 𝓐) → (LinOrd 𝓑) → (LinOrd (𝓐 P⨁O 𝓑)) := sorry
+theorem sum_is_LO : ∀ 𝓐 𝓑, (LinOrd 𝓐) → (LinOrd 𝓑) → (LinOrd (𝓐 P⨁O 𝓑)) := sorry
 
 
 theorem lin_ord_prop : ∀ 𝓐, (LinOrd 𝓐) → (∀ x y ∈ setPO(𝓐); (x . (≼(𝓐)) . y) ∨ (y . (≼(𝓐)) . x)) := sorry
@@ -702,18 +712,22 @@ theorem lin_latt : ∀ 𝓐, (LinOrd 𝓐) → (Latt 𝓐) := sorry
 -- 34) Well founded order and Well ordered set definition
 
 
-def is_well_found_order 𝓐 := (PartOrd 𝓐) ∧ (∀ X, ( (X ⊆ setPO(𝓐)) →  (X ≠ ∅) → (𝓐 MinExi X)))
+def is_well_found_order 𝓐 := (PartOrd 𝓐) ∧ (∀ X, ( (X ⊆ setPO(𝓐)) → (X ≠ ∅) → (𝓐 MinExi X)))
 syntax "WellFoundOrd" term : term
 macro_rules
 | `(WellFoundOrd $𝓐) => `(is_well_found_order $𝓐)
 
-def is_well_order 𝓐 := (LinOrd 𝓐) ∧ ∀ X, (X ⊆ setPO(𝓐)) →  (X ≠ ∅) → (𝓐 MinExi X)
+def is_well_order 𝓐 := (LinOrd 𝓐) ∧ ∀ X, (X ⊆ setPO(𝓐)) → (X ≠ ∅) → (𝓐 MinExi X)
 syntax "WellOrd" term : term
 macro_rules
 | `(WellOrd $𝓐) => `(is_well_order $𝓐)
 
 
 theorem wellord_wellfoundcrit : ∀ 𝓐, (WellOrd 𝓐) ↔ ((LinOrd 𝓐) ∧ (WellFoundOrd 𝓐)) := sorry
+
+
+theorem well_found : ∀ 𝓐 𝓑, (WellFoundOrd 𝓐) → (WellFoundOrd 𝓑) → (WellFoundOrd (𝓐 P⨁O 𝓑)) := sorry
+theorem well_ord : ∀ 𝓐 𝓑, (WellOrd 𝓐) → (WellOrd 𝓑) → (WellOrd (𝓐 P⨁O 𝓑)) := sorry
 
 
 -- 35) chain and anti chain and some of their properties

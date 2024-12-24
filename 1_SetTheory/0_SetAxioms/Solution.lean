@@ -45,6 +45,8 @@ theorem Russel_paradox : ¬ ∃ A, ∀ x, (x ∈ A ↔ x ∉ x) :=
     )
 
 def comprehension_axiom := ∀ P : Set → Prop, ∃ A, ∀ x, (x ∈ A ↔ P x)
+
+
 theorem comprehension_axiom_is_wrong : ¬(comprehension_axiom) :=
   fun (hcomp) =>
     let badP := fun (x) => x ∉ x

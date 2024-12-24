@@ -896,7 +896,7 @@ theorem spec_unique (P : Set → Prop) : ∃! X, is_comprehense P X :=
     fun (hnins) =>
       Exists.intro ∅ (
         And.intro (Or.inr (And.intro hnins (Eq.refl ∅))) (
-          fun (y hy) =>
+          fun (_ hy) =>
             Or.elim (hy)
             (
               fun (hinsP) =>

@@ -2451,9 +2451,12 @@ macro_rules
 | `(invPO $𝓐:term) => `(inv_PO $𝓐)
 
 noncomputable def setpo_disj2 (𝓐 𝓑) := setPO(𝓐) ⊔ setPO(𝓑)
-def disj_pred2_R₁ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧  ((π₁ x) . ≺(𝓐) . (π₁ y))) ∨
+def disj_pred2_R₁ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧ ((π₁ x) . ≺(𝓐) . (π₁ y))) ∨
   ((π₂ x) = r2 ∧ (π₂ y) = r2 ∧ ((π₁ x) . ≺(𝓑) . (π₁ y))) ∨
-  ((π₂ x) = l2 ∧ (π₂ y) = r2)
+  ((π₁ x) ∈ setPO(𝓐) ∧ (π₁ y) ∈ setPO(𝓑) ∧ (π₂ x) = l2 ∧ (π₂ y) = r2)
+def disj_pred2_R₂ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧ ((π₁ x) . ≼(𝓐) . (π₁ y))) ∨
+  ((π₂ x) = r2 ∧ (π₂ y) = r2 ∧ ((π₁ x) . ≼(𝓑) . (π₁ y))) ∨
+  ((π₁ x) ∈ setPO(𝓐) ∧ (π₁ y) ∈ setPO(𝓑) ∧ (π₂ x) = l2 ∧ (π₂ y) = r2)
 
 noncomputable def le_disj2 (𝓐 𝓑) := {(x, y) ∈ (setpo_disj2 𝓐 𝓑) × (setpo_disj2 𝓐 𝓑) | disj_pred2_R₁ 𝓐 𝓑 x y}
 
@@ -2463,9 +2466,6 @@ macro_rules
 | `($𝓐 P⨁O $𝓑) => `(po_disj2 $𝓐 $𝓑)
 
 
-def disj_pred2_R₂ (𝓐 𝓑) := fun (x : Set) => fun (y : Set) => ((π₂ x) = l2 ∧ (π₂ y) = l2 ∧ ((π₁ x) . ≺(𝓐) . (π₁ y))) ∨
-  ((π₂ x) = r2 ∧ (π₂ y) = r2 ∧ ((π₁ x) . ≼(𝓑) . (π₁ y))) ∨
-  ((π₂ x) = l2 ∧ (π₂ y) = r2)
 
 
 theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOrd (𝓐 P⨁O 𝓑)) :=
@@ -2498,7 +2498,7 @@ theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOr
                     )
                     (
                       fun (hpr₄) =>
-                        let u₂ := Eq.trans (Eq.symm (And.left hpr₄)) (And.right hpr₄)
+                        let u₂ := Eq.trans (Eq.symm (And.left (And.right (And.right (hpr₄))))) (And.right (And.right (And.right hpr₄)))
                         empty_set_is_empty l2 (
                           eq_subst (fun (t) => l2 ∈ t) r2 l2 (Eq.symm u₂) (elem_in_singl l2)
                         )
@@ -2515,6 +2515,8 @@ theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOr
                 (
                   fun (hpr₁) =>
                     let xl2 := (And.left hpr₁)
+                    let x𝓐 := And.right (And.right hpr₁)
+                    let xin𝓐 := par_ord_pair_prop_R₁_A 𝓐 h𝓐 (π₁ x) (π₁ y) x𝓐
                     let yl2 := (And.left (And.right hpr₁))
 
                     Or.elim (And.right u₂)
@@ -2548,7 +2550,7 @@ theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOr
                             let zr2 := (And.right hpr₈)
                             Iff.mpr (prop₁ x z) (
                               And.intro (And.intro (hx) (hz)) (Or.inr (Or.inr (
-                                And.intro (xl2) (zr2)
+                                And.intro (And.left xin𝓐) (And.intro (And.left zr2) (And.intro (xl2) (And.right (And.right zr2))))
                               )))
                             )
                         )
@@ -2592,7 +2594,7 @@ theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOr
                             )
                             (
                               fun (hpr₈) =>
-                                let yl2 := And.left hpr₈
+                                let yl2 := And.left (And.right (And.right hpr₈))
                                 let l2r2 := Eq.trans (Eq.symm yr2) (yl2)
                                 False.elim (
                                   empty_set_is_empty l2 (
@@ -2605,7 +2607,8 @@ theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOr
                     (
                       fun (hpr₄) =>
                         let xl2 := And.left hpr₄
-                        let yr2 := And.right hpr₄
+                        let xl₂ :=And.left (And.right (And.right hpr₄))
+                        let yr2 := And.right (And.right (And.right hpr₄))
                         Or.elim (And.right u₂)
                         (
 
@@ -2626,21 +2629,21 @@ theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOr
                             (Or.elim hpr₆)
                             (
                               fun (hpr₇) =>
+                                let zr₂ := And.left (And.right hpr₇)
+                                let z𝓑 := par_ord_pair_prop_R₁_A 𝓑 h𝓑 (π₁ y) (π₁ z) (And.right (And.right hpr₇))
                                 Iff.mpr (prop₁ x z) (
                                 And.intro (And.intro (hx) (hz)) (
                                   Or.inr (Or.inr (
-                                    And.intro (xl2) (And.left (And.right hpr₇))
+                                    And.intro (xl2) (And.intro (And.right z𝓑) (And.intro (xl₂) (zr₂)))
                                   ))
                                 ) )
                             )
                             (
                               fun (hpr₈) =>
-                                let yl2 := (And.left hpr₈)
-                                let u₂ := Eq.trans (Eq.symm yr2) yl2
-
+                                let u₂ := Eq.trans (Eq.symm (And.left (And.right (And.right hpr₈)))) (yr2)
                                 False.elim (
                                   empty_set_is_empty l2 (
-                                    eq_subst (fun (t) => l2 ∈ t) (r2) (l2) (u₂) (elem_in_singl l2)
+                                    eq_subst (fun (t) => l2 ∈ t) (r2) (l2) (Eq.symm u₂) (elem_in_singl l2)
                                 )
                               )
                             )
@@ -2653,28 +2656,225 @@ theorem sum_is_PO : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (PartOr
     )
 
 
-theorem leq_sum : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≼(𝓐 P⨁O 𝓑) . y) ↔ (disj_pred2_R₂ 𝓐 𝓑 x y))) :=
-  fun (𝓐 𝓑 h𝓐 h𝓑 x hx y hy) =>
+theorem sum_PO_less : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≺(𝓐 P⨁O 𝓑) . y) ↔ (disj_pred2_R₁ 𝓐 𝓑 x y))) :=
+  fun (𝓐 𝓑 _ _ x hx y hy) =>
+    let P := disj_pred2_R₁ 𝓐 𝓑
+    let A₁ := (setPO(𝓐) ⊔ setPO(𝓑))
+    let M := setPO(𝓐 P⨁O 𝓑)
+    let R₁ := le_disj2 𝓐 𝓑
+    let R₂ := (nonstr (setPO(𝓐) ⊔ setPO(𝓑)) R₁)
+    let A := (setpo_disj2 𝓐 𝓑)
+    let u₁ := bin_spec_is_spec P A A
+    let u₀ := lessPO_is_lessPO A₁ R₁ R₂
     Iff.intro
     (
       fun (hxy) =>
-        let u₀ := (sum_is_PO 𝓐 𝓑 h𝓐 h𝓑)
-        let u₁ := Iff.mp (And.right (part_ord_pair_prop (𝓐 P⨁O 𝓑) u₀ x hx y hy)) hxy
+        let u₂ := eq_subst (fun (t) => (x . t . y)) (≺(𝓐 P⨁O 𝓑)) R₁ (u₀) (hxy)
+        And.right (
+          Iff.mp (u₁ x y) (u₂)
+        )
+    )
+    (
+      fun (hxy) =>
+        eq_subst (fun (t) => (x . t . y)) R₁ (≺(𝓐 P⨁O 𝓑)) (Eq.symm u₀) (
+          Iff.mpr (u₁ x y) (
+            let u₀ := setPO_is_setPO A₁ R₁ R₂
+            And.intro (And.intro (eq_subst (fun (t) => x ∈ t) (M) A (u₀) hx) (eq_subst (fun (t) => y ∈ t) (M) A (u₀) hy)) (hxy)
+          )
+        )
+    )
+
+theorem sum_PO_lesseq : ∀ 𝓐 𝓑, (PartOrd 𝓐) → (PartOrd 𝓑) → (∀ x y ∈ setPO(𝓐 P⨁O 𝓑); ((x . ≼(𝓐 P⨁O 𝓑) . y) ↔ (disj_pred2_R₂ 𝓐 𝓑 x y))) :=
+  fun (𝓐 𝓑 h𝓐 h𝓑 x hx y hy) =>
+    let S := 𝓐 P⨁O 𝓑
+    let U₀ := (sum_is_PO 𝓐 𝓑 h𝓐 h𝓑)
+    let A := (setPO(𝓐) ⊔ setPO(𝓑))
+    let R₁ := le_disj2 𝓐 𝓑
+    let R₂ := (nonstr (setPO(𝓐) ⊔ setPO(𝓑)) R₁)
+    Iff.intro
+
+    (
+      fun (hxy) =>
+        let setA := setPO(𝓐 P⨁O 𝓑)
+
+
+        let u₁ := Iff.mp (And.right (part_ord_pair_prop (𝓐 P⨁O 𝓑) U₀ x hx y hy)) hxy
+        let u₂ := par_ord_pair_prop_R₂_A (𝓐 P⨁O 𝓑) (U₀) x y hxy
+        let u₃ : setA = A := setPO_is_setPO A R₁ R₂
+        let u₄ := eq_subst (fun (t) => x ∈ t) setA A (u₃) (And.left u₂)
+        let u₅ := eq_subst (fun (t) => y ∈ t) setA A (u₃) (And.right u₂)
+        let u₆ := lessPO_is_lessPO A R₁ R₂
+        let u₆₀ := disj2_xAB_in setPO(𝓐) setPO(𝓑) x u₄
+
+
         Or.elim (u₁)
         (
-          fun (hxy₁) =>
-            sorry
-
+          fun (hxly) =>
+            let u₇ := Iff.mp (sum_PO_less 𝓐 𝓑 h𝓐 h𝓑 x (And.left u₂) y (And.right u₂)) hxly
+            Or.elim u₇
+            (
+              fun (hxyA) =>
+                Or.inl (
+                  And.intro (And.left hxyA) (
+                    And.intro (And.left (And.right hxyA)) (
+                      part_ord_pair_prop_R₁R₂ 𝓐 h𝓐 (π₁ x) (π₁ y) (And.right (And.right hxyA)))
+                  )
+                )
+            )
+            (
+              fun (hxyO) =>
+                Or.elim hxyO
+                (
+                  fun (hxyB) =>
+                    Or.inr (
+                      Or.inl (
+                        And.intro (And.left hxyB) (
+                          And.intro (And.left (And.right hxyB)) (
+                            part_ord_pair_prop_R₁R₂ 𝓑 h𝓑 (π₁ x) (π₁ y) (And.right (And.right hxyB))))
+                      )
+                    )
+                )
+                (
+                  fun (hxyD) =>
+                    Or.inr (
+                      Or.inr (
+                        And.intro (And.left hxyD) (And.right hxyD)
+                      )
+                    )
+                )
+            )
         )
         (
-          fun (hxy₁) =>
-            sorry
+          fun (hxey) =>
+            Or.elim u₆₀
+            (
+              fun (hxA) =>
+                Or.inl (
+                  let u₈ := And.right hxA
+                  let u₉ := eq_subst (fun (t) => (π₂ t) = l2) (x) (y) (hxey) (u₈)
+                  And.intro (u₈) (And.intro u₉ (
+                    eq_subst (fun (t) => ((π₁ x) . ≼(𝓐) . (π₁ t))) x y (hxey) (
+                      refl_R₂ 𝓐 h𝓐 (π₁ x) (And.left hxA)
+                    )
+                  ))
+                )
+            )
+            (
+              fun (hxB) =>
+                Or.inr (
+                  Or.inl (
+                    let u₈ := And.right hxB
+                    let u₉ := eq_subst (fun (t) => (π₂ t) = r2) (x) (y) (hxey) (u₈)
+                    And.intro (u₈) (And.intro u₉ (
+                      eq_subst (fun (t) => ((π₁ x) . ≼(𝓑) . (π₁ t))) x y (hxey) (
+                        refl_R₂ 𝓑 h𝓑 (π₁ x) (And.left hxB)
+                      )
+                    ))
+                  )
+                )
+            )
         )
 
     )
     (
       fun (hxy) =>
-        sorry
+
+        Or.elim hxy
+        (
+          fun (hxyA) =>
+            let u₀ := par_ord_pair_prop_R₂_A 𝓐 h𝓐 (π₁ x) (π₁ y) (And.right (And.right hxyA))
+            let u₁ := Iff.mp (And.right (part_ord_pair_prop 𝓐 h𝓐 (π₁ x) (And.left u₀) (π₁ y) (And.right u₀))) (
+              And.right (And.right hxyA)
+            )
+            Or.elim u₁
+            (
+              fun (hxlyA) =>
+
+                let u₂ := Iff.mpr (sum_PO_less 𝓐 𝓑 h𝓐 h𝓑 x (hx) y (hy)) (
+                  Or.inl (
+                    And.intro (And.left hxyA) (And.intro (And.left (And.right hxyA)) (hxlyA))
+                  )
+                )
+                part_ord_pair_prop_R₁R₂ (S) U₀ x y u₂
+            )
+            (
+              fun (hxryA) =>
+                let u₂ := And.left hxyA
+                let u₃ := And.left (And.right hxyA)
+                let u₄ := Eq.trans (u₂) (Eq.symm u₃)
+                let u₄₀ := eq_subst (fun (t) => x ∈ t) (setPO(𝓐 P⨁O 𝓑)) ((setPO(𝓐) ⊔ setPO(𝓑))) (
+                  setPO_is_setPO A R₁ R₂
+                ) hx
+                let u₄₅ := Iff.mpr (spec_is_spec (fun (t) => (π₂ t) = l2) (setPO(𝓐) ⊔ setPO(𝓑)) x) (And.intro (u₄₀) (And.left hxyA))
+                let u₄₆ := eq_subst (fun (t) => x ∈ t) (DUL (setPO(𝓐) ⊔ setPO(𝓑))) (setPO(𝓐) × {l2}) (dul_A setPO(𝓐) setPO(𝓑)) (u₄₅)
+
+                let u₅₀ := eq_subst (fun (t) => y ∈ t) (setPO(𝓐 P⨁O 𝓑)) ((setPO(𝓐) ⊔ setPO(𝓑))) (
+                  setPO_is_setPO A R₁ R₂
+                ) hy
+                let u₅₅ := Iff.mpr (spec_is_spec (fun (t) => (π₂ t) = l2) (setPO(𝓐) ⊔ setPO(𝓑)) y) (And.intro (u₅₀) (u₃))
+                let u₅₆ := eq_subst (fun (t) => y ∈ t) (DUL (setPO(𝓐) ⊔ setPO(𝓑))) (setPO(𝓐) × {l2}) (dul_A setPO(𝓐) setPO(𝓑)) (u₅₅)
+
+
+                let u₆ := equal_fst_snd setPO(𝓐) {l2} x y (u₄₆) (u₅₆) (hxryA) (u₄)
+                eq_subst (fun (t) => (x . ≼(𝓐 P⨁O 𝓑) . t)) x y (u₆) (refl_R₂ (𝓐 P⨁O 𝓑) (U₀) x (hx))
+            )
+        )
+        (
+          fun (hxyO) =>
+            Or.elim hxyO
+            (
+              fun (hxyB) =>
+                let u₀ := par_ord_pair_prop_R₂_A 𝓑 h𝓑 (π₁ x) (π₁ y) (And.right (And.right hxyB))
+                let u₁ := Iff.mp (And.right (part_ord_pair_prop 𝓑 h𝓑 (π₁ x) (And.left u₀) (π₁ y) (And.right u₀))) (
+                  And.right (And.right hxyB)
+                )
+                Or.elim u₁
+                (
+                  fun (hxlyB) =>
+
+                    let u₂ := Iff.mpr (sum_PO_less 𝓐 𝓑 h𝓐 h𝓑 x (hx) y (hy)) (
+                      Or.inr (
+                        Or.inl (
+                          And.intro (And.left hxyB) (And.intro (And.left (And.right hxyB)) (hxlyB))
+                        )
+                      )
+                    )
+                    part_ord_pair_prop_R₁R₂ (S) U₀ x y u₂
+                )
+                (
+                  fun (hxryB) =>
+                    let u₂ := And.left hxyB
+                    let u₃ := And.left (And.right hxyB)
+                    let u₄ := Eq.trans (u₂) (Eq.symm u₃)
+                    let u₄₀ := eq_subst (fun (t) => x ∈ t) (setPO(𝓐 P⨁O 𝓑)) ((setPO(𝓐) ⊔ setPO(𝓑))) (
+                      setPO_is_setPO A R₁ R₂
+                    ) hx
+                    let u₄₅ := Iff.mpr (spec_is_spec (fun (t) => (π₂ t) = r2) (setPO(𝓐) ⊔ setPO(𝓑)) x) (And.intro (u₄₀) (And.left hxyB))
+                    let u₄₆ := eq_subst (fun (t) => x ∈ t) (DUR (setPO(𝓐) ⊔ setPO(𝓑))) (setPO(𝓑) × {r2}) (dur_B setPO(𝓐) setPO(𝓑)) (u₄₅)
+
+                    let u₅₀ := eq_subst (fun (t) => y ∈ t) (setPO(𝓐 P⨁O 𝓑)) ((setPO(𝓐) ⊔ setPO(𝓑))) (
+                      setPO_is_setPO A R₁ R₂
+                    ) hy
+                    let u₅₅ := Iff.mpr (spec_is_spec (fun (t) => (π₂ t) = r2) (setPO(𝓐) ⊔ setPO(𝓑)) y) (And.intro (u₅₀) (u₃))
+                    let u₅₆ := eq_subst (fun (t) => y ∈ t) (DUR (setPO(𝓐) ⊔ setPO(𝓑))) (setPO(𝓑) × {r2}) (dur_B setPO(𝓐) setPO(𝓑)) (u₅₅)
+
+
+                    let u₆ := equal_fst_snd setPO(𝓑) {r2} x y (u₄₆) (u₅₆) (hxryB) (u₄)
+                    eq_subst (fun (t) => (x . ≼(𝓐 P⨁O 𝓑) . t)) x y (u₆) (refl_R₂ (𝓐 P⨁O 𝓑) (U₀) x (hx))
+                  )
+                )
+            (
+              fun (hxyD) =>
+                let u₁ := Iff.mpr (sum_PO_less 𝓐 𝓑 h𝓐 h𝓑 x hx y hy) (
+                  Or.inr (
+                    Or.inr (
+                      hxyD
+                    )
+                  )
+                )
+                part_ord_pair_prop_R₁R₂ (𝓐 P⨁O 𝓑) U₀ x y (u₁)
+            )
+        )
     )
 
 
@@ -6101,6 +6301,64 @@ theorem latt_as_semilatts : ∀ 𝓐, (Latt 𝓐) ↔ ((SemiLatt 𝓐) ∧ (Semi
     )
 
 
+
+theorem sum_semilatt : ∀ 𝓐 𝓑, (SemiLatt 𝓐) → (SemiLatt 𝓑) → (SemiLatt (𝓐 P⨁O 𝓑)) :=
+  fun (𝓐 𝓑 h𝓐 h𝓑) =>
+    let u₁ := sum_is_PO 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑)
+    let A := setPO(𝓐)
+    let B := setPO(𝓑)
+    let R₁ := le_disj2 𝓐 𝓑
+    let R₂ := (nonstr (setPO(𝓐) ⊔ setPO(𝓑)) R₁)
+    let u₂ := setPO_is_setPO (A ⊔ B) R₁ R₂
+    And.intro (u₁) (
+      fun (x hx y hy) =>
+        let u₀ := eq_subst (fun (t) => x ∈ t) (setPO(𝓐 P⨁O 𝓑)) (A ⊔ B) (u₂) (hx)
+        let u₀₁ := eq_subst (fun (t) => y ∈ t) (setPO(𝓐 P⨁O 𝓑)) (A ⊔ B) (u₂) (hy)
+        let u₁ := disj2_xAB_in A B x u₀
+        let u₂ := disj2_xAB_in A B y u₀₁
+        Or.elim u₁
+        (
+          fun (hxA) =>
+            Or.elim u₂
+            (
+              fun (hyA) =>
+                let u₃ := And.right h𝓐 (π₁ x) (And.left hxA) (π₁ y) (And.left hyA)
+                Exists.elim u₃
+                (
+                  fun (inf hinf) =>
+                    Exists.intro (inf, l2) (
+                      And.intro (sorry) (sorry)
+                    )
+                )
+            )
+            (
+              fun (hyB) =>
+                sorry
+            )
+        )
+        (
+          fun (hxB) =>
+            Or.elim u₂
+            (
+              fun (hyA) =>
+                sorry
+            )
+            (
+              fun (hyB) =>
+                sorry
+            )
+        )
+    )
+
+
+theorem sum_latt : ∀ 𝓐 𝓑, (Latt 𝓐) → (Latt 𝓑) → (Latt (𝓐 P⨁O 𝓑)) :=
+  fun (𝓐 𝓑 h𝓐 h𝓑) =>
+    let u₁ := sum_is_PO 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑)
+    And.intro (u₁) (
+      fun (x hx y hy) =>
+        sorry
+    )
+
 theorem boolean_CompLatt : ∀ A, (CompLatt (BoolPO A)) :=
   fun (A) =>
     And.intro (boolean_PO A) (
@@ -6978,6 +7236,106 @@ theorem sub_is_LO : ∀ 𝓐 B, (B ≠ ∅) → (LinOrd 𝓐) → (B ⊆ setPO(�
           )
 
 
+theorem sum_is_LO : ∀ 𝓐 𝓑, (LinOrd 𝓐) → (LinOrd 𝓑) → (LinOrd (𝓐 P⨁O 𝓑)) :=
+  fun (𝓐 𝓑 h𝓐 h𝓑) =>
+    let A := (setPO(𝓐) ⊔ setPO(𝓑))
+    let R₁ := le_disj2 𝓐 𝓑
+    let R₂ := (nonstr (setPO(𝓐) ⊔ setPO(𝓑)) R₁)
+    let u₁ := sum_is_PO 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑)
+    And.intro (u₁) (
+      fun (x hx y hy) =>
+        let u₂ := setPO_is_setPO (A) R₁ R₂
+        let u₃ := eq_subst (fun (t) => x ∈ t) (setPO(𝓐 P⨁O 𝓑)) A (u₂) (hx)
+        let u₄ := disj2_xAB_in (setPO(𝓐)) (setPO(𝓑)) x u₃
+        let u₅ := eq_subst (fun (t) => y ∈ t) (setPO(𝓐 P⨁O 𝓑)) A (u₂) (hy)
+        let u₆ := disj2_xAB_in (setPO(𝓐)) (setPO(𝓑)) y u₅
+        Or.elim u₄
+        (
+          fun (hxA) =>
+            Or.elim u₆
+            (
+              fun (hyA) =>
+                let u₇ := And.right h𝓐 (π₁ x) (And.left hxA) (π₁ y) (And.left hyA)
+                Or.elim u₇
+                (
+                  fun (hxy) =>
+                    Or.inl (
+                      Iff.mpr (sum_PO_lesseq 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑) x hx y hy) (
+                        Or.inl (
+                          And.intro (And.right hxA) (And.intro (And.right hyA) (hxy))
+                        )
+                      )
+                    )
+                )
+                (
+                  fun (hyx) =>
+                    Or.inr (
+                      Iff.mpr (sum_PO_lesseq 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑) y hy x hx) (
+                          Or.inl (
+                              And.intro (And.right hyA) (And.intro (And.right hxA) (hyx))
+                          )
+                      )
+                    )
+                )
+            )
+            (
+              fun (hyB) =>
+                Or.inl (
+                  Iff.mpr (sum_PO_lesseq 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑) x hx y hy) (
+                    Or.inr (
+                      Or.inr (
+                        And.intro (And.left hxA) (And.intro (And.left hyB) (And.intro (And.right hxA) (And.right hyB)))
+                      )
+                    )
+                  )
+                )
+            )
+        )
+        (
+          fun (hxB) =>
+            Or.elim u₆
+            (
+              fun (hyA) =>
+                Or.inr (
+                  Iff.mpr (sum_PO_lesseq 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑) y hy x hx) (
+                    Or.inr (
+                      Or.inr (
+                        And.intro (And.left hyA) (And.intro (And.left hxB) (And.intro (And.right hyA) (And.right hxB)))
+                      )
+                    )
+                  )
+                )
+            )
+            (
+              fun (hyB) =>
+                let u₇ := And.right h𝓑 (π₁ x) (And.left hxB) (π₁ y) (And.left hyB)
+                Or.elim u₇
+                (
+                  fun (hxy) =>
+                    Or.inl (
+                      Iff.mpr (sum_PO_lesseq 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑) x hx y hy) (
+                        Or.inr (Or.inl (
+                            And.intro (And.right hxB) (And.intro (And.right hyB) (hxy))
+                          )
+                        )
+                      )
+                    )
+                )
+                (
+                  fun (hyx) =>
+                    Or.inr (
+                      Iff.mpr (sum_PO_lesseq 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑) y hy x hx) (
+                        Or.inr ( Or.inl (
+                              And.intro (And.right hyB) (And.intro (And.right hxB) (hyx))
+                          )
+                        )
+                      )
+                    )
+                )
+            )
+        )
+    )
+
 
 theorem linmin_al_um : ∀ 𝓐 X x, (LinOrd 𝓐) → (X ⊆ setPO(𝓐)) → ((is_minimal 𝓐 X x) ↔ (is_minimum 𝓐 X x)) :=
   fun (𝓐 X x) =>
@@ -7717,6 +8075,18 @@ theorem wellord_wellfoundcrit : ∀ 𝓐, (WellOrd 𝓐) ↔ ((LinOrd 𝓐) ∧ 
       fun (hliwefo) =>
         And.intro (And.left hliwefo) (And.right (And.right hliwefo))
     )
+
+
+theorem well_found : ∀ 𝓐 𝓑, (WellFoundOrd 𝓐) → (WellFoundOrd 𝓑) → (WellFoundOrd (𝓐 P⨁O 𝓑)) := sorry
+
+
+theorem well_ord : ∀ 𝓐 𝓑, (WellOrd 𝓐) → (WellOrd 𝓑) → (WellOrd (𝓐 P⨁O 𝓑)) :=
+  fun (𝓐 𝓑 h𝓐 h𝓑) =>
+    let u₁ := sum_is_LO 𝓐 𝓑 (And.left h𝓐) (And.left h𝓑)
+    let u₂ := Iff.mp (wellord_wellfoundcrit 𝓐) h𝓐
+    let u₃ := Iff.mp (wellord_wellfoundcrit 𝓑) h𝓑
+    Iff.mpr (wellord_wellfoundcrit (𝓐 P⨁O 𝓑)) (And.intro (u₁) (well_found 𝓐 𝓑 (And.right u₂) (And.right u₃)))
+
 
 
 def is_chain (𝓐 B) := (PartOrd 𝓐) ∧ (B ⊆ setPO(𝓐)) ∧ (LinOrd (𝓐 SubsPO B))
