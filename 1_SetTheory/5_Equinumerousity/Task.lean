@@ -49,6 +49,9 @@ syntax "BoolCompBij" term : term
 macro_rules
 | `(BoolCompBij $A) => `(bool_compl_bij $A)
 
+
+theorem boolcompbij_is_bij : ∀ A, (BoolCompBij A) Bij (𝒫 A) To (𝒫 A) := sorry
+
 -- 6) Equinumerousity of boolean and power sets
 theorem equinum_power_boolean : ∀ A, (I2 ℙow A) ~ 𝒫 A := sorry
 
