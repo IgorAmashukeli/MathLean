@@ -2652,6 +2652,21 @@ theorem bijimg_f_finv : ∀ f A B, (f Bij A To B) → (∀ X, (X ⊆ B) → (f.[
     Eq.trans (Eq.symm u₁) (Eq.trans (u₃) (rel_image_id B X hX))
 
 
+
+theorem bij_rng : ∀ f A B, (f Inj A To B) → (f Bij A To (rng f)) :=
+  fun (f A B) =>
+    fun (hinf) =>
+      let hfrngf := function_rng_def f A B (And.left hinf)
+      And.intro (hfrngf) (
+        And.intro (And.right hinf) (
+          fun (y) =>
+            fun (hy) =>
+              Iff.mp (rng_prop f y) hy
+        )
+      )
+
+
+
 noncomputable def left_reversable (f A B : Set) : Prop := (f Fun A To B) ∧ ∃ g, (g Fun B To A) ∧ (g ∘ f = id_ A)
 noncomputable def right_reversable (f A B : Set) : Prop := (f Fun A To B) ∧ ∃ g, (g Fun B To A) ∧ (f ∘ g = id_ B)
 noncomputable def reversable (f A B : Set) : Prop := (f Fun A To B) ∧ ∃ g, (g Fun B To A) ∧ (g ∘ f = id_ A) ∧ (f ∘ g = id_ B)
@@ -2988,7 +3003,7 @@ theorem surjection_condition:
       )
 
 
-theorem rev_condition :
+theorem rev_criterion :
  ∀ f A B, (f Rev A To B) ↔ (f Bij A To B) :=
   fun (f A B) =>
       Iff.intro
@@ -3025,6 +3040,46 @@ theorem rev_condition :
       )
 
 
+noncomputable def bool_compl_bij (A) := lam_fun (𝒫 A) (𝒫 A) (fun (X) => A \ X)
+syntax "BoolCompBij" term : term
+macro_rules
+| `(BoolCompBij $A) => `(bool_compl_bij $A)
+
+theorem boolcompbij_is_bij : ∀ A, (BoolCompBij A) Bij (𝒫 A) To (𝒫 A) :=
+  fun (A) =>
+    let P := fun (X) => A \ X
+    let f := (BoolCompBij A)
+    let u₁ := lam_then_fun_prop P (𝒫 A) (𝒫 A) (
+      fun (X _) =>
+        let u₂ := difference_subset_prop A X
+        Iff.mpr (boolean_set_is_boolean A (A \ X)) u₂
+
+    )
+    let func := And.left u₁
+
+    Iff.mp (rev_criterion f (𝒫 A) (𝒫 A)) (
+
+      And.intro (func) (
+        Exists.intro (f) (
+          And.intro (func) (
+
+            let u₀ := function_composition_A f f (𝒫 A) (𝒫 A) (𝒫 A) func func
+            let u₁ := Iff.mpr (equal_functions_abc_A (f ∘ f) (id_ (𝒫 A)) (𝒫 A) (𝒫 A) (𝒫 A) (And.left u₀) (And.left (id_is_bij (𝒫 A)))) (
+              fun (x hx) =>
+                let u₀₀ := And.right u₀ x hx
+                let pr₁ := val_in_B f (𝒫 A) (𝒫 A) func x hx
+                Eq.trans (u₀₀) (Eq.trans (Eq.trans (And.right u₁ (f⦅x⦆) (pr₁)) (
+                  eq_subst (fun (t) => A \ t = x) (A \ x) (f⦅x⦆) (Eq.symm (And.right u₁ x hx)) (
+                    double_compl A x (Iff.mp (boolean_set_is_boolean A x) hx)
+                  )
+                )) (Eq.symm (id_val_prop (𝒫 A) x hx)))
+            )
+
+            And.intro (u₁) (u₁)
+          )
+        )
+      )
+    )
 
 
 

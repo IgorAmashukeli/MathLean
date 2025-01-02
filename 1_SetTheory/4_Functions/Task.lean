@@ -292,7 +292,7 @@ theorem bijection_inv : ∀ f A B, binary_relation f → ((f Bij A To B) ↔ (f�
 
 
 -- 34) Functionality, totality, injectivity, and surjectivity and bijection criteria with respect to composition, inverse, id
--- and ff⁻¹ val and image terms
+-- ff⁻¹ val, image terms and inv to rng is bij
 theorem id_func_criterion : ∀ f A B, (f BinRelBtw A AND B) → ((is_functional f) ↔ (f ∘ f⁻¹ ⊆ id_ B)) := sorry
 theorem id_tot_criterion : ∀ f A B, (f BinRelBtw A AND B) → ((is_total f A) ↔ (id_ A ⊆ f⁻¹ ∘ f)) := sorry
 theorem id_inj_criterion : ∀ f A B, (f BinRelBtw A AND B) → ((is_injective f) ↔ (f⁻¹ ∘ f ⊆ id_ A)) := sorry
@@ -303,6 +303,7 @@ theorem bij_finv_f : ∀ f A B, (f Bij A To B) → (∀ x ∈ A; (f⁻¹⦅f⦅x
 theorem bij_f_finv : ∀ f A B, (f Bij A To B) → (∀ x ∈ B; (f⦅f⁻¹⦅x⦆⦆) = x) := sorry
 theorem bijimg_finv_f : ∀ f A B, (f Bij A To B) → (∀ X, (X ⊆ A) → (f⁻¹.[f.[X]] = X)) := sorry
 theorem bijimg_f_finv : ∀ f A B, (f Bij A To B) → (∀ X, (X ⊆ B) → (f.[f⁻¹.[X]] = X)) := sorry
+theorem bij_rng : ∀ f A B, (f Inj A To B) → (f Bij A To (rng f)) := sorry
 
 
 
@@ -324,6 +325,16 @@ macro_rules
 theorem rev_criterion : ∀ f A B, (f Rev A To B) ↔ (f Bij A To B) := sorry
 theorem leftrev_criterion: ∀ f A B, (f LeftRev A To B) ↔ ((f Inj A To B) ∧ (A ≠ ∅ ∨ B = ∅)) := sorry
 theorem rightrev_criterion_AC_eq: choice_ax ↔ ∀ f A B, (f RightRev A To B) ↔ (f Surj A To B) := sorry
+
+
+
+noncomputable def bool_compl_bij (A) := lam_fun (𝒫 A) (𝒫 A) (fun (X) => A \ X)
+syntax "BoolCompBij" term : term
+macro_rules
+| `(BoolCompBij $A) => `(bool_compl_bij $A)
+
+
+theorem boolcompbij_is_bij : ∀ A, (BoolCompBij A) Bij (𝒫 A) To (𝒫 A) := sorry
 
 
 -- 36) Indexation with function, indexed famility, element of indexation, indexation· defintions

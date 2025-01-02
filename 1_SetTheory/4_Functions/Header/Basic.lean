@@ -153,6 +153,7 @@ axiom union_subset_monotonic : ∀ A B, A ⊆ B → ⋃ A ⊆ ⋃ B
 axiom all_ss_then_union_ss : ∀ A B, (∀ X ∈ A; X ⊆ B) → (⋃ A ⊆ B)
 axiom equality_then_subset : ∀ A B, A = B → A ⊆ B
 axiom difference_subset_prop : (∀ A B, A \ B ⊆ A)
+axiom double_compl (U : Set) (A : Set)  (h : A ⊆ U) : (U \ (U \ A)) = A
 
 axiom intersect_2sets_is_intersect : (∀ A B, (⋂ {A, B}) = A ∩ B)
 
