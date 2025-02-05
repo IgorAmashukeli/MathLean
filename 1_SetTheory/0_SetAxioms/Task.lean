@@ -1,6 +1,11 @@
 import «Header»
 
+
+
 -- 1) Creation of a new type: Set, it has only one predicate: membership
+
+
+
 axiom Set : Type
 axiom membership : Set → Set → Prop
 infix:50 (priority := high) " ∈ " => membership
@@ -10,10 +15,14 @@ infix:50 (priority := high) " ∉ " => (fun (x : Set) => (fun (y : Set) => ¬ me
 -- 2) To construct an actual object of type Set
 -- that is characterized by property P,
 -- prove that there exists unique x with property P x
+
+
 axiom set_intro (P : Set → Prop) (h : ∃! x, P x) : Set
 
 -- created set will have the property P and only it will have it property P
 axiom set_intro_prop (P : Set → Prop) (h : ∃! x, P x) : P (set_intro P h) ∧ ∀ x, P x → (x = set_intro P h)
+
+
 
 
 -- 3) Creation of new ∀ x ∈ A/∃ x ∈ A/∃! x ∈ A notations
@@ -81,3 +90,18 @@ axiom regularity : ∀ A, non_empty A → ∃ B ∈ A; ∀ x ∈ B; x ∉ A
 -- There is another (rather controversial) - last axiom - axiom of choce
 -- It it is very huge to write it right here without all the future constructions and defintions
 -- Therefore, it will be defined in the fourth (4_Functions) chapter
+
+
+-- 9) Also we are introducing another type - Class and theory - NGB set theory
+-- Here we are listing its axioms. At some point we will need this
+-- Later we will generally use ZFC and NGB will be
+
+-- Class type
+axiom Class : Type
+axiom cl_membership : Class → Class → Prop
+infix:50 (priority := high) " ∈ " => cl_membership
+infix:50 (priority := high) " ∉ " => (fun (X : Class) => (fun (Y : Class) => ¬ membership X Y))
+axiom class_intro (P : Class → Prop) (h : ∃! X, P X) : Class
+axiom class_intro_prop (P : Class → Prop) (h : ∃! X, P X) : P (class_intro P h) ∧ ∀ X, P X → (X = class_intro P h)
+
+def exists_subset : ∃ (A B : Type) [setoid B], ∀ (a : A), ∃ (b : B), a ≈ b

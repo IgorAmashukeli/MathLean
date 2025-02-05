@@ -430,7 +430,7 @@ theorem imp_def (p q : Prop) : (p → q) ↔ (¬p ∨ q) :=
    (impl_def_mpr p q)
 
 
-theorem neg_imp_def (p q : Prop) :  ¬ (p → q) ↔ p ∧ ¬ q :=
+theorem neg_imp_def (p q : Prop) : ¬ (p → q) ↔ p ∧ ¬ q :=
    Iff.intro
    (fun (h : ¬ (p → q)) =>
       Or.elim (tnd p)
@@ -518,7 +518,7 @@ theorem xor_equiv_def (p q : Prop) : (p ⊕ q) ↔ ((p ∨ q) ∧ (¬ (p ∧ q))
    )
 
 
-theorem xor_equal  (p : Prop): ¬ (p ⊕ p) :=
+theorem xor_equal (p : Prop): ¬ (p ⊕ p) :=
    fun (hpp : (p ⊕ p)) =>
       Or.elim hpp
       (
@@ -530,7 +530,7 @@ theorem xor_equal  (p : Prop): ¬ (p ⊕ p) :=
             And.left hnpp (And.right hnpp)
       )
 
-theorem xor_neg  (p : Prop) : (p ⊕ ¬ p) :=
+theorem xor_neg (p : Prop) : (p ⊕ ¬ p) :=
    Or.elim (tnd p)
    (
       fun (hp : p) =>
@@ -541,7 +541,7 @@ theorem xor_neg  (p : Prop) : (p ⊕ ¬ p) :=
          Or.inr (And.intro hnp hnp)
    )
 
-theorem xor_comm  (p q : Prop) : (p ⊕ q) ↔ (q ⊕ p) :=
+theorem xor_comm (p q : Prop) : (p ⊕ q) ↔ (q ⊕ p) :=
    let first := fun (x : Prop) => fun (y : Prop) => fun (hxy : (x ⊕ y)) =>
          Or.elim hxy
          (
@@ -560,7 +560,7 @@ theorem xor_comm  (p q : Prop) : (p ⊕ q) ↔ (q ⊕ p) :=
       first q p
    )
 
-theorem xor_assoc  (p q r : Prop) : ((p ⊕ q) ⊕ r) ↔ (p ⊕ (q ⊕ r)) :=
+theorem xor_assoc (p q r : Prop) : ((p ⊕ q) ⊕ r) ↔ (p ⊕ (q ⊕ r)) :=
    let first : ∀ p q r : Prop, ((p ⊕ q) ⊕ r)  → (p ⊕ (q ⊕ r)) := fun (p) => fun (q) => fun (r) => (
       fun (hpqr : ((p ⊕ q) ⊕ r)) =>
          Or.elim hpqr
