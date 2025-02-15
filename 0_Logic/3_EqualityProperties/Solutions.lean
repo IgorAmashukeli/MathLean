@@ -3,38 +3,49 @@ axiom iff_transitivity (p q r : Prop) : (p ↔ q) → (q ↔ r) → (p ↔ r)
 axiom iff_reflexivity (p : Prop) : (p ↔ p)
 
 
-theorem eq_refl : (∀ x : α, x = x) :=
+theorem eq_refl (α : Type) : (∀ x : α, x = x) :=
    Eq.refl
 
-theorem eq_subst (P : α → Prop) : (∀ (a b : α), a = b → P a → P b) :=
+theorem eq_refl2 (α : Sort u₁) : (∀ x : α, x = x) :=
+   Eq.refl
+
+theorem eq_subst (α : Type) (P : α → Prop) : (∀ (a b : α), a = b → P a → P b) :=
    fun (_ : α) => fun (_ : α) => Eq.subst
 
-theorem eq_symm : (∀ (x y : α), x = y → y = x) :=
-   fun (x: α) => fun (y : α) => fun (h : x = y) =>
-      eq_subst (fun (t : α) => t = x) x y h (eq_refl x)
+theorem eq_subst2 (α : Sort u₁) (P : α → Prop) : (∀ (a b : α), a = b → P a → P b) :=
+   fun (_ : α) => fun (_ : α) => Eq.subst
 
-theorem eq_substr (P : α → Prop) : (∀ (a b : α), a = b → P b → P a) :=
-   fun (a : α) => fun (b : α) => fun (h : a = b) => eq_subst P b a (eq_symm a b h)
+
+theorem eq_symm (α : Type) : (∀ (x y : α), x = y → y = x) :=
+   fun (x: α) => fun (y : α) => fun (h : x = y) =>
+      eq_subst α (fun (t : α) => t = x) x y h (eq_refl α x)
+
+theorem eq_symm2 (α : Sort u₁) : (∀ (x y : α), x = y → y = x) :=
+   fun (x: α) => fun (y : α) => fun (h : x = y) =>
+      eq_subst2 α (fun (t : α) => t = x) x y h (eq_refl2 α x)
+
+theorem eq_substr (α : Type) (P : α → Prop) : (∀ (a b : α), a = b → P b → P a) :=
+   fun (a : α) => fun (b : α) => fun (h : a = b) => eq_subst α P b a (eq_symm α a b h)
 
 
 def eq_mp (α : Sort u₁) (β : Sort u₁) (h : α = β) (a : α) : β :=
    Eq.mp h a
 
 def eq_mpr (α : Sort u₁) (β : Sort u₁) (h : α = β) (b : β) : α :=
-   eq_mp β α (eq_symm α β h) b
+   eq_mp β α (eq_symm2 (Sort u₁) α β h) b
 
 
-theorem eq_trans_curry : (∀ (x y z : α), x = y → y = z → x = z) :=
+theorem eq_trans_curry (α : Type) : (∀ (x y z : α), x = y → y = z → x = z) :=
    fun (x : α) => fun (y : α ) => fun (z : α) => fun (xy : x = y) =>
-      eq_subst (fun (t : α) => t = z) y x (eq_symm x y xy)
+      eq_subst α (fun (t : α) => t = z) y x (eq_symm α x y xy)
 
-theorem eq_trans_export : (∀ (x y z : α), x = y ∧ y = z → x = z) :=
+theorem eq_trans_export (α : Type) : (∀ (x y z : α), x = y ∧ y = z → x = z) :=
    fun (x : α) => fun (y : α ) => fun (z : α) => fun (r : (x = y ∧ y = z)) =>
-      eq_trans_curry x y z (And.left r) (And.right r)
+      eq_trans_curry α x y z (And.left r) (And.right r)
 
-theorem eq_congr_func_arg (f : α → β) : (∀ (x y : α), x = y → f x = f y) :=
+theorem eq_congr_func_arg (α : Type) (β : Type) (f : α → β) : (∀ (x y : α), x = y → f x = f y) :=
    fun (x : α) => fun (y : α) => fun (xy : x = y) =>
-      eq_subst (fun (t : α) => f x = f t) x y (xy) (eq_refl (f x))
+      eq_subst α (fun (t : α) => f x = f t) x y (xy) (eq_refl β (f x))
 
 
 theorem iff_is_eq (p q : Prop) : (p ↔ q) ↔ (p = q) :=
@@ -44,56 +55,56 @@ theorem iff_is_eq (p q : Prop) : (p ↔ q) ↔ (p = q) :=
           Eq.propIntro (Iff.mp h) (Iff.mpr h)
    )
    (fun (h : p = q) =>
-      eq_subst (fun (t : Prop) => p ↔ t) p q h (iff_reflexivity p)
+      eq_subst Prop (fun (t : Prop) => p ↔ t) p q h (iff_reflexivity p)
    )
 
-theorem eq_congr_pred_arg (P : α → Prop) : (∀ (x y : α), x = y → (P x ↔ P y)) :=
-   fun (x : α) => fun (y : α) => (syllogism (x = y) (P x = P y) (P x ↔ P y) (eq_congr_func_arg P x y) (Iff.mpr (iff_is_eq (P x) (P y))))
+theorem eq_congr_pred_arg (α : Type) (P : α → Prop) : (∀ (x y : α), x = y → (P x ↔ P y)) :=
+   fun (x : α) => fun (y : α) => (syllogism (x = y) (P x = P y) (P x ↔ P y) (eq_congr_func_arg α Prop P x y) (Iff.mpr (iff_is_eq (P x) (P y))))
 
 theorem iff_congr_pred_arg (P : Prop → Prop) : (∀ (x y : Prop), (x ↔ y) → (P x ↔ P y)) :=
-   fun (x : Prop) => fun (y : Prop) => fun (s : x ↔ y) => eq_congr_pred_arg P x y (Iff.mp (iff_is_eq x y) s)
+   fun (x : Prop) => fun (y : Prop) => fun (s : x ↔ y) => eq_congr_pred_arg Prop P x y (Iff.mp (iff_is_eq x y) s)
 
 theorem iff_subst_pred_arg (P : Prop → Prop) : (∀ (x y : Prop), (x ↔ y) → (P x → P y)) :=
-   fun (x : Prop) => fun (y : Prop) => fun (s : x ↔ y) => Iff.mp (eq_congr_pred_arg P x y (Iff.mp (iff_is_eq x y) s))
+   fun (x : Prop) => fun (y : Prop) => fun (s : x ↔ y) => Iff.mp (eq_congr_pred_arg Prop P x y (Iff.mp (iff_is_eq x y) s))
 
 
-theorem eq_congr_func_symb (f g : α → β) (h : f = g) : (∀ x : α, f x = g x) :=
-   fun (x : α) => eq_subst (fun (t : α → β) => f x = t x) f g h (eq_refl (f x))
+theorem eq_congr_func_symb (α : Type) (β : Type) (f g : α → β) (h : f = g) : (∀ x : α, f x = g x) :=
+   fun (x : α) => eq_subst (α → β) (fun (t : α → β) => f x = t x) f g h (eq_refl β (f x))
 
-theorem eq_congr_pred_symb (P Q : α → Prop) (h : P = Q) : (∀ x : α, P x ↔ Q x) :=
-   fun (x : α) => (Iff.mpr (iff_is_eq (P x) (Q x))) (eq_subst (fun (t : α → Prop) => P x = t x) P Q h (eq_refl (P x)))
-
-
-theorem eq_commut : (∀ x : α, ∀ y : α, x = y ↔ y = x) :=
-   fun (x : α) => fun (y : α) => (Iff.intro (eq_symm x y) (eq_symm y x))
+theorem eq_congr_pred_symb (α : Type) (P Q : α → Prop) (h : P = Q) : (∀ x : α, P x ↔ Q x) :=
+   fun (x : α) => (Iff.mpr (iff_is_eq (P x) (Q x))) (eq_subst (α → Prop) (fun (t : α → Prop) => P x = t x) P Q h (eq_refl Prop (P x)))
 
 
+theorem eq_commut (α : Type) : (∀ x : α, ∀ y : α, x = y ↔ y = x) :=
+   fun (x : α) => fun (y : α) => (Iff.intro (eq_symm α x y) (eq_symm α y x))
 
 
 
-theorem eq_congr_func_arg_symb (f₁ f₂ : α → β) : ∀ (a₁ a₂ : α), (f₁ = f₂) → (a₁ = a₂) → (f₁ a₁ = f₂ a₂) :=
+
+
+theorem eq_congr_func_arg_symb (α : Type) (β : Type) (f₁ f₂ : α → β) : ∀ (a₁ a₂ : α), (f₁ = f₂) → (a₁ = a₂) → (f₁ a₁ = f₂ a₂) :=
    fun (a₁ : α) => fun (a₂ : α) => fun (h : f₁ = f₂) => fun (g : a₁ = a₂) =>
-      eq_trans_curry
+      eq_trans_curry β
       (f₁ a₁)
       (f₁ a₂)
       (f₂ a₂)
-      (eq_congr_func_arg f₁ a₁ a₂ g)
-      (eq_congr_func_symb f₁ f₂ h a₂)
+      (eq_congr_func_arg α β f₁ a₁ a₂ g)
+      (eq_congr_func_symb α β f₁ f₂ h a₂)
 
 
-theorem eq_congr_pred_arg_symb (P₁ P₂ : α → Prop) : ∀ (a₁ a₂ : α), (P₁ = P₂) → (a₁ = a₂) → (P₁ a₁ ↔ P₂ a₂) :=
+theorem eq_congr_pred_arg_symb (α : Type) (P₁ P₂ : α → Prop) : ∀ (a₁ a₂ : α), (P₁ = P₂) → (a₁ = a₂) → (P₁ a₁ ↔ P₂ a₂) :=
    fun (a₁ : α) => fun (a₂ : α) => fun (h : P₁ = P₂) => fun (g : a₁ = a₂) =>
       iff_transitivity
       (P₁ a₁)
       (P₁ a₂)
       (P₂ a₂)
-      (eq_congr_pred_arg P₁ a₁ a₂ g)
-      (eq_congr_pred_symb P₁ P₂ h a₂)
+      (eq_congr_pred_arg α P₁ a₁ a₂ g)
+      (eq_congr_pred_symb α P₁ P₂ h a₂)
 
 
 -- ≠ is a symbol, x ≠ y is parsed as ¬ (x = y)
 -- prove trivial theorem for that
-theorem neq_symbol : (∀ (x y : α), ¬ (x = y) ↔ x ≠ y) :=
+theorem neq_symbol (α : Type) : (∀ (x y : α), ¬ (x = y) ↔ x ≠ y) :=
    fun (x : α) => fun (y : α) =>
       Iff.intro
       (fun (h : ¬ (x = y)) => h)
@@ -101,24 +112,24 @@ theorem neq_symbol : (∀ (x y : α), ¬ (x = y) ↔ x ≠ y) :=
 
 
 
-theorem exists_eq_C_PC_then_P (P : α → Prop) : (∃ x : α, x = C) → (P C) → (∃ x : α, P x) :=
+theorem exists_eq_C_PC_then_P (α : Type) (P : α → Prop) (C : α) : (∃ x : α, x = C) → (P C) → (∃ x : α, P x) :=
    fun (h : (∃ x : α, x = C)) => fun (g : P C) =>
       Exists.elim h
       (fun (w : α) =>
          fun (hw : w = C) =>
-            Exists.intro w (eq_subst P C w (eq_symm w C hw) g)
+            Exists.intro w (eq_subst α P C w (eq_symm α w C hw) g)
       )
 
 
-theorem forall_eq_C_PC_then_P (P : α → Prop) : (∀ x : α, x = C) → (P C) → (∀ x : α, P x) :=
+theorem forall_eq_C_PC_then_P (α : Type) (P : α → Prop) (C : α) : (∀ x : α, x = C) → (P C) → (∀ x : α, P x) :=
    fun (h : (∀ x : α, x = C)) => fun (g : P C) =>
-      fun (s : α) => eq_subst P C s ((eq_symm s C) (h s)) g
+      fun (s : α) => eq_subst α P C s ((eq_symm α s C) (h s)) g
 
 
 
 
 
-theorem uni_eq_partition (P : α → α → Prop) : (∀ x : α, ∀ y : α, P x y) ↔ ((∀ x : α, P x x) ∧ ∀ x : α, ∀ y : α, (x ≠ y → P x y)) :=
+theorem uni_eq_partition (α : Type) (P : α → α → Prop) : (∀ x : α, ∀ y : α, P x y) ↔ ((∀ x : α, P x x) ∧ ∀ x : α, ∀ y : α, (x ≠ y → P x y)) :=
    Iff.intro
    (
       fun (h : ((∀ x : α, ∀ y : α, P x y))) =>
@@ -129,7 +140,7 @@ theorem uni_eq_partition (P : α → α → Prop) : (∀ x : α, ∀ y : α, P x
          fun (x : α) => fun (y : α) =>
             Or.elim (Classical.em (x = y))
             (fun (g : x = y) =>
-               eq_subst (fun (t : α) => P x t) x y g (And.left h x)
+               eq_subst α (fun (t : α) => P x t) x y g (And.left h x)
             )
             (fun (g : x ≠ y) =>
                And.right h x y g
@@ -138,7 +149,7 @@ theorem uni_eq_partition (P : α → α → Prop) : (∀ x : α, ∀ y : α, P x
 
 
 
-theorem exi_eq_partition (P : α → α → Prop) : (∃ x : α, ∃ y : α, P x y) ↔ ((∃ x : α, P x x) ∨ ∃ x : α, ∃ y : α, (x ≠ y ∧ P x y)) :=
+theorem exi_eq_partition (α : Type) (P : α → α → Prop) : (∃ x : α, ∃ y : α, P x y) ↔ ((∃ x : α, P x x) ∨ ∃ x : α, ∃ y : α, (x ≠ y ∧ P x y)) :=
    Iff.intro
    (
       fun (h : (∃ x : α, ∃ y : α, P x y)) =>
@@ -153,7 +164,7 @@ theorem exi_eq_partition (P : α → α → Prop) : (∃ x : α, ∃ y : α, P x
                            Or.elim (Classical.em (w = u))
                               (fun (g : (w = u)) =>
                                  (Or.inl : (∃ x : α, P x x) → (∃ x : α, P x x) ∨ ∃ x : α, ∃ y : α, (x ≠ y ∧  P x y))
-                                 (Exists.intro u (eq_subst (fun (t : α) => P t u) w u g hu))
+                                 (Exists.intro u (eq_subst α (fun (t : α) => P t u) w u g hu))
                               )
                               (fun (g : (w ≠ u)) =>
                                  (Or.inr : (∃ x : α, ∃ y : α, (x ≠ y ∧  P x y)) → (∃ x : α, P x x) ∨ ∃ x : α, ∃ y : α, (x ≠ y ∧  P x y))
@@ -190,7 +201,7 @@ theorem exi_eq_partition (P : α → α → Prop) : (∃ x : α, ∃ y : α, P x
 
 
 
-def exists_unique (P : α → Prop) : Prop := (∃ (x : α), P x ∧ (∀ y : α, (P y → x = y)))
+def exists_unique {α : Type} (P : α → Prop) : Prop := (∃ (x : α), P x ∧ (∀ y : α, (P y → x = y)))
 
 
 open Lean TSyntax.Compat in
@@ -205,13 +216,13 @@ macro "∃!" xs:explicitBinders ", " b:term : term => expandExplicitBinders ``ex
 
 
 
-theorem exists_unique_intro (P : α → Prop) (w : α) (h : P w) (g : ∀ y : α, P y → w = y) : ∃! (x : α), P x :=
+theorem exists_unique_intro (α : Type) (P : α → Prop) (w : α) (h : P w) (g : ∀ y : α, P y → w = y) : ∃! (x : α), P x :=
    Exists.intro w (And.intro h g)
 
 
 
 
-theorem exists_unique_elim (q : Prop) (P : α → Prop) (h : ∃! (x : α), P x) (g : ∀ w : α, ∀ _ : P w, ((∀ y : α, P y → w = y) → q)) : q :=
+theorem exists_unique_elim (α : Type) (q : Prop) (P : α → Prop) (h : ∃! (x : α), P x) (g : ∀ w : α, ∀ _ : P w, ((∀ y : α, P y → w = y) → q)) : q :=
    Exists.elim h
    (
       fun (w : α) =>
@@ -221,7 +232,7 @@ theorem exists_unique_elim (q : Prop) (P : α → Prop) (h : ∃! (x : α), P x)
 
 
 
-theorem exists_unique_expansion_export (P : α → Prop) : (∃! (x : α), P x) ↔ (∃ (x : α), P x) ∧ (∀ (x y : α), (P x ∧ P y → x = y)) :=
+theorem exists_unique_expansion_export (α : Type) (P : α → Prop) : (∃! (x : α), P x) ↔ (∃ (x : α), P x) ∧ (∀ (x y : α), (P x ∧ P y → x = y)) :=
    Iff.intro
    (
       fun (h : (∃! (x : α), P x)) =>
@@ -233,8 +244,8 @@ theorem exists_unique_expansion_export (P : α → Prop) : (∃! (x : α), P x) 
                    (
                      fun (x : α) => fun (y : α) =>
                         fun (t : P x ∧ P y) =>
-                           eq_trans_curry x w y
-                           (eq_symm w x (And.right hw x (And.left t)))
+                           eq_trans_curry α x w y
+                           (eq_symm α w x (And.right hw x (And.left t)))
                            (And.right hw y (And.right t))
                   )
          )
@@ -255,18 +266,18 @@ theorem exists_unique_expansion_export (P : α → Prop) : (∃! (x : α), P x) 
    )
 
 
-theorem exists_unique_expansion_curry (P : α → Prop) :
+theorem exists_unique_expansion_curry (α : Type) (P : α → Prop) :
    (∃! (x : α), P x) ↔ (∃ (x : α), P x) ∧ (∀ (x y : α), (P x → P y → x = y)) :=
    Iff.intro
    (
       fun (h : (∃! (x : α), P x)) =>
       And.intro
-      (And.left ((Iff.mp (exists_unique_expansion_export P)) h))
-      (fun (x : α) => fun (y : α) => fun (g : P x) => fun (t : P y) => And.right ((Iff.mp (exists_unique_expansion_export P)) h) x y (And.intro g t))
+      (And.left ((Iff.mp (exists_unique_expansion_export α P)) h))
+      (fun (x : α) => fun (y : α) => fun (g : P x) => fun (t : P y) => And.right ((Iff.mp (exists_unique_expansion_export α P)) h) x y (And.intro g t))
    )
    (
       fun (h : (∃ (x : α), P x) ∧ (∀ (x y : α), (P x → P y → x = y))) =>
-         Iff.mpr (exists_unique_expansion_export P)
+         Iff.mpr (exists_unique_expansion_export α P)
          (And.intro (And.left h) (fun (x : α) => fun (y : α) => fun (g : P x ∧ P y) => And.right h x y (And.left g) (And.right g)))
 
    )
@@ -274,27 +285,27 @@ theorem exists_unique_expansion_curry (P : α → Prop) :
 
 
 
-theorem exists_unique_then_exists (P : α → Prop) (h : ∃! (x : α), P x) : (∃ (x : α), P x) :=
-   And.left ((Iff.mp (exists_unique_expansion_curry P)) h)
+theorem exists_unique_then_exists (α : Type) (P : α → Prop) (h : ∃! (x : α), P x) : (∃ (x : α), P x) :=
+   And.left ((Iff.mp (exists_unique_expansion_curry α P)) h)
 
 
-theorem exists_unique_then_unique (P : α → Prop)  (h : ∃! (x : α), P x) (x : α) (y : α) (h₁ : P x) (h₂ : P y) : x = y :=
-   And.right ((Iff.mp (exists_unique_expansion_curry P)) h) x y h₁ h₂
+theorem exists_unique_then_unique (α : Type) (P : α → Prop)  (h : ∃! (x : α), P x) (x : α) (y : α) (h₁ : P x) (h₂ : P y) : x = y :=
+   And.right ((Iff.mp (exists_unique_expansion_curry α P)) h) x y h₁ h₂
 
 
 
 
-theorem exists_unique_congr (P Q : α → Prop) : (∀ x : α, (P x ↔ Q x)) → ((∃! (x : α), P x) ↔ (∃! (x : α), Q x)) :=
+theorem exists_unique_congr (α : Type) (P Q : α → Prop) : (∀ x : α, (P x ↔ Q x)) → ((∃! (x : α), P x) ↔ (∃! (x : α), Q x)) :=
    fun (h : (∀ x : α, (P x ↔ Q x))) =>
       Iff.intro
       (
          fun (g : ∃! (x : α), P x) =>
-            exists_unique_elim (∃! (x : α), Q x) P g
+            exists_unique_elim α (∃! (x : α), Q x) P g
             (
                fun (w : α) =>
                   fun (hw : P w) =>
                      fun (hwy : ∀ y : α, P y → w = y) =>
-                        exists_unique_intro Q w (Iff.mp (h w) hw)
+                        exists_unique_intro α Q w (Iff.mp (h w) hw)
                         (fun (y : α) => fun (h₁ : Q y) =>
                            hwy y (Iff.mpr (h y) h₁)
                         )
@@ -302,12 +313,12 @@ theorem exists_unique_congr (P Q : α → Prop) : (∀ x : α, (P x ↔ Q x)) �
       )
       (
          fun (g : ∃! (x : α), Q x) =>
-            exists_unique_elim (∃! (x : α), P x) Q g
+            exists_unique_elim α (∃! (x : α), P x) Q g
             (
                fun (w : α) =>
                   fun (hw : Q w) =>
                      fun (hwy : ∀ y : α, Q y → w = y) =>
-                        exists_unique_intro P w (Iff.mpr (h w) hw) (fun (y : α) => fun (h₁ : P y) =>
+                        exists_unique_intro α P w (Iff.mpr (h w) hw) (fun (y : α) => fun (h₁ : P y) =>
                            hwy y (Iff.mp (h y) h₁)
                         )
             )
