@@ -70,6 +70,7 @@ theorem singl_subs : ∀ A x, x ∈ A → {x} ⊆ A := sorry
 
 -- 8) regularity properties
 theorem neg_notin_refl : ∀ x, x ∉ x := sorry
+theorem neg_notin_symm : ∀ x y, x ∈ y → y ∉ x := sorry
 theorem no_universal_set : ¬∃ A, ∀ x, x ∈ A := sorry
 
 

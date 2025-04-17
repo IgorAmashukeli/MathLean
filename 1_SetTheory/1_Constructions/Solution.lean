@@ -465,16 +465,6 @@ theorem neg_notin_refl : ∀ x, x ∉ x :=
 
 
 
-theorem no_universal_set : ¬∃ A, ∀ x, x ∈ A :=
-  fun (h : ∃ A, ∀ x, x ∈ A) =>
-    Exists.elim h
-    (
-      fun (w) =>
-        fun (hw : ∀ x, x ∈ w) =>
-          let first : ∃ A, ∀ x, (x ∈ A) ↔ (x ∉ x) :=
-            Exists.intro w (fun (x) => Iff.intro (fun (_ : x ∈ w) => neg_notin_refl x) (fun (_ : x ∉ x) => hw x))
-          Russel_paradox first
-    )
 
 
 
@@ -544,6 +534,49 @@ theorem singl_subs : ∀ x A, (x ∈ A) → {x} ⊆ A :=
   fun (x A hx) =>
     unordered_pair_subs x x A (hx) (hx)
 
+
+
+theorem neg_notin_symm : ∀ x y, x ∈ y → y ∉ x :=
+  fun (x) =>
+    fun (y) =>
+      fun (h : x ∈ y) =>
+        fun (h₂ : y ∈ x) =>
+          let first := {x, y}
+          let second := regularity first (Exists.intro x (left_unordered_pair x y))
+          Exists.elim second (
+            fun (t) =>
+              fun (ht : t ∈ first ∧ ∀ s ∈ t; s ∉ first) =>
+                let htf := And.left ht
+                let unpairt := Iff.mp (unordered_pair_set_is_unordered_pair x y t) htf
+                Or.elim unpairt
+                (
+                  fun (htx) =>
+                    (And.right ht) y (eq_subst (fun (s) => y ∈ s) x t (Eq.symm htx) (h₂)) (
+                      Iff.mpr (unordered_pair_set_is_unordered_pair x y y) (Or.inr (Eq.refl y))
+                    )
+
+                )
+                (
+                  fun (hty) =>
+                    (And.right ht) x (eq_subst (fun (s) => x ∈ s) y t (Eq.symm hty) (h)) (
+                      Iff.mpr (unordered_pair_set_is_unordered_pair x y x) (Or.inl (Eq.refl x))
+                    )
+                )
+          )
+
+
+theorem no_universal_set : ¬∃ A, ∀ x, x ∈ A :=
+  fun (h : ∃ A, ∀ x, x ∈ A) =>
+    Exists.elim h
+    (
+      fun (w) =>
+        fun (hw : ∀ x, x ∈ w) =>
+          let first : ∃ A, ∀ x, (x ∈ A) ↔ (x ∉ x) :=
+            Exists.intro w (fun (x) => Iff.intro (fun (_ : x ∈ w) => neg_notin_refl x) (fun (_ : x ∉ x) => hw x))
+          Russel_paradox first
+    )
+
+
 theorem unique_union : ∀ A, ∃! B, ∀ x, (x ∈ B ↔ ∃ y ∈ A; x ∈ y) :=
   fun (A) =>
     Exists.elim (union A)
@@ -555,6 +588,8 @@ theorem unique_union : ∀ A, ∃! B, ∀ x, (x ∈ B ↔ ∃ y ∈ A; x ∈ y) 
               extensionality w s (fun (x) => iff_trans_symm (x ∈ w) (∃ y ∈ A; x ∈ y) (x ∈ s) (hw x) (hs x))
           ))
     )
+
+
 
 
 

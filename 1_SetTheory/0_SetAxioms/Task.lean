@@ -103,5 +103,3 @@ infix:50 (priority := high) " ∈ " => cl_membership
 infix:50 (priority := high) " ∉ " => (fun (X : Class) => (fun (Y : Class) => ¬ membership X Y))
 axiom class_intro (P : Class → Prop) (h : ∃! X, P X) : Class
 axiom class_intro_prop (P : Class → Prop) (h : ∃! X, P X) : P (class_intro P h) ∧ ∀ X, P X → (X = class_intro P h)
-
-def exists_subset : ∃ (A B : Type) [setoid B], ∀ (a : A), ∃ (b : B), a ≈ b
